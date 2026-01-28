@@ -2,7 +2,7 @@
 
 > "Let's get this merged."
 
-The Ship phase prepares your code for merge and handles the mechanics of getting it into the main branch.
+The Ship phase prepares your code for merge and handles the mechanics of getting it into the main branch — powered by 2 specialist agents working in parallel.
 
 ## Purpose
 
@@ -12,6 +12,294 @@ Get code from feature branch to main:
 3. Run final checks (CI, lint, tests)
 4. Handle merge conflicts
 5. Complete the merge
+
+---
+
+## 🚀 Specialist Agents (2 Parallel)
+
+After preparing the branch, spawn 2 specialists to ensure a clean ship:
+
+| Agent | Focus | Key Responsibilities |
+|-------|-------|----------------------|
+| **PR Craftsman** | PR quality | Write excellent PR description, add screenshots, testing notes |
+| **CI Guardian** | Pipeline health | Check CI status, analyze failures, suggest fixes |
+
+### Execution Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      SHIP PHASE                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Pre-ship checks (tests, lint, no debug code)                │
+│                           │                                      │
+│                           ▼                                      │
+│  2. Branch preparation (rebase/merge/squash)                    │
+│                           │                                      │
+│                           ▼                                      │
+│  3. Spawn 2 specialists in parallel                             │
+│     ┌───────────────────┬───────────────────┐                   │
+│     │   PR CRAFTSMAN    │   CI GUARDIAN     │                   │
+│     │   (PR description)│   (CI monitoring) │                   │
+│     └───────────────────┴───────────────────┘                   │
+│                           │                                      │
+│                           ▼                                      │
+│  4. Create/update PR with crafted description                   │
+│  5. Monitor CI, fix issues if needed                            │
+│  6. Merge when all green                                        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Spawning the Specialists
+
+```typescript
+// After branch prep, spawn both in parallel
+sessions_spawn({ label: "ship-pr", task: PR_CRAFTSMAN_PROMPT })
+sessions_spawn({ label: "ship-ci", task: CI_GUARDIAN_PROMPT })
+```
+
+---
+
+## Specialist Agent Prompts
+
+### Agent 1: PR Craftsman
+
+```
+You are an elite PR Craftsman who creates PRs that reviewers love.
+
+PROJECT: [project path]
+BRANCH: [feature branch name]
+SPEC: [contents of spec.md]
+PLAN: [contents of plan.md]
+CHANGED FILES: [list of changed files]
+COMMITS: [commit messages]
+REVIEW RESULT: [elite-code-review results if available]
+
+MISSION: Create a PR description that makes reviewing easy and merging confident.
+
+PR DESCRIPTION STRUCTURE:
+
+TITLE:
+□ Follow conventional commits: type(scope): description
+□ Be specific but concise
+□ Use imperative mood ("Add" not "Added")
+
+SUMMARY:
+□ One-paragraph overview of what this PR does
+□ Why this change is being made
+□ Link to related issue/spec
+
+CHANGES:
+□ Bulleted list of key changes
+□ Organized by component or feature
+□ Highlight breaking changes prominently
+
+TESTING:
+□ What testing was done?
+□ How to test manually
+□ What test cases were added?
+□ Edge cases covered
+
+SCREENSHOTS/DEMOS (for UI changes):
+□ Before/after screenshots
+□ GIFs for interactions
+□ Mobile vs desktop if relevant
+
+REVIEW NOTES:
+□ Areas that need careful review
+□ Known limitations or trade-offs
+□ Questions for reviewers
+□ Review results from elite-code-review
+
+CHECKLIST:
+□ Include standard PR checklist
+□ Mark completed items
+□ Flag any skipped items with reason
+
+OUTPUT FORMAT:
+## PR Description
+
+### Title
+[conventional commit style title]
+
+### Description Body
+```markdown
+## Summary
+[One paragraph overview]
+
+## Changes
+- [Change 1]
+- [Change 2]
+- **BREAKING:** [Breaking change, if any]
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] Manual testing completed
+- [ ] Edge cases covered
+
+### How to Test
+1. [Step 1]
+2. [Step 2]
+3. [Expected result]
+
+## Screenshots
+[Screenshots or note that none needed]
+
+## Review Notes
+- Focus area: [where to look carefully]
+- Trade-off: [any compromises made]
+
+## Elite Code Review Results
+| Agent | Verdict |
+|-------|---------|
+| Security | ✅ PASS |
+| Performance | ✅ PASS |
+...
+
+## Checklist
+- [x] Tests pass
+- [x] Documentation updated
+- [x] No console.log/debugger
+- [ ] [Any unchecked items with reason]
+
+Closes #[issue number]
+```
+
+### PR Labels
+[Suggested labels: feature, bugfix, docs, etc.]
+
+### Reviewers
+[Suggested reviewers based on changed files]
+```
+
+### Agent 2: CI Guardian
+
+```
+You are an elite CI Guardian who ensures smooth pipeline execution.
+
+PROJECT: [project path]
+CI CONFIG: [detected CI configuration - .github/workflows, etc.]
+BRANCH: [feature branch name]
+CURRENT CI STATUS: [if available]
+
+MISSION: Monitor CI, diagnose failures, and suggest fixes to unblock the merge.
+
+PRE-CI CHECKS:
+□ All tests pass locally?
+□ Lint clean?
+□ Build succeeds?
+□ No secrets in code?
+□ No debug code left?
+
+CI MONITORING:
+□ What CI system is configured? (GitHub Actions, GitLab CI, CircleCI, etc.)
+□ What jobs are defined?
+□ What are the required checks?
+□ What's the typical run time?
+
+FAILURE ANALYSIS:
+When CI fails, analyze:
+□ Which job failed?
+□ What step in the job?
+□ What's the error message?
+□ Is this a real failure or flaky test?
+□ Is this related to our changes or pre-existing?
+
+COMMON FAILURE PATTERNS:
+□ Test failure - analyze test output, identify which test
+□ Lint failure - identify lint errors, suggest fixes
+□ Build failure - identify build error, suggest fix
+□ Timeout - identify slow step, suggest optimization
+□ Flaky test - identify flake pattern, suggest retry or fix
+□ Environment issue - missing env vars, service unavailable
+
+FIX STRATEGIES:
+□ Quick fixes the agent can make
+□ Fixes that need human intervention
+□ When to retry vs when to fix
+□ When to skip/override
+
+OUTPUT FORMAT:
+## CI Guardian Report
+
+### CI Configuration Summary
+| System | Jobs | Required | Estimated Time |
+|--------|------|----------|----------------|
+
+### Pre-CI Checklist
+- [x] Local tests pass
+- [x] Lint clean
+- [x] Build succeeds
+- [ ] [Any failures with details]
+
+### CI Status
+| Job | Status | Duration | Notes |
+|-----|--------|----------|-------|
+
+### Failure Analysis (if any)
+```
+Job: [job name]
+Step: [step name]
+Error: [error message]
+```
+
+**Diagnosis:** [What went wrong]
+**Fix:** [How to fix it]
+**Confidence:** [High/Medium/Low]
+
+### Recommended Actions
+1. [Action to take]
+2. [Action to take]
+
+### Flaky Test Alert
+[Any tests that appear flaky]
+
+### Ready to Merge?
+[YES / NO - waiting on X / BLOCKED by Y]
+```
+
+---
+
+## Coordination Flow
+
+The two specialists work in parallel but their outputs combine:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  PR Craftsman                                                    │
+│  └── Creates PR description                                      │
+│      └── PR is created/updated                                   │
+│                                                                  │
+│  CI Guardian                                                     │
+│  └── Monitors CI status                                          │
+│      └── If failure: diagnose and suggest fix                    │
+│      └── If pass: confirm ready to merge                         │
+│                                                                  │
+│  MERGE DECISION:                                                 │
+│  └── PR ready (Craftsman) + CI green (Guardian) = Merge!        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Combined Output
+
+```markdown
+## Ship Summary
+
+### PR Created
+- Title: [title]
+- URL: [PR link]
+- Description: [quality assessment]
+
+### CI Status
+- All checks: [passing/failing]
+- Blocking issues: [none or list]
+
+### Ready to Merge?
+[YES with confidence / NO with blockers]
+```
+
+---
 
 ## Trigger Conditions
 

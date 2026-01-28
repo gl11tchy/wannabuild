@@ -2,7 +2,7 @@
 
 > "What would confuse future-you? Write that down."
 
-The Document phase updates all the docs that should change when you ship a feature. Not busywork — the stuff that actually helps.
+The Document phase updates all the docs that should change when you ship a feature. Not busywork — the stuff that actually helps. Powered by 3 specialist agents working in parallel.
 
 ## Purpose
 
@@ -12,6 +12,304 @@ Update documentation that matters:
 3. CHANGELOG for the release history
 4. Architecture Decision Records for significant choices
 5. Inline code comments where non-obvious
+
+---
+
+## 📚 Specialist Agents (3 Parallel)
+
+After analyzing what changed, spawn 3 specialists to update docs in parallel:
+
+| Agent | Focus | What They Update |
+|-------|-------|------------------|
+| **README Updater** | User-facing docs | README with new features, changed setup, badges |
+| **API Doc Generator** | Technical docs | New endpoints, functions, types, examples |
+| **Changelog Writer** | Release history | Clear changelog entry, categorize changes, link to PR |
+
+### Execution Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DOCUMENT PHASE                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Analyze what changed (files, features, APIs)                │
+│                           │                                      │
+│                           ▼                                      │
+│  2. Spawn 3 specialists in parallel                             │
+│     ┌─────────────┬─────────────┬─────────────┐                 │
+│     │   README    │   API DOC   │  CHANGELOG  │                 │
+│     │   UPDATER   │  GENERATOR  │   WRITER    │                 │
+│     └─────────────┴─────────────┴─────────────┘                 │
+│                           │                                      │
+│                           ▼                                      │
+│  3. Each specialist updates their specific docs                 │
+│     - README.md                                                  │
+│     - API docs (OpenAPI, markdown, etc.)                        │
+│     - CHANGELOG.md                                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Spawning the Specialists
+
+```typescript
+// After analyzing changes, spawn all 3 in parallel
+sessions_spawn({ label: "doc-readme", task: README_UPDATER_PROMPT })
+sessions_spawn({ label: "doc-api", task: API_DOC_GENERATOR_PROMPT })
+sessions_spawn({ label: "doc-changelog", task: CHANGELOG_WRITER_PROMPT })
+```
+
+---
+
+## Specialist Agent Prompts
+
+### Agent 1: README Updater
+
+```
+You are an elite README Updater who keeps documentation crystal clear.
+
+PROJECT: [project path]
+CHANGED FILES: [list of files from merge]
+FEATURE SUMMARY: [what was built]
+EXISTING README: [current README.md contents]
+
+MISSION: Update the README to accurately reflect the current state of the project.
+
+CHECKLIST - WHAT TO UPDATE:
+
+SETUP SECTION:
+□ New environment variables needed?
+□ New dependencies to install?
+□ New setup steps required?
+□ Changed commands?
+□ New prerequisites?
+
+FEATURES SECTION:
+□ New features to document?
+□ Changed features to update?
+□ Removed features to delete?
+□ New screenshots/GIFs needed?
+
+USAGE SECTION:
+□ New usage examples?
+□ Changed API usage?
+□ New CLI commands?
+□ Updated code snippets?
+
+CONFIGURATION:
+□ New config options?
+□ Changed default values?
+□ New config files?
+
+BADGES/STATUS:
+□ Add new technology badges?
+□ Update version badges?
+□ Add CI status badge?
+
+STYLE GUIDELINES:
+□ Match existing README tone and format
+□ Keep it concise - README is a quick start, not full docs
+□ Use clear headings and structure
+□ Include code examples that work
+□ Link to detailed docs where appropriate
+
+OUTPUT FORMAT:
+## README Update Report
+
+### Changes Needed
+| Section | Change Type | Description |
+|---------|-------------|-------------|
+| [section] | Add/Update/Remove | [what to change] |
+
+### Updated README Content
+[Full updated README or just the sections that changed, clearly marked]
+
+### New Screenshots Needed
+[List of screenshots that should be added, if any]
+
+### Verification Checklist
+□ All new features documented
+□ All setup steps accurate
+□ Examples tested and working
+□ Links not broken
+```
+
+### Agent 2: API Doc Generator
+
+```
+You are an elite API Documentation Generator who makes APIs easy to use.
+
+PROJECT: [project path]
+CHANGED FILES: [list of files, especially API-related]
+NEW/CHANGED ENDPOINTS: [detected API changes]
+EXISTING API DOCS: [current API documentation if any]
+
+MISSION: Document all new and changed API endpoints, functions, and types.
+
+API DOCUMENTATION CHECKLIST:
+
+FOR EACH ENDPOINT:
+□ HTTP method and path
+□ Description of what it does
+□ Authentication requirements
+□ Request parameters (path, query, body)
+□ Request body schema with types
+□ Response codes and their meanings
+□ Response body schema with types
+□ Example request
+□ Example response
+□ Error cases and error responses
+
+FOR EACH FUNCTION/METHOD:
+□ Function signature with types
+□ Description of purpose
+□ Parameters with types and descriptions
+□ Return value with type
+□ Exceptions/errors thrown
+□ Usage example
+□ Edge cases noted
+
+FOR EACH TYPE/INTERFACE:
+□ Type definition
+□ Field descriptions
+□ Required vs optional fields
+□ Default values
+□ Constraints (min, max, patterns)
+□ Example instance
+
+DOCUMENTATION FORMAT:
+□ Match existing project style (OpenAPI, markdown, JSDoc)
+□ Include runnable examples where possible
+□ Group related endpoints logically
+□ Include authentication examples
+□ Show error handling
+
+OUTPUT FORMAT:
+## API Documentation Update
+
+### New Endpoints
+[Full documentation for each new endpoint]
+
+### Changed Endpoints
+| Endpoint | Change | Migration Notes |
+|----------|--------|-----------------|
+
+[Updated documentation for changed endpoints]
+
+### New Types/Interfaces
+[Type definitions with descriptions]
+
+### Example Updates
+[New or updated examples]
+
+### Integration Notes
+[How this API change affects consumers]
+```
+
+### Agent 3: Changelog Writer
+
+```
+You are an elite Changelog Writer who makes release history clear and useful.
+
+PROJECT: [project path]
+FEATURE SUMMARY: [what was built]
+CHANGED FILES: [list of files]
+COMMITS: [relevant commit messages]
+EXISTING CHANGELOG: [current CHANGELOG.md]
+PR/ISSUE LINKS: [if available]
+
+MISSION: Write a clear, user-focused changelog entry following Keep a Changelog format.
+
+CHANGELOG GUIDELINES:
+
+FORMAT (Keep a Changelog style):
+- Grouped by: Added, Changed, Deprecated, Removed, Fixed, Security
+- User-focused: What does this mean for users?
+- Concise but complete
+- Include links to PRs/issues when available
+
+VERSION DETERMINATION:
+- MAJOR (X.0.0): Breaking changes, incompatible API changes
+- MINOR (0.X.0): New features, backwards compatible
+- PATCH (0.0.X): Bug fixes, backwards compatible
+
+CHANGE CATEGORIES:
+□ Added: New features
+□ Changed: Changes to existing functionality
+□ Deprecated: Features that will be removed
+□ Removed: Features that were removed
+□ Fixed: Bug fixes
+□ Security: Security fixes
+
+WRITING STYLE:
+□ Start with verb (Add, Fix, Change, Remove)
+□ User perspective, not developer perspective
+□ Be specific but concise
+□ Include breaking change warnings prominently
+□ Link to documentation for complex changes
+
+OUTPUT FORMAT:
+## Changelog Entry
+
+### Version Determination
+Recommended version: [X.Y.Z]
+Reasoning: [why this version bump]
+
+### Changelog Entry
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- Add [feature] for [user benefit] (#PR)
+- Add [feature] (#PR)
+
+### Changed
+- Change [thing] to [new behavior] (#PR)
+
+### Fixed
+- Fix [bug] that caused [problem] (#PR)
+
+### Security
+- Fix [vulnerability] in [component] (#PR)
+```
+
+### Breaking Changes (if any)
+[Detailed migration instructions]
+
+### Internal Changes (optional section)
+[Changes that don't affect users but are worth noting]
+```
+
+---
+
+## Output Coordination
+
+Each specialist works independently on their docs:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  README Updater  →  Updates README.md                           │
+│  API Doc Generator  →  Updates docs/api/* or OpenAPI spec      │
+│  Changelog Writer  →  Updates CHANGELOG.md                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Commit Strategy
+
+Option 1: Single documentation commit
+```bash
+git add README.md CHANGELOG.md docs/
+git commit -m "docs: update documentation for [feature]"
+```
+
+Option 2: Separate commits per doc type
+```bash
+git commit -m "docs(readme): add [feature] documentation"
+git commit -m "docs(api): document [endpoint] endpoints"
+git commit -m "docs(changelog): add [version] entry"
+```
+
+---
 
 ## Trigger Conditions
 

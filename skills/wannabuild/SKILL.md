@@ -10,6 +10,46 @@ See [references/philosophy.md](references/philosophy.md) for the full manifesto.
 
 **TL;DR:** Build like an indie hacker, ship like a pro. Flexibility over dogma.
 
+---
+
+## 🤖 Multi-Agent Architecture
+
+WannaBuild isn't just one agent doing everything — it's **18 specialist agents** working in parallel groups across 6 phases:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           WANNABUILD AGENT ARMY                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  BRAINSTORM (3 agents)     PLAN (4 agents)         IMPLEMENT (1 agent)      │
+│  ┌─────────────────┐       ┌──────────────────┐    ┌──────────────────┐     │
+│  │ • Scope Analyst │       │ • Task Decomposer│    │ • Implementer    │     │
+│  │ • Tech Advisor  │       │ • Dep. Mapper    │    │                  │     │
+│  │ • UX Perspective│       │ • Risk Assessor  │    │                  │     │
+│  │                 │       │ • Scope Creep    │    │                  │     │
+│  └─────────────────┘       └──────────────────┘    └──────────────────┘     │
+│                                                              │               │
+│                                                              ▼               │
+│  DOCUMENT (3 agents)       SHIP (2 agents)         REVIEW (5 agents)        │
+│  ┌─────────────────┐       ┌──────────────────┐    ┌──────────────────┐     │
+│  │ • README Updater│  ◄─── │ • PR Craftsman   │◄───│ • Security       │     │
+│  │ • API Doc Gen   │       │ • CI Guardian    │    │ • Performance    │     │
+│  │ • Changelog     │       │                  │    │ • Architecture   │     │
+│  │                 │       │                  │    │ • Testing        │     │
+│  │                 │       │                  │    │ • DX/Quality     │     │
+│  └─────────────────┘       └──────────────────┘    └──────────────────┘     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Why parallel agents?**
+- **Deeper analysis**: Each specialist focuses on one thing and does it well
+- **Faster execution**: Parallel agents complete in the time of the slowest, not the sum
+- **Better coverage**: Nothing slips through when multiple experts check
+- **Higher quality**: The implement↔review loop ensures issues are fixed, not shipped
+
+---
+
 ## The Six Phases
 
 ```
@@ -94,14 +134,16 @@ See [references/philosophy.md](references/philosophy.md) for the full manifesto.
 | Issues become tech debt | Issues fixed before merge |
 | Human bottleneck | Automated refinement |
 
-| Phase | Skill | Purpose |
-|-------|-------|---------|
-| 1. Brainstorm | `wannabuild-brainstorm` | Explore ideas, analyze codebase, produce lightweight spec |
-| 2. Plan | `wannabuild-plan` | Break into tasks, identify risks, estimate effort |
-| 3. Implement | `wannabuild-implement` | Write code, run tests, commit incrementally |
-| 4. Review | `elite-code-review` | 5 parallel specialist reviewers (existing skill) |
-| 5. Ship | `wannabuild-ship` | Prepare PR, run checks, handle merge |
-| 6. Document | `wannabuild-document` | Update README, changelog, API docs |
+| Phase | Skill | Agents | Purpose |
+|-------|-------|--------|---------|
+| 1. Brainstorm | `wannabuild-brainstorm` | 3 parallel | Scope Analyst + Tech Advisor + UX Perspective → rich spec |
+| 2. Plan | `wannabuild-plan` | 4 parallel | Task Decomposer + Dependency Mapper + Risk Assessor + Scope Creep → battle-tested plan |
+| 3. Implement | `wannabuild-implement` | 1 | Write code, run tests, commit incrementally |
+| 4. Review | `elite-code-review` | 5 parallel | Security + Performance + Architecture + Testing + DX reviewers |
+| 5. Ship | `wannabuild-ship` | 2 parallel | PR Craftsman + CI Guardian → clean merge |
+| 6. Document | `wannabuild-document` | 3 parallel | README Updater + API Doc Generator + Changelog Writer |
+
+**Total: 18 specialist agents** across 6 phases, with 17 running in parallel groups for maximum throughput.
 
 ## Trigger Conditions
 
@@ -520,7 +562,8 @@ If CI config detected (.github/workflows, .gitlab-ci.yml, etc.):
 | Brainstorm | Lightweight spec | `.wannabuild/spec.md` |
 | Plan | Task breakdown | `.wannabuild/plan.md` |
 | Implement | Code + commits | Working tree + git history |
-| Review | Review report | `.wannabuild/review.md` |
+| Quality Loop | Loop state & history | `.wannabuild/loop-state.json` |
+| Review | Verdict per iteration | Stored in `loop-state.json` history |
 | Ship | PR/merge | Git remote |
 | Document | Updated docs | README.md, CHANGELOG.md, etc. |
 
@@ -570,17 +613,94 @@ User: "That's it, let's plan"
 WannaBuild: [Transitions to Plan phase...]
 ```
 
+## Example: Quality Loop in Action
+
+```
+[After implementation completes...]
+
+WannaBuild: ✅ All 5 tasks complete. Entering quality loop...
+
+            🔄 Running 5 review specialists in parallel...
+
+            [30 seconds later]
+
+            Review results (Iteration 1):
+            ✅ Security — PASS
+            ❌ Performance — FAIL: N+1 query in getUserPosts()
+            ✅ Architecture — PASS  
+            ❌ Testing — FAIL: Missing edge case for expired token
+            ✅ DX — PASS
+
+            3/5 passed. Sending feedback to implementer...
+
+[Implementer addresses feedback...]
+
+WannaBuild: ✅ Feedback addressed. Re-running review...
+
+            🔄 All 5 specialists evaluating updated code...
+
+            Review results (Iteration 2):
+            ✅ Security — PASS
+            ✅ Performance — PASS (N+1 fixed)
+            ✅ Architecture — PASS
+            ✅ Testing — PASS (edge case added)
+            ✅ DX — PASS
+
+            🎉 UNANIMOUS APPROVAL after 2 iterations!
+
+            Ready to ship?
+
+User: "Ship it!"
+
+WannaBuild: [Transitions to Ship phase with confidence...]
+```
+
+## Example: Quality Loop Escalation
+
+```
+[Iteration 4 of 4...]
+
+WannaBuild: Review results (Iteration 4):
+            ✅ Security — PASS
+            ❌ Performance — FAIL (still flagging query optimization)
+            ✅ Architecture — PASS
+            ✅ Testing — PASS
+            ✅ DX — PASS
+
+            ⚠️ Max iterations reached (4/4)
+            
+            The performance agent has flagged issues in iterations 2, 3, and 4.
+            Latest issue: "Missing index on author_id for large datasets"
+
+            Options:
+            1. **Override** — You approve, ship without the index
+            2. **Add Index** — Create migration for index (bigger change)
+            3. **Defer** — Ship now, create follow-up ticket
+            4. **Discuss** — Let's talk through the trade-off
+
+User: "Defer it, we don't have that many users yet"
+
+WannaBuild: Got it. Shipping with follow-up ticket for index.
+            
+            Created: TECH-142 "Add index on posts.author_id before scaling"
+            
+            [Proceeds to Ship phase...]
+```
+
 ## When NOT to Use WannaBuild
 
 - **Quick fixes:** Just make the change, don't invoke a whole framework
 - **Exploration:** Just exploring code? Don't need phases
 - **Learning:** Trying to understand code? Just ask directly
 - **One-liner changes:** Overkill for trivial edits
+- **Time-critical hotfixes:** The quality loop takes time; emergency fixes might skip it
+- **Prototype/throwaway code:** The loop ensures quality for production code, not experiments
 
 ## Handoff Protocol
 
 When handing off to a phase-specific skill:
 
+### Standard Phase Handoff
 ```json
 {
   "from": "wannabuild",
@@ -594,4 +714,58 @@ When handing off to a phase-specific skill:
 }
 ```
 
+### Quality Loop Handoffs
+
+**Entering the loop (implement → review):**
+```json
+{
+  "from": "wannabuild",
+  "to": "elite-code-review",
+  "action": "review-for-loop",
+  "iteration": 1,
+  "state": ".wannabuild/state.json",
+  "loopState": ".wannabuild/loop-state.json",
+  "branch": "feat/user-auth",
+  "changedFiles": ["src/api/auth.ts", "src/middleware.ts"]
+}
+```
+
+**Feedback to implementer:**
+```json
+{
+  "from": "wannabuild",
+  "to": "wannabuild-implement",
+  "mode": "iteration",
+  "iteration": 2,
+  "state": ".wannabuild/state.json",
+  "loopState": ".wannabuild/loop-state.json",
+  "feedback": {
+    "passed": 3,
+    "failed": 2,
+    "issues": [
+      { "agent": "performance", "issue": "N+1 query", "priority": "high" },
+      { "agent": "testing", "issue": "Missing test", "priority": "medium" }
+    ]
+  }
+}
+```
+
+**Loop exit (unanimous approval):**
+```json
+{
+  "from": "wannabuild",
+  "to": "wannabuild-ship",
+  "state": ".wannabuild/state.json",
+  "loopState": ".wannabuild/loop-state.json",
+  "branch": "feat/user-auth",
+  "approval": {
+    "unanimous": true,
+    "iterations": 3,
+    "agents": ["security", "performance", "architecture", "testing", "dx"]
+  }
+}
+```
+
 Each phase skill can operate independently but reads shared state.
+
+See [references/quality-loop-protocol.md](references/quality-loop-protocol.md) for the complete protocol specification.
