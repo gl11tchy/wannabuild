@@ -124,6 +124,59 @@ WannaBuild isn't just one agent doing everything — it's **18 specialist agents
 7. **Exit:** Loop continues until **UNANIMOUS APPROVAL** (all 5 PASS)
 8. **Escalation:** After 3-5 iterations, escalate to human
 
+### ⛔ CRITICAL: Separation of Roles
+
+**The orchestrator NEVER fixes code. NEVER.**
+
+When reviewers find issues:
+1. ❌ DO NOT fix the issue yourself
+2. ❌ DO NOT skip the re-review after fixes
+3. ✅ DO send feedback to the Implement phase
+4. ✅ DO re-run ALL 5 reviewers after fixes
+5. ✅ DO report bugs prominently (separate message, not buried)
+
+**If you find yourself typing code to fix a reviewer's feedback, STOP.**
+That's the implementer's job. Send it back.
+
+### Bug Reporting Format
+
+When reviewers find issues, report them prominently:
+
+```
+⚠️ REVIEW FOUND ISSUES
+
+Iteration 1 of 4
+
+FAILED (2 of 5):
+• Best Practices: localStorage dismissal not persisting
+• Architect: Same issue flagged
+
+PASSED (3 of 5):
+• Plan Verifier ✅
+• Security ✅  
+• Code Simplifier ✅
+
+→ Sending feedback to Implementer...
+```
+
+Then after implementer fixes:
+
+```
+🔄 RE-RUNNING REVIEW (Iteration 2)
+
+Spawning all 5 reviewers on fixed code...
+```
+
+Only ship when:
+```
+✅ UNANIMOUS APPROVAL (5/5)
+
+All reviewers passed on iteration 2.
+Issues fixed: localStorage dismissal persistence
+
+→ Proceeding to Ship phase
+```
+
 ### Why This Matters
 
 | Traditional Review | WannaBuild Quality Loop |
