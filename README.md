@@ -12,8 +12,9 @@ Spec-Driven Development for indie hackers. 20 specialist AI agents. 7 phases. Ze
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-orange?style=flat-square)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
-```bash
-claude plugin install gh:gl11tchy/wannabuild
+```
+/plugin marketplace add gl11tchy/wannabuild
+/plugin install wannabuild@gl11tchy
 ```
 
 [How it works](#how-it-works) · [The agents](#the-20-agents) · [Quality loop](#the-quality-loop) · [Usage](#usage)
@@ -135,8 +136,12 @@ The review phase isn't a checkbox. It's a loop.
 
 ### As a Claude Code Plugin *(recommended)*
 
-```bash
-claude plugin install gh:gl11tchy/wannabuild
+```
+# Step 1 — add the marketplace
+/plugin marketplace add gl11tchy/wannabuild
+
+# Step 2 — install
+/plugin install wannabuild@gl11tchy
 ```
 
 All 8 skills and 20 agents are immediately available across every project.
