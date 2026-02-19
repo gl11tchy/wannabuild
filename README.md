@@ -2,9 +2,7 @@
 
 # ⚡ WannaBuild
 
-**From "I wanna build..." to merged PR — automatically.**
-
-Spec-Driven Development for indie hackers. 20 specialist AI agents. 7 phases. Zero ceremony.
+Spec-Driven Development for indie builders. 20 specialist AI agents. 7 phases. Zero ceremony.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 ![Agents](https://img.shields.io/badge/specialists-20-blueviolet?style=flat-square)
@@ -225,7 +223,7 @@ Plus state files: `state.json`, `loop-state.json`, `decisions.md`.
 
 **Quality loops, not quality gates.** Code doesn't get checked once and shipped. It gets iterated until 6 specialists unanimously vote PASS.
 
-**Built for indie hackers.** Not enterprise methodology shrunk down. Built ground-up for solo devs and small teams who need to ship fast *and* ship right.
+**Built for indie builders.** Not enterprise methodology shrunk down. Built ground-up for solo devs and small teams who need to ship fast *and* ship right.
 
 ---
 
@@ -239,7 +237,7 @@ Plus state files: `state.json`, `loop-state.json`, `decisions.md`.
 | **Testing** | Afterthought | Integration tests are a hard gate |
 | **Docs** | Never written | Auto-generated from spec artifacts |
 | **Install** | Manual setup | One command, works everywhere |
-| **Built for** | Enterprise teams | Indie hackers & small teams |
+| **Built for** | Enterprise teams | Indie builders & small teams |
 
 ---
 
