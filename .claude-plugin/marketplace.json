@@ -1,12 +1,15 @@
 {
   "name": "gl11tchy",
+  "metadata": {
+    "description": "gl11tchy's Claude Code plugins"
+  },
   "owner": {
     "name": "gl11tchy"
   },
   "plugins": [
     {
       "name": "wannabuild",
-      "source": ".",
+      "source": "./",
       "description": "Spec-Driven Development framework with 20 specialist AI agents. Talk naturally, ship professionally.",
       "version": "2.0.0",
       "author": {
