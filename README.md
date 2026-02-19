@@ -2,9 +2,9 @@
 
 # ⚡ WannaBuild
 
-**From "I wanna build..." to merged PR — automatically.**
+**Just say: "I wanna build...".**
 
-Spec-Driven Development for indie hackers. 20 specialist AI agents. 7 phases. Zero ceremony.
+Spec-Driven Development for indie builders. 20 specialist AI agents. 7 phases. Zero ceremony.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 ![Agents](https://img.shields.io/badge/specialists-20-blueviolet?style=flat-square)
