@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+vendor/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv
+venv/
+env/
+
+# Build outputs
+dist/
+build/
+!skills/build/
+*.egg-info/
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# WannaBuild state (if generated locally)
+.wannabuild/
+.wannabuild-*/
+
+# Test coverage
+coverage/
+.coverage
+htmlcov/
+
+# Python packaging
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
