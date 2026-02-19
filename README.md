@@ -10,10 +10,14 @@ Spec-Driven Development for indie builders. 20 specialist AI agents. 7 phases. Z
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-orange?style=flat-square)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
+</div>
+
 ```
 /plugin marketplace add gl11tchy/wannabuild
-/plugin install         wannabuild@gl11tchy-wannabuild
+/plugin install wannabuild@gl11tchy-wannabuild
 ```
+
+<div align="center">
 
 [How it works](#how-it-works) · [The agents](#the-20-agents) · [Quality loop](#the-quality-loop) · [Usage](#usage)
 
