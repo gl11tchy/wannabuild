@@ -14,7 +14,7 @@ Spec-Driven Development for indie builders. 20 specialist AI agents. 7 phases. Z
 
 ```
 /plugin marketplace add gl11tchy/wannabuild
-/plugin install wannabuild@gl11tchy-wannabuild
+/plugin install wannabuild@gl11tchy
 ```
 
 <div align="center">
@@ -140,7 +140,7 @@ The review phase isn't a checkbox. It's a loop.
 
 ```
 /plugin marketplace add gl11tchy/wannabuild
-/plugin install         wannabuild@gl11tchy-wannabuild
+/plugin install         wannabuild@gl11tchy
 ```
 
 All 8 skills and 20 agents are immediately available across every project.
