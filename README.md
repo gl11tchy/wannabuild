@@ -183,14 +183,14 @@ Once installed as a plugin, these are available everywhere:
 
 | Command | Phase |
 |---------|-------|
-| `/wannabuild-build` | Start full pipeline (or use `/wb`) |
-| `/wannabuild-requirements` | Phase 1 — requirements spec |
-| `/wannabuild-design` | Phase 2 — architecture spec |
-| `/wannabuild-tasks` | Phase 3 — task breakdown |
-| `/wannabuild-implement` | Phase 4 — write the code |
-| `/wannabuild-review` | Phase 5 — 6-specialist review |
-| `/wannabuild-ship` | Phase 6 — PR + CI |
-| `/wannabuild-document` | Phase 7 — README, API docs, changelog |
+| `/wannabuild:build` | Start full pipeline |
+| `/wannabuild:requirements` | Phase 1 — requirements spec |
+| `/wannabuild:design` | Phase 2 — architecture spec |
+| `/wannabuild:tasks` | Phase 3 — task breakdown |
+| `/wannabuild:implement` | Phase 4 — write the code |
+| `/wannabuild:review` | Phase 5 — 6-specialist review |
+| `/wannabuild:ship` | Phase 6 — PR + CI |
+| `/wannabuild:document` | Phase 7 — README, API docs, changelog |
 
 ### Skip phases freely
 
