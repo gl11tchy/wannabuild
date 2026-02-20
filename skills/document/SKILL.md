@@ -6,10 +6,20 @@ Phase 7 of 7 in the WannaBuild SDD pipeline. Updates documentation to reflect wh
 
 ## Agents
 
+The agent set depends on the session mode (stored in `.wannabuild/state.json`):
+
+### Full Mode (all 3)
+
 | Agent | File | Role |
 |-------|------|------|
 | README Updater | `wb-readme-updater` | Updates README with new features, setup, usage |
 | API Doc Generator | `wb-api-doc-generator` | Generates/updates API documentation from code and design spec |
+| Changelog Writer | `wb-changelog-writer` | Writes changelog entry following Keep a Changelog format |
+
+### Light Mode (1 agent)
+
+| Agent | File | Role |
+|-------|------|------|
 | Changelog Writer | `wb-changelog-writer` | Writes changelog entry following Keep a Changelog format |
 
 ## Trigger Conditions
@@ -43,6 +53,7 @@ Phase 7 of 7 in the WannaBuild SDD pipeline. Updates documentation to reflect wh
 
 ## Execution Flow
 
+**Full mode (all 3 agents in parallel):**
 ```
 Spec artifacts + merged code (input)
         │
@@ -64,19 +75,51 @@ Spec artifacts + merged code (input)
   └──────────────────────────────────────┘
 ```
 
+**Light mode (changelog only):**
+```
+Spec artifacts + merged code (input)
+        │
+        ▼
+  ┌───────────────┐
+  │  Changelog    │
+  │   Writer      │
+  └──────┬────────┘
+         │
+         ▼
+  ┌──────────────────────────────────────┐
+  │  Orchestrator: Verify and commit     │
+  │  documentation updates               │
+  └──────────────────────────────────────┘
+```
+
 ## Agent Spawning
 
-All 3 agents run as parallel background tasks:
+**Full mode — all 3 agents as parallel background tasks:**
 
 ```
 Task(subagent_type="wb-readme-updater", run_in_background=true)
-  prompt: "Update README. Specs at .wannabuild/spec/. Recent changes: {summary}"
+  prompt: "Update README. Specs at .wannabuild/spec/. Recent changes: {summary}.
+           Write your full output to .wannabuild/outputs/readme-updater.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/readme-updater.md'"
 
 Task(subagent_type="wb-api-doc-generator", run_in_background=true)
-  prompt: "Generate API docs. Design spec at .wannabuild/spec/design.md. Codebase: {path}"
+  prompt: "Generate API docs. Design spec at .wannabuild/spec/design.md. Codebase: {path}.
+           Write your full output to .wannabuild/outputs/api-doc-generator.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/api-doc-generator.md'"
 
 Task(subagent_type="wb-changelog-writer", run_in_background=true)
-  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Git log: {recent_commits}"
+  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Git log: {recent_commits}.
+           Write your full output to .wannabuild/outputs/changelog-writer.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/changelog-writer.md'"
+```
+
+**Light mode — changelog writer only:**
+
+```
+Task(subagent_type="wb-changelog-writer", run_in_background=true)
+  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Git log: {recent_commits}.
+           Write your full output to .wannabuild/outputs/changelog-writer.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/changelog-writer.md'"
 ```
 
 ## Documentation Sources
@@ -115,7 +158,7 @@ This ensures documentation matches what was specified and built, not what someon
 
 ## Commit Strategy
 
-After all 3 agents complete, commit documentation updates:
+After all agents complete (3 in Full mode, 1 in Light mode), commit documentation updates:
 
 ```
 docs: update documentation for [feature name]
@@ -124,6 +167,8 @@ docs: update documentation for [feature name]
 Single commit for all documentation changes (they're logically one unit).
 
 ## State Update
+
+Merge into existing state.json (preserving `mode` and all other existing keys):
 
 ```json
 {
@@ -135,8 +180,8 @@ Single commit for all documentation changes (they're logically one unit).
     "tasks": ".wannabuild/spec/tasks.md"
   },
   "documentation": {
-    "readme_updated": true,
-    "api_docs_updated": true,
+    "readme_updated": true,    // false in Light mode
+    "api_docs_updated": true,  // false in Light mode
     "changelog_updated": true,
     "commit": "xyz7890"
   }
@@ -152,9 +197,9 @@ After all documentation is updated:
 > **Requirements:** [N] user stories, [N] acceptance criteria
 > **Design:** [architecture summary]
 > **Implementation:** [N] tasks completed, [N] integration tests
-> **Review:** Passed 6/6 specialists in [N] iterations
+> **Review:** Passed [reviewer_count]/[reviewer_count] specialists in [N] iterations
 > **Shipped:** PR #[N] merged
-> **Documentation:** README, API docs, and changelog updated
+> **Documentation:** README, API docs, and changelog updated *(Full mode)* / Changelog updated *(Light mode)*
 >
 > All spec artifacts are in `.wannabuild/spec/` for future reference.
 

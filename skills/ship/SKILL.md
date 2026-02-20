@@ -18,7 +18,7 @@ Phase 6 of 7 in the WannaBuild SDD pipeline. Creates a well-structured PR refere
 - "Ship it" / "Create a PR" / "Let's merge"
 
 **Implicit (from orchestrator):**
-- Review phase achieves unanimous 6/6 PASS → auto-transition to Ship
+- Review phase achieves unanimous PASS → auto-transition to Ship
 
 ## Input
 
@@ -81,11 +81,15 @@ These agents run **sequentially** (CI Guardian needs the PR to exist):
 ```
 // Step 1: Create PR
 Task(subagent_type="wb-pr-craftsman")
-  prompt: "Create PR. Specs at .wannabuild/spec/. Review approved after {iterations} iterations."
+  prompt: "Create PR. Specs at .wannabuild/spec/. Review approved after {iterations} iterations.
+           Write your full output (PR URL, description, summary) to .wannabuild/outputs/pr-craftsman.md.
+           Return ONLY: 'COMPLETE — PR #{pr_number} created. Report at .wannabuild/outputs/pr-craftsman.md'"
 
 // Step 2: Monitor CI (after PR exists)
 Task(subagent_type="wb-ci-guardian")
-  prompt: "Monitor CI for PR #{pr_number}. Verify integration tests run in pipeline."
+  prompt: "Monitor CI for PR #{pr_number}. Verify integration tests run in pipeline.
+           Write your full CI report to .wannabuild/outputs/ci-guardian.md.
+           Return ONLY: 'COMPLETE — CI {passed|failed}, [one sentence]. Report at .wannabuild/outputs/ci-guardian.md'"
 ```
 
 ## PR Description Template
@@ -106,12 +110,12 @@ The PR Craftsman uses spec artifacts to create comprehensive descriptions:
 
 ## Testing
 - Integration tests: [count] written, all passing
-- Review: Passed 6/6 specialists in [N] iterations
+- Review: Passed [reviewer_count]/[reviewer_count] specialists in [N] iterations
 - Test coverage: All acceptance criteria have integration tests
 
 ## Review History
-- Iteration 1: [4/6 PASS] — fixed performance + testing issues
-- Iteration 2: [6/6 PASS] — approved
+- Iteration 1: [N/reviewer_count PASS] — fixed [issues]
+- Iteration 2: [reviewer_count/reviewer_count PASS] — approved
 ```
 
 ## CI Guardian: Integration Test Verification
@@ -135,6 +139,8 @@ After CI passes, the orchestrator presents merge options to the user:
 The orchestrator executes the user's choice.
 
 ## State Update
+
+Merge into existing state.json (preserving `mode` and all other existing keys):
 
 ```json
 {

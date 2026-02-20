@@ -162,6 +162,8 @@ And a final summary:
 
 ## State Update
 
+Merge into existing state.json (preserving `mode` and all other existing keys):
+
 ```json
 {
   "current_phase": "implement",

@@ -2,14 +2,16 @@
 
 > Phase 2 of 7 in the WannaBuild SDD pipeline. Transforms requirements into a technical blueprint with architecture, tech stack decisions, data models, API contracts, testing strategy, and risk assessment.
 
-## Agents
+## Light Mode: This Phase Is Skipped
 
-This phase uses 3 specialist agents running in parallel:
+In Light mode, the orchestrator transitions directly from Requirements to Tasks. No design.md is written. The implementer infers architecture from the existing codebase. Use Full mode when you need to establish architecture, choose a tech stack, or assess risks before coding.
+
+## Agents (Full Mode Only)
 
 | Agent | File | Role |
 |-------|------|------|
-| Tech Advisor | `wb-tech-advisor` | Tech stack evaluation, build-vs-buy, dependencies |
 | Architect | `wb-architect` | System architecture, data models, API contracts, testing strategy |
+| Tech Advisor | `wb-tech-advisor` | Tech stack evaluation, build-vs-buy, dependencies |
 | Risk Assessor | `wb-risk-assessor` | Risk identification, probability/impact scoring, mitigations |
 
 ## Trigger Conditions
@@ -20,7 +22,7 @@ This phase uses 3 specialist agents running in parallel:
 - "How should we build it?"
 
 **Implicit (from orchestrator):**
-- Requirements phase completes → auto-transition to Design
+- Requirements phase completes → auto-transition to Design (Full mode only)
 
 ## Input
 
@@ -48,8 +50,8 @@ spec/requirements.md (input)
 │  Parallel Agent Execution                    │
 │                                              │
 │  ┌──────────┐ ┌──────────┐ ┌──────────────┐ │
-│  │  Tech    │ │          │ │    Risk      │ │
-│  │ Advisor  │ │ Architect│ │  Assessor    │ │
+│  │ Architect│ │  Tech    │ │    Risk      │ │
+│  │          │ │ Advisor  │ │  Assessor    │ │
 │  └────┬─────┘ └────┬─────┘ └──────┬───────┘ │
 │       │             │              │         │
 └───────┼─────────────┼──────────────┼─────────┘
@@ -70,20 +72,30 @@ spec/requirements.md (input)
 
 ## Agent Spawning
 
-```
-Task(subagent_type="wb-tech-advisor", run_in_background=true)
-  prompt: "Evaluate tech stack for project. Requirements: {requirements_path}. Codebase: {codebase_path}"
+All 3 agents run as parallel background tasks:
 
+```
 Task(subagent_type="wb-architect", run_in_background=true)
-  prompt: "Design architecture for project. Requirements: {requirements_path}. Codebase: {codebase_path}"
+  prompt: "Design architecture for project. Requirements: {requirements_path}. Codebase: {codebase_path}.
+           Write your full analysis to .wannabuild/outputs/architect.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/architect.md'"
+
+Task(subagent_type="wb-tech-advisor", run_in_background=true)
+  prompt: "Evaluate tech stack for project. Requirements: {requirements_path}. Codebase: {codebase_path}.
+           Write your full analysis to .wannabuild/outputs/tech-advisor.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/tech-advisor.md'"
 
 Task(subagent_type="wb-risk-assessor", run_in_background=true)
-  prompt: "Assess risks for project. Requirements: {requirements_path}. Codebase: {codebase_path}"
+  prompt: "Assess risks for project. Requirements: {requirements_path}. Codebase: {codebase_path}.
+           Write your full analysis to .wannabuild/outputs/risk-assessor.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/risk-assessor.md'"
 ```
+
+All 3 agents write their full analysis to `.wannabuild/outputs/` and return a one-line status to the main conversation.
 
 ## Synthesis
 
-After all three agents complete, the orchestrator:
+After all 3 agents complete, the orchestrator reads `.wannabuild/outputs/architect.md`, `.wannabuild/outputs/tech-advisor.md`, and `.wannabuild/outputs/risk-assessor.md`, then:
 
 1. **Merge tech stack decisions** from Tech Advisor with architecture from Architect
 2. **Resolve conflicts:** If Tech Advisor recommends X but Architect designed for Y, flag it for the user
@@ -160,6 +172,8 @@ The phase produces `.wannabuild/spec/design.md`:
 ```
 
 ## State Update
+
+Merge into existing state.json (preserving `mode` and all other existing keys):
 
 ```json
 {

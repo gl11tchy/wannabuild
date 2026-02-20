@@ -4,7 +4,7 @@
 
 ## Agents
 
-This phase uses 2 specialist agents running in parallel:
+Both modes run the same two agents (requirements are equally important regardless of mode):
 
 | Agent | File | Role |
 |-------|------|------|
@@ -68,21 +68,25 @@ User describes project
 
 ## Agent Spawning
 
-The orchestrator spawns both agents as parallel background tasks:
+Both agents run as parallel background tasks (same in Full and Light modes):
 
 ```
 Task(subagent_type="wb-scope-analyst", run_in_background=true)
-  prompt: "Analyze scope for: {project_description}. Codebase: {codebase_path}"
+  prompt: "Analyze scope for: {project_description}. Codebase: {codebase_path}.
+           Write your full analysis to .wannabuild/outputs/scope-analyst.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/scope-analyst.md'"
 
 Task(subagent_type="wb-ux-perspective", run_in_background=true)
-  prompt: "Analyze UX for: {project_description}. Codebase: {codebase_path}"
+  prompt: "Analyze UX for: {project_description}. Codebase: {codebase_path}.
+           Write your full analysis to .wannabuild/outputs/ux-perspective.md.
+           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/ux-perspective.md'"
 ```
 
-Both agents read the codebase (if it exists) and return structured markdown reports.
+Both agents write their full analysis to `.wannabuild/outputs/` and return a one-line status to the main conversation.
 
 ## Synthesis
 
-After both agents complete, the orchestrator synthesizes their outputs into a unified requirements spec. The synthesis process:
+After both agents complete, the orchestrator reads `.wannabuild/outputs/scope-analyst.md` and `.wannabuild/outputs/ux-perspective.md`, then synthesizes their content into a unified requirements spec. The synthesis process:
 
 1. **Merge user stories** from UX Perspective with scope boundaries from Scope Analyst
 2. **Validate scope:** Ensure user stories fit within the MVP boundary
@@ -136,6 +140,9 @@ The phase produces `.wannabuild/spec/requirements.md`:
 
 ## State Update
 
+Merge into existing state.json (preserving `mode` and all other existing keys):
+
+**Full mode** (next phase: design):
 ```json
 {
   "current_phase": "requirements",
@@ -147,11 +154,36 @@ The phase produces `.wannabuild/spec/requirements.md`:
 }
 ```
 
-## Handoff to Design Phase
+**Light mode** (next phase: tasks — design is skipped):
+```json
+{
+  "current_phase": "requirements",
+  "phase_status": "complete",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md"
+  },
+  "next_phase": "tasks"
+}
+```
 
+## Handoff
+
+**Full mode → Design Phase:**
 ```json
 {
   "phase": "design",
+  "from": "requirements",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md"
+  },
+  "codebase_path": "/path/to/project"
+}
+```
+
+**Light mode → Tasks Phase (design skipped):**
+```json
+{
+  "phase": "tasks",
   "from": "requirements",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md"
