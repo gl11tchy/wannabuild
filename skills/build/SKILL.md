@@ -40,7 +40,19 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 | 4 | Implement | `wannabuild-implement` | wb-implementer (default), wb-implementer-escalated (retry/high-complexity) | Code + tests + checkpoints |
 | 5 | Review | `wannabuild-review` | wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester | `loop-state.json` |
 | 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
-| 7 | Document | `wannabuild-document` | wb-changelog-writer | Updated docs |
+| 7 | Document | `wannabuild-document` | wb-readme-updater, wb-api-doc-generator, wb-changelog-writer | Updated docs |
+
+### Spark Mode
+
+| # | Phase | Skill | Agents | Spec Artifact |
+|---|-------|-------|--------|---------------|
+| 1 | Requirements | `wannabuild-requirements` | wb-scope-analyst, wb-ux-perspective | `spec/requirements.md` |
+| 2 | Design | — | **skipped** | — |
+| 3 | Tasks | `wannabuild-tasks` | wb-task-decomposer, wb-scope-validator | `spec/tasks.md` |
+| 4 | Implement | `wannabuild-implement` | wb-implementer-spark (default), wb-implementer-escalated-spark (retry/high-complexity) | Code + tests + checkpoints |
+| 5 | Review | `wannabuild-review` | wb-security-reviewer-spark, wb-architecture-reviewer-spark, wb-integration-tester-spark | `loop-state.json` |
+| 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
+| 7 | Document | `wannabuild-document` | wb-readme-updater, wb-api-doc-generator, wb-changelog-writer | Updated docs |
 
 ## Mode Selection
 
@@ -49,18 +61,19 @@ Before any phase routing, ask the user which mode they want. This fires **once**
 > **Which mode?**
 > - **Full** — All 7 phases including design. Best for new products, new codebases, or features that require architectural decisions.
 > - **Light** — Skips design. Requirements → Tasks → Implement → Review → Ship → Document. Best for everyday features and fixes on an existing codebase where the architecture is already known.
+> - **Spark** — Same as Light, but this mode is speed-first and uses Spark-specific agent profiles.
 
-Both modes run the same SDD backbone with the same spec artifacts, the same integration tester hard gate, and the same ship phase. Light mode skips design entirely and runs a leaner review (3 reviewers instead of 6). Use Full any time you're making significant architectural decisions — Light assumes you already know how you're building it.
+Both modes and Spark run the same SDD backbone with the same spec artifacts and the same ship phase. Spark and Light both skip design entirely and use a leaner review baseline (3 reviewers instead of 6). Use Full any time you're making significant architectural decisions.
 
-**Persistence:** Write the chosen mode to `state.json` **before spawning any phase agent**. On resume, if `state.json` already has a valid `mode` key (`"full"` or `"light"`), use it silently — do not re-ask. If the value is absent, unrecognized, or unparseable (corrupt state), ask the mode question again and warn the user; then default to `"full"` if the response is still ambiguous. Legacy `state.json` files without a `mode` key default to `"full"` silently.
+**Persistence:** Write the chosen mode to `state.json` **before spawning any phase agent**. On resume, if `state.json` already has a valid `mode` key (`"full"`, `"light"`, or `"spark"`), use it silently — do not re-ask. If the value is absent, unrecognized, or unparseable (corrupt state), ask the mode question again and warn the user; then default to `"full"` if the response is still ambiguous. Legacy `state.json` files without a `mode` key default to `"full"` silently.
 
 ## Model Tiering Defaults
 
 Quality stays non-negotiable, but model spend is differentiated by role:
 
 - **Spec phases run on Opus** (`wb-scope-analyst`, `wb-ux-perspective`, `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator`) to maximize spec quality.
-- **Default implementation inherits the parent session model** via `wb-implementer` (recommended target in OpenClaw: Codex 5.3 spark) for faster, tighter step execution.
-- **Escalated implementation inherits the parent model** via `wb-implementer-escalated` (recommended parent: Codex 5.3 or Opus) for high-complexity work or remediation after a failed review iteration.
+- **Default implementation:** `wb-implementer` for Full/Light; `wb-implementer-spark` in Spark mode.
+- **Escalated implementation:** `wb-implementer-escalated` for Full/Light; `wb-implementer-escalated-spark` in Spark mode.
 - **Hard gate remains unchanged:** integration testing still blocks ship on FAIL.
 
 Escalation rules:
@@ -71,7 +84,7 @@ Escalation rules:
 
 Quality gates stay strict, but retry behavior is adaptive by default:
 
-- **Iteration 1 review:** run the full reviewer set for the selected mode (Full=6, Light=3).
+- **Iteration 1 review:** run the full reviewer set for the selected mode (Full=6, Light=3, Spark=3).
 - **Iteration 2+ review:** run only impacted reviewers **plus `wb-integration-tester` (always)**.
 - **Fallback safety:** if impact scope is ambiguous, rerun the full reviewer set.
 - **Context slicing:** pass only changed-file summaries + relevant spec excerpts (not full artifacts) to non-integration reviewers.

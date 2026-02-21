@@ -1,7 +1,8 @@
 ---
-name: wb-architecture-reviewer
+name: wb-architecture-reviewer-spark
 description: "Reviews code for architectural quality in WannaBuild review phase. Validates separation of concerns, design pattern usage, and compliance with the design spec."
 tools: Read, Grep, Glob, Bash
+model: openai-codex/gpt-5.3-codex-spark
 ---
 
 # Architecture Reviewer

@@ -1,7 +1,8 @@
 ---
-name: wb-security-reviewer
+name: wb-security-reviewer-spark
 description: "Reviews code for security vulnerabilities in WannaBuild review phase. Checks against OWASP top 10, secret detection, and framework-specific security patterns."
 tools: Read, Grep, Glob, Bash
+model: openai-codex/gpt-5.3-codex-spark
 ---
 
 # Security Reviewer

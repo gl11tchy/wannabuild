@@ -69,7 +69,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 
 2. **Role separation is absolute.** The orchestrator NEVER fixes code. Reviewers find issues → feedback goes to implementer-escalated → remediation happens in micro-steps with checkpoints → adaptive reviewers re-run (+ integration tester always). This is the most important invariant in the system.
 
-3. **Quality loop requires unanimous approval.** Iteration 1 runs the base reviewer set for mode (Full=6, Light=3). Retry iterations run impacted reviewers + integration tester (always), and the active reviewer set must unanimously PASS before shipping. Max 3 iterations before escalating to human.
+3. **Quality loop requires unanimous approval.** Iteration 1 runs the base reviewer set for mode (Full=6, Light=3, Spark=3). Retry iterations run impacted reviewers + integration tester (always), and the active reviewer set must unanimously PASS before shipping. Max 3 iterations before escalating to human.
 
 4. **Integration tests are non-negotiable.** The wb-integration-tester agent is a hard gate — its FAIL blocks shipping with no override path. Every acceptance criterion must have a corresponding integration test.
 

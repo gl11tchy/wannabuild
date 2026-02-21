@@ -1,7 +1,8 @@
 ---
-name: wb-implementer
+name: wb-implementer-spark
 description: "Implements code from the task spec for WannaBuild implement phase. Writes feature code and integration tests via micro-step execution with checkpoint evidence."
 tools: Read, Edit, Write, Bash, Grep, Glob
+model: openai-codex/gpt-5.3-codex-spark
 ---
 
 # Implementer

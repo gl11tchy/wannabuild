@@ -5,8 +5,8 @@
 Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. The active reviewer set for each iteration must unanimously PASS for code to ship. The integration tester is a hard gate — no override for missing tests.
 
 The reviewer set depends on the session mode (stored in `.wannabuild/state.json`) and iteration:
-- **Iteration 1:** run the full base set for the mode (Full=6, Light=3)
-- **Iteration 2+:** run only impacted reviewers + `wb-integration-tester` (always)
+- **Iteration 1:** run the full base set for the mode (Full=6, Light=3, Spark=3)
+- **Iteration 2+:** run only impacted reviewers + the mode baseline integration tester (`wb-integration-tester` or `wb-integration-tester-spark`) always
 - **Fallback:** if impact is ambiguous, run the full base set
 
 ## Agents
@@ -30,10 +30,19 @@ The reviewer set depends on the session mode (stored in `.wannabuild/state.json`
 | Architecture Reviewer | `wb-architecture-reviewer` | Design compliance, separation of concerns | No |
 | Integration Tester | `wb-integration-tester` | Acceptance criteria → test mapping, runs tests | **YES** |
 
+### Spark Mode (3 reviewers)
+
+| Agent | File | Role | Hard Gate? |
+|-------|------|------|------------|
+| Security Reviewer | `wb-security-reviewer-spark` | OWASP, secrets, auth vulnerabilities | No |
+| Architecture Reviewer | `wb-architecture-reviewer-spark` | Design compliance, separation of concerns | No |
+| Integration Tester | `wb-integration-tester-spark` | Acceptance criteria → test mapping, runs tests | **YES** |
+
+
 ## Fast-Track Review Contract (Mode-agnostic)
 
 - Iteration 1 may start with the reduced reviewer set only if matrix criteria in `AGENTS.md` are met.
-- Set must always include `wb-integration-tester`.
+- Set must always include the mode baseline integration tester (`wb-integration-tester` or `wb-integration-tester-spark`).
 - Any FAIL in fast-track triggers the next iteration to run the full base reviewer set.
 - If impact routing confidence is unclear, route to the full base reviewer set immediately.
 - Do not reduce hard-gate logic in any scenario.
@@ -115,7 +124,8 @@ Build the reviewer list per iteration before spawning:
 
 ```
 base_reviewers_full  = [wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier]
-base_reviewers_light = [wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester]
+base_reviewers_light  = [wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester]
+base_reviewers_spark  = [wb-security-reviewer-spark, wb-architecture-reviewer-spark, wb-integration-tester-spark]
 
 IF iteration == 1:   # first pass
   active_reviewers = base_reviewers_{mode}
@@ -147,8 +157,9 @@ Use changed files from last checkpoint window + prior failures to choose impacte
 - `wb-testing-reviewer`: test harness, fixtures, assertions, coverage strategy changes.
 - `wb-code-simplifier`: large refactors, abstraction churn, dead-code risk areas.
 - `wb-integration-tester`: **always included** (hard gate).
+  (Spark mode uses `wb-integration-tester-spark`.)
 
-If routing confidence is low, run the full base reviewer set.
+If routing confidence is low, run the full base reviewer set for the selected mode.
 
 ### Context Scope Rules
 
