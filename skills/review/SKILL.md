@@ -70,6 +70,14 @@ The reviewer set depends on the session mode (stored in `.wannabuild/state.json`
 
 Checkpoint summaries are first-class review input. Reviewer routing should prioritize changed files from the latest checkpoint window before falling back to broader diff context.
 
+Before spawning any reviewer for review phase:
+
+```bash
+scripts/validate-wannabuild-artifacts.sh . review
+```
+
+If this check fails, do not spawn reviewers; present the exact validation errors and ask the user how to proceed.
+
 ## Execution Flow
 
 ```
@@ -191,6 +199,12 @@ The integration tester additionally returns:
 
 After all reviewers complete, read each `.wannabuild/review/[agent]-iter-{N}.json` file to collect full verdicts. Parse the `status` and `issues` fields to build the display. (The one-line returns tell you which agents completed, but all detail comes from the files.)
 
+If any verdict file is malformed JSON or missing required fields, treat it as a review hard failure:
+
+- report the exact path and parser error
+- write `loop-state.json` status as `blocked`
+- skip auto-continuation until contract fixes or user instruction is applied
+
 Display (counts reflect the **active reviewer set** for that iteration):
 
 ```
@@ -299,3 +313,20 @@ When running standalone without spec artifacts, reviewers use general best pract
 - [ ] Feedback aggregated by file (not by agent) for `wb-implementer-escalated`
 - [ ] Integration tester ran the actual test suite
 - [ ] Unanimous approval from active reviewer set before proceeding to Ship
+
+## Contract Validation
+
+- If any review artifact is malformed (`state.json`, checkpoint window, verdict JSON), route to `blocked` status and request user clarification.
+- Iteration 1 uses full mode base set; iterations 2+ use:
+  - impacted reviewers from change surface
+  - plus `wb-integration-tester` always
+  - fallback to base set if routing confidence is low
+- Hard gate rule: `wb-integration-tester` must be PASS for all approved states.
+- Merge iteration feedback by file and severity before passing to implementer remediation.
+
+## Failure Fallback
+
+- If `loop-state.status` indicates `blocked`, do not auto-continue.
+- If `max_iterations` is reached with unresolved failures, surface:
+  - unresolved items by file
+  - whether overrides are allowed (disabled when integration tester is failing)

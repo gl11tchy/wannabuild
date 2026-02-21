@@ -42,6 +42,14 @@ This phase runs one implementer at a time in the foreground with full tool acces
 
 The implementer reads all three spec artifacts before writing any code.
 
+Before writing any code, run:
+
+```bash
+scripts/validate-wannabuild-artifacts.sh . implement
+```
+
+Pause and resolve contract violations before proceeding.
+
 ## Execution Flow
 
 ```
@@ -218,6 +226,14 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 }
 ```
 
+Before handing off, rerun transition validation:
+
+```bash
+scripts/validate-wannabuild-artifacts.sh . review
+```
+
+Only launch review agents when this passes.
+
 ## Edge Cases
 
 - **Task blocked by external dependency:** Report the blocker, skip the task, continue with unblocked tasks. Flag in summary.
@@ -234,3 +250,16 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 - [ ] No hardcoded secrets, tokens, or credentials
 - [ ] Code follows existing codebase patterns
 - [ ] Spec deviations are documented
+
+## Contract Validation
+
+- If `design.md` is missing and mode is `light`, proceed with `requirements + existing code patterns` and fail fast with explicit note before implementation begins.
+- Each completed micro-step must produce one checkpoint with:
+  - changed files
+  - command + expected output
+  - next pending step
+- Any task with an `Integration Test` requirement must have a corresponding passing integration test in repo before it is marked complete.
+- Handoff to review must include:
+  - tasks completed count
+  - checksums or file list from latest checkpoints
+  - explicit test pass/fail counts

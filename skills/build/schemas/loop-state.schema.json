@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild loop-state.json",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "mode",
+    "current_iteration",
+    "max_iterations",
+    "base_reviewer_count",
+    "status",
+    "iterations"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "full",
+        "light"
+      ]
+    },
+    "current_iteration": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_iterations": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "base_reviewer_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "approved",
+        "escalated",
+        "blocked"
+      ]
+    },
+    "guardrails": {
+      "type": "object",
+      "properties": {
+        "max_agent_runs_per_phase": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_total_review_runs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_prompt_chars_per_reviewer": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "on_limit": {
+          "type": "string",
+          "enum": [
+            "pause-and-ask",
+            "error",
+            "strict-block"
+          ]
+        }
+      }
+    },
+    "iterations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "iteration",
+          "timestamp",
+          "active_reviewers",
+          "verdicts",
+          "pass_count",
+          "fail_count"
+        ],
+        "properties": {
+          "iteration": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "timestamp": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T"
+          },
+          "active_reviewers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "verdicts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "pass_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "fail_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "feedback_sent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "routing_reason": {
+            "type": "string",
+            "enum": [
+              "base_set",
+              "impacted",
+              "fallback",
+              "fast_track_fallback",
+              "ambiguous_impact"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

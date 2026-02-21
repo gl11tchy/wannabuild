@@ -673,3 +673,59 @@ Optional `.wannabuild/config.json`:
   "on_limit": "pause-and-ask"
 }
 ```
+
+## Contract Documents
+
+Use these references before spawning phase agents:
+
+- `skills/build/references/artifact-contracts.md`
+- `skills/build/references/review-routing.md`
+- `skills/build/references/loop-state.md`
+- `skills/build/references/exit-conditions.md`
+- `skills/build/references/sdd-principles.md`
+- `skills/build/references/transition-shim.md`
+- `skills/build/references/dry-run-checks.md`
+- `skills/build/schemas/state.schema.json`
+- `skills/build/schemas/loop-state.schema.json`
+- `skills/build/schemas/review-verdict.schema.json`
+- `skills/build/schemas/checkpoint.schema.json`
+
+## Pre-flight Validation
+
+Before entering any phase, the orchestrator must:
+
+- Parse `state.json` safely; if invalid or missing required keys, re-prompt for mode and bootstrap state.
+- Validate required artifacts for the requested phase and target mode.
+- Build checkpoint summary from the latest `.wannabuild/checkpoints/` window before review routing.
+- Abort gracefully if any required verdict JSON is malformed and ask for user resolution.
+- Run the transition shim check:
+
+```bash
+scripts/validate-wannabuild-artifacts.sh . <target_phase>
+```
+
+where `<target_phase>` is one of:
+`requirements`, `design`, `tasks`, `implement`, `review`, `ship`, `document`.
+
+If validation reports any `ERROR`, block the transition and keep state unchanged until the user resolves it.
+
+## Transition Guardrail Enforcement
+
+At each transition:
+
+1. Merge-validates writes into existing JSON artifacts (`state.json`, `loop-state.json`) only.
+2. Runs schema-level checks against state and loop artifacts before spawning phase agents.
+3. Validates routing context and review window when entering review.
+4. Re-runs lightweight review-verdict integrity checks before loop aggregation.
+5. Stops execution on malformed JSON or missing required keys (fail-closed).
+
+If the shim fails, report exact file and field path in the handoff summary and wait for user direction.
+
+## Exit and Guardrail Defaults
+
+- Use `in_progress` until the active-reviewer loop reaches unanimous approval.
+- On `escalated` conditions, do not offer ship-with-known-issues when integration tester is failing.
+- Default hard-fail reasons include:
+  - malformed review verdict JSON
+  - missing acceptance-criterion mapping
+- Resume and continue logic should prefer latest checkpoint window over restarting task sequence.

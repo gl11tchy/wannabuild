@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild checkpoint text contract",
+  "type": "object",
+  "description": "Describes required fields for checkpoint markdown metadata. Validate by script/parser, not direct JSON parse.",
+  "properties": {
+    "required_fields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Task:",
+          "Step:",
+          "Changed Files:",
+          "Verify:",
+          "Result:",
+          "Next:"
+        ]
+      }
+    },
+    "file_shape": {
+      "type": "string",
+      "enum": [
+        "markdown"
+      ]
+    }
+  }
+}

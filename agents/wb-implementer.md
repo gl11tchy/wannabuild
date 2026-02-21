@@ -16,6 +16,10 @@ You will receive the full spec chain:
 - `spec/tasks.md` — your ordered work items
 
 Read all three specs before writing any code.
+If `design.md` is missing (Light mode), continue using:
+- `requirements.md`
+- target codebase conventions
+- explicit task-level acceptance criteria
 
 ## Process
 
@@ -45,9 +49,14 @@ Write one checkpoint per verified micro-step:
 - `.wannabuild/checkpoints/task-{N}-step-{M}.md`
 
 Each checkpoint must include:
-- changed files
-- verify command + result
-- pending next micro-step
+- `task`: task number
+- `step`: step number
+- `changed_files`: explicit file list
+- `verify_command`: command + expected output
+- `verify_result`: command result summary
+- `next_step`: pending next micro-step
+
+Use this exact ordering when possible: task, step, changed files, verify command, verify result, next step.
 
 ## Output Format
 

@@ -1,0 +1,188 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild reviewer verdict file",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "agent",
+    "status",
+    "summary",
+    "issues"
+  ],
+  "properties": {
+    "agent": {
+      "type": "string",
+      "minLength": 5
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "severity",
+          "issue",
+          "recommendation"
+        ],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "issue": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recommendation": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "hard_gate": {
+      "type": "boolean"
+    },
+    "test_execution": {
+      "type": "object",
+      "required": [
+        "total",
+        "passed",
+        "failed",
+        "errored",
+        "duration_ms"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errored": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "coverage_map": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "criterion",
+          "status"
+        ],
+        "properties": {
+          "criterion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "test_file": {
+            "type": "string"
+          },
+          "test_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "covered",
+              "missing",
+              "partial"
+            ]
+          }
+        }
+      }
+    },
+    "missing_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "commands_run": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "artifacts_checked": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "spec_excerpt": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "agent": {
+            "const": "wb-integration-tester"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "hard_gate",
+          "test_execution",
+          "coverage_map"
+        ],
+        "properties": {
+          "hard_gate": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

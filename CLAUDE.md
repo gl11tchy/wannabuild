@@ -83,8 +83,15 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 
 - `skills/build/references/sdd-principles.md` — SDD philosophy, spec artifact formats, integration testing principles
 - `skills/build/references/philosophy.md` — Design philosophy reference
+- `skills/build/references/artifact-contracts.md` — Artifact contracts for `state.json`, `loop-state.json`, reviewer outputs, and artifact paths
+- `skills/build/references/review-routing.md` — Reviewer routing and impact inference rules
+- `skills/build/references/loop-state.md` — Review loop schema and history rules
+- `skills/build/references/exit-conditions.md` — Exit, pause, and escalation criteria
+- `skills/build/references/transition-shim.md` — Transition guardrail flow for each phase boundary
+- `skills/build/references/dry-run-checks.md` — Edge-case dry-runs for resume, light-mode design skip, and routing ambiguity
 - `skills/review/references/security-checklist.md` — Regex patterns for secret detection, OWASP top 10
 - `skills/review/references/architecture-patterns.md` — DRY patterns, clean code, refactoring patterns
+- `scripts/validate-wannabuild-artifacts.sh` — Transition-time artifact validation shim
 
 ## Working With This Repo
 

@@ -1,0 +1,110 @@
+{
+  "mode": "full",
+  "current_iteration": 2,
+  "max_iterations": 3,
+  "base_reviewer_count": 6,
+  "status": "in_progress",
+  "guardrails": {
+    "max_agent_runs_per_phase": 18,
+    "max_total_review_runs": 12,
+    "max_prompt_chars_per_reviewer": 12000,
+    "on_limit": "pause-and-ask"
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-02-20T12:00:00Z",
+      "active_reviewers": [
+        "wb-security-reviewer",
+        "wb-performance-reviewer",
+        "wb-architecture-reviewer",
+        "wb-testing-reviewer",
+        "wb-integration-tester",
+        "wb-code-simplifier"
+      ],
+      "verdicts": {
+        "wb-security-reviewer": {
+          "agent": "wb-security-reviewer",
+          "status": "FAIL",
+          "summary": "Ambiguous file impact classification",
+          "issues": [
+            {
+              "severity": "medium",
+              "file": "src/shared/config-loader.ts",
+              "line": 88,
+              "issue": "Security-relevant and non-security file mix in same diff chunk",
+              "recommendation": "Split change into smaller touchpoints before retry"
+            }
+          ]
+        },
+        "wb-integration-tester": {
+          "agent": "wb-integration-tester",
+          "status": "PASS",
+          "hard_gate": true,
+          "summary": "Tests are complete and passing",
+          "issues": [],
+          "test_execution": {
+            "total": 14,
+            "passed": 14,
+            "failed": 0,
+            "errored": 0,
+            "duration_ms": 12200
+          },
+          "coverage_map": [
+            {
+              "criterion": "C1 - auth session continuity",
+              "test_file": "tests/auth.spec.ts",
+              "test_name": "session continuity",
+              "status": "covered"
+            }
+          ]
+        }
+      },
+      "pass_count": 1,
+      "fail_count": 1,
+      "feedback_sent": "impact ambiguity detected",
+      "routing_reason": "ambiguous_impact"
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2026-02-20T12:18:00Z",
+      "active_reviewers": [
+        "wb-security-reviewer",
+        "wb-integration-tester"
+      ],
+      "verdicts": {
+        "wb-security-reviewer": {
+          "agent": "wb-security-reviewer",
+          "status": "PASS",
+          "summary": "No blockers",
+          "issues": []
+        },
+        "wb-integration-tester": {
+          "agent": "wb-integration-tester",
+          "status": "PASS",
+          "hard_gate": true,
+          "summary": "No blockers",
+          "test_execution": {
+            "total": 12,
+            "passed": 12,
+            "failed": 0,
+            "errored": 0,
+            "duration_ms": 14300
+          },
+          "issues": [],
+          "coverage_map": [
+            {
+              "criterion": "C1 - auth session continuity",
+              "test_file": "tests/auth.spec.ts",
+              "test_name": "session continuity",
+              "status": "covered"
+            }
+          ]
+        }
+      },
+      "pass_count": 2,
+      "fail_count": 0,
+      "routing_reason": "fast_track_fallback"
+    }
+  ]
+}

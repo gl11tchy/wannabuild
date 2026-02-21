@@ -225,3 +225,9 @@ After all documentation is updated:
 - [ ] All commands and paths in docs are accurate
 - [ ] No broken links or references
 - [ ] Documentation committed
+
+## Contract Validation
+
+- Light mode should at minimum update changelog; full mode updates README, API docs, and changelog.
+- Changelog entry should reference the implemented acceptance criteria in user-facing language.
+- Documentation updates must be internally consistent with `requirements.md` and `tasks.md`; conflicts require user sign-off before commit.

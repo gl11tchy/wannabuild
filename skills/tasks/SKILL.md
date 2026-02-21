@@ -321,6 +321,16 @@ The user can:
 - [ ] No single micro-step exceeds ~15 minutes without explicit split
 - [ ] Scope Validator verdict is PASS
 
+## Contract Validation
+
+- `spec/tasks.md` must include at least:
+  - `## Tasks`
+  - Task entries with `**Files:**`, `**Acceptance:**`, `**Integration Test:**`
+  - `Micro-Steps` entries that include `**Verify:**` and `**Checkpoint:**`
+- `Scope-validator` must return PASS before implementation starts.
+- `Dependency-mapper` must provide `critical_path` and `parallelization` sections.
+- Task IDs from `Tasks` must map to requirement items from `requirements.md` (no orphan tasks).
+
 ## Edge Cases
 
 - **Circular dependencies detected:** Dependency Mapper flags them. Orchestrator asks user to resolve by restructuring tasks.

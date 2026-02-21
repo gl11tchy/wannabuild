@@ -201,3 +201,12 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 - [ ] CI checks passed (including integration tests)
 - [ ] Merge strategy confirmed by user
 - [ ] Post-merge cleanup (branch deleted if appropriate)
+
+## Contract Validation
+
+- PR readiness requires:
+  - clean working tree or explicit user-confirmed skip reason
+  - committed implementation artifacts
+  - merged checkpoints reviewed from implement phase
+- PR craftsman output should include all three spec references and integration test proof.
+- CI guardian must verify integration tests are part of CI commandset, not only present locally.

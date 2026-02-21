@@ -1,0 +1,30 @@
+{
+  "project": "wannabuild-dryrun-resume",
+  "mode": "full",
+  "current_phase": "implement",
+  "phase_status": "in_progress",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "design": ".wannabuild/spec/design.md",
+    "tasks": ".wannabuild/spec/tasks.md"
+  },
+  "started_at": "2026-02-20T09:00:00Z",
+  "updated_at": "2026-02-20T10:12:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2026-02-20T09:10:00Z"
+    },
+    {
+      "phase": "design",
+      "status": "complete",
+      "timestamp": "2026-02-20T09:18:00Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "in_progress",
+      "timestamp": "2026-02-20T09:24:00Z"
+    }
+  ]
+}

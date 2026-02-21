@@ -25,11 +25,15 @@ Orchestrator (skill: wannabuild-build) → spawns agents via Task tool
 ```
 wannabuild/
 ├── .claude-plugin/              # Plugin manifest
-│   └── plugin.json
+│   ├── plugin.json
+│   └── marketplace.json
+├── scripts/                     # Validation and runtime helper scripts
 ├── agents/                      # 21 agent profiles (20 specialists + 1 implementer escalation profile)
 ├── skills/                      # Phase skills (SKILL.md per phase)
 │   ├── build/                   # Orchestrator skill
-│   │   └── references/          # SDD principles, philosophy
+│   │   ├── references/          # SDD principles, philosophy, contracts, routing, transitions
+│   │   ├── schemas/             # Contract schemas used by transition validator
+│   │   └── dry-runs/            # Edge-case fixture payloads
 │   ├── requirements/            # Phase 1: Requirements (2 agents)
 │   ├── design/                  # Phase 2: Design (3 agents)
 │   ├── tasks/                   # Phase 3: Tasks (3 agents)
@@ -55,11 +59,14 @@ All phases read from and write to `.wannabuild/spec/` in the target project:
 
 ```
 .wannabuild/
-├── state.json            # Current phase, timestamps
+├── state.json            # Current phase, mode, timestamps
 ├── spec/
 │   ├── requirements.md   # User stories, acceptance criteria, test scenarios
 │   ├── design.md         # Architecture, tech stack, data models, testing strategy
 │   └── tasks.md          # Ordered tasks with deps, acceptance criteria, required tests
+├── outputs/               # Agent file-first outputs
+├── checkpoints/           # Micro-step evidence
+├── review/                # Reviewer verdict JSON
 ├── loop-state.json       # Review voting history
 └── decisions.md          # Architecture decision log
 ```

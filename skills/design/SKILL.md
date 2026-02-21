@@ -225,6 +225,24 @@ The user can:
 - [ ] Design addresses all acceptance criteria from requirements
 - [ ] No conflicts between tech stack and architecture decisions
 
+## Contract Validation
+
+- The output spec must include all required sections:
+  - `# Design Spec`
+  - `## Architecture`
+  - `## Tech Stack Decisions`
+  - `## Data Models`
+  - `## API Contracts`
+  - `## Testing Strategy`
+  - `## Risks`
+  - `## Architecture Decisions`
+- Every high-level decision in requirements must map to at least one architecture or risk entry.
+- Testing strategy must define:
+  - framework
+  - integration boundaries
+  - CI requirement
+- If conflicting recommendations occur (e.g., tech stack + architecture), halt and request explicit user resolution.
+
 ## Edge Cases
 
 - **Existing codebase with established architecture:** Agents adapt their recommendations to extend the existing architecture rather than replace it.

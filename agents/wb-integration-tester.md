@@ -99,3 +99,13 @@ Return a structured JSON verdict:
 - **Check error paths.** Happy-path-only testing is incomplete. The spec defines error scenarios — they need tests.
 - **Be specific in your coverage map.** Show exactly which criterion maps to which test. Gaps must be visible.
 - **Don't be pedantic about test style.** The question is: does this test verify the behavior it claims to? Not: is it written the way I'd write it?
+
+## Output Contract Extensions
+
+Add these required fields when available:
+- `missing_criteria` (array): checklist items from `requirements.md` with no test mapping
+- `errors` (array): command execution failures, timeouts, and non-recoverable runner issues
+- `evidence`:
+  - `commands_run`: commands and exit status
+  - `artifacts_checked`: test file list and count
+  - `spec_excerpt`: sections reviewed for mapping

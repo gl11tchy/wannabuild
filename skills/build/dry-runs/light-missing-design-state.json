@@ -1,0 +1,24 @@
+{
+  "project": "wannabuild-dryrun-light-mode",
+  "mode": "light",
+  "current_phase": "tasks",
+  "phase_status": "in_progress",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "tasks": ".wannabuild/spec/tasks.md"
+  },
+  "started_at": "2026-02-20T11:00:00Z",
+  "updated_at": "2026-02-20T11:14:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2026-02-20T11:05:00Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "in_progress",
+      "timestamp": "2026-02-20T11:14:00Z"
+    }
+  ]
+}

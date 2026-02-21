@@ -214,6 +214,20 @@ The user can:
 - [ ] Ambiguities are flagged, not assumed away
 - [ ] Scope risks are identified with severity
 
+## Contract Validation
+
+- The output spec file must contain all required sections:
+  - `# Requirements Spec`
+  - `## Project Overview`
+  - `## User Stories`
+  - `## Acceptance Criteria`
+  - `## Scope`
+  - `## Integration Test Scenarios`
+  - `## Scope Risks`
+- Confirm every user story has at least one testable acceptance criterion checkbox.
+- Confirm at least one integration test scenario is mapped to each user story.
+- If `scope` is `Epic`, force a follow-up scope reduction prompt before moving to design.
+
 ## Edge Cases
 
 - **User has existing requirements:** Skip agent execution, validate and format existing requirements into the spec template.

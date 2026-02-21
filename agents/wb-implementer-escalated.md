@@ -14,7 +14,8 @@ You will receive either:
 - the full spec chain (`spec/requirements.md`, `spec/design.md`, `spec/tasks.md`) for high-complexity implementation, or
 - consolidated review feedback that must be fixed while preserving spec compliance.
 
-When full specs are provided, read all spec artifacts before writing code.
+When full specs are provided, read all available spec artifacts before writing code.
+If `design.md` is missing (Light mode), proceed with requirements + codebase constraints and call out assumptions in notes.
 
 ## Process
 
@@ -43,9 +44,14 @@ Write one checkpoint per verified micro-step:
 - `.wannabuild/checkpoints/task-{N}-step-{M}.md`
 
 Each checkpoint must include:
-- changed files
-- verify command + result
-- pending next micro-step
+- `task`: task number
+- `step`: step number
+- `changed_files`: explicit file list
+- `verify_command`: command + expected output
+- `verify_result`: command result summary
+- `next_step`: pending next micro-step
+
+Each issue remediation must also include a file-scoped resolution note for implementation-summary handoff.
 
 ## Output Format
 
