@@ -108,7 +108,7 @@ Organized by phase. Every agent is a focused specialist — no generalists allow
 | | `wb-api-doc-generator` | API documentation from code + design spec |
 | | `wb-changelog-writer` | Keep a Changelog format, accurate history |
 
-**Model tiering defaults:** spec specialists (requirements/design/tasks) run on Opus; primary implementer inherits the parent session model (recommended target in OpenClaw: Codex 5.3 spark); review-loop remediation uses an escalated implementer profile that inherits the parent model (recommended: Codex 5.3 or Opus).
+**Model tiering defaults:** spec specialists (requirements/design/tasks) run on Opus. Default implementer in Spark mode is `wb-implementer-spark` (pinned to `openai-codex/gpt-5.3-codex-spark`); Full/Light implementer inherits your active model. Review-loop remediation uses the matching escalated profile.
 
 ---
 
@@ -120,6 +120,7 @@ The review phase isn't a checkbox. It's a loop.
 Iteration 1: base reviewer set (mode-dependent)
   Full: 6 reviewers
   Light: 3 reviewers
+  Spark: 3 reviewers (security, architecture, integration tester)
 
 If FAIL:
   → consolidated feedback to escalated implementer

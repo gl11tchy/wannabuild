@@ -16,7 +16,8 @@
       "type": "string",
       "enum": [
         "full",
-        "light"
+        "light",
+        "spark"
       ]
     },
     "current_iteration": {
