@@ -6,17 +6,28 @@ WannaBuild is a 7-phase Spec-Driven Development framework that guides you from i
 
 ## Workflow Start Indicator
 
-When WannaBuild starts, always emit a visible handoff banner before doing any phase work:
+WannaBuild must emit deterministic start banners before doing any phase work.
 
-- `🚦 WannaBuild STARTED`
-- show detected intent/target (`build`, `requirements`, etc.)
-- show mode state (`full|light|spark|resume`) and current phase if resuming
+### New session start
 
-Example:
+Use **exactly** this line for fresh starts:
 
-`🚦 WannaBuild STARTED • Intent: build • Mode: unresolved`
+`[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`
 
-If intent is a fresh build request (`I wanna build`, `spark build`, `build ...`), the first required action is mode selection.
+If the user gave any explicit intent (`build`, `requirements`, `tasks`, `implement`, etc.), include it in `intent=<...>`.
+
+### Resume start
+
+If `.wannabuild/state.json` exists and is recoverable, use this exact line:
+
+`[WB-RESUME] WannaBuild RESUME | mode=<full|light|spark> | phase=<current_phase> | progress=<done>/<total>`
+
+Examples:
+- `[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`
+- `[WB-START] WannaBuild STARTED | intent=build | mode=spark`
+- `[WB-RESUME] WannaBuild RESUME | mode=light | phase=implement | progress=5/8`
+
+For fresh build intent (`I wanna build`, `spark build`, `build ...`), the first required action is mode selection.
 
 ## Architecture
 
@@ -83,7 +94,7 @@ Both modes and Spark run the same SDD backbone with the same spec artifacts and 
 
 When the user says build intent without a mode, do **not** jump directly into Requirements. First send:
 
-`🚦 WannaBuild STARTED` and ask:
+`[WB-START] WannaBuild STARTED | intent=build | mode=unresolved` and ask:
 
 - **Full** — all 7 phases
 - **Light** — requirements, tasks, implement, review, ship, document
@@ -600,7 +611,7 @@ Users can skip to any phase. Warn about missing artifacts:
 ### Resume Logic
 If `.wannabuild/state.json` exists, read the stored `mode` and skip the mode question. Resume must still emit a banner before continuing:
 
-> `🚦 WannaBuild RESUME — mode: Light, phase: implement, tasks complete: 5/8. Continue where you left off?`
+> `[WB-RESUME] WannaBuild RESUME | mode=<full|light|spark> | phase=<current_phase> | progress=<done>/<total>`
 
 When resuming mid-implementation, continue from the latest checkpoint instead of restarting the full task list.
 

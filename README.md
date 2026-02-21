@@ -169,13 +169,11 @@ cp -r wannabuild/agents/* your-project/agents/
 I wanna build a user authentication system with OAuth and magic links
 ```
 
-WannaBuild must acknowledge start with a visible banner and mode handoff:
+WannaBuild must acknowledge start with an exact startup banner before any phase work:
 
-- `🚦 WannaBuild STARTED`
-- `Intent: build`
-- `Mode: choose now (full / light / spark)`
+- `[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`
 
-WannaBuild detects intent, asks for mode selection, then starts at Requirements and walks through phases.
+It then asks for mode selection, then starts at Requirements and walks through phases.
 
 ### Or jump to any phase
 
@@ -277,7 +275,7 @@ Issues, PRs, and new agent ideas are welcome.
 
 **What do you wanna build?**
 
-(Workflow banner: `🚦 WannaBuild STARTED`)
+(Workflow banner: `[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`)
 
 ```bash
 claude plugin install gh:gl11tchy/wannabuild
