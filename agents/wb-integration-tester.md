@@ -2,6 +2,7 @@
 name: wb-integration-tester
 description: "Validates integration test completeness and quality in WannaBuild review phase. Maps acceptance criteria to tests, runs the test suite, and hard-gates on missing integration tests. This agent's FAIL verdict blocks shipping."
 tools: Read, Grep, Glob, Bash
+model: openai-codex/gpt-5.3-codex-spark
 ---
 
 # Integration Tester

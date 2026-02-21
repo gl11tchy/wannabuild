@@ -147,7 +147,7 @@ All phases read from and write to `.wannabuild/spec/` in the target project:
 ### Model Tiering Defaults
 
 - **Spec quality first:** Requirements, Design, and Tasks specialists are pinned to `opus`.
-- **Default implementation:** `wb-implementer` inherits the parent session model (recommended target in OpenClaw: Codex 5.3 spark).
+- **Default implementation:** `wb-implementer` uses `openai-codex/gpt-5.3-codex-spark` in Spark mode; inherits parent for non-spark/manual overrides.
 - **Escalation path:** `wb-implementer-escalated` inherits the parent model (recommended parent: Codex 5.3 or Opus).
 - **Escalation trigger:** use escalated implementer after the first failed review iteration, or immediately for high-complexity work.
 
