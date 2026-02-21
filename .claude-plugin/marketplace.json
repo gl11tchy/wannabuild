@@ -11,7 +11,7 @@
       "name": "wannabuild",
       "source": "./",
       "description": "Spec-Driven Development framework with 20 specialist AI agents. Talk naturally, ship professionally.",
-      "version": "2.2.1",
+      "version": "2.2.2",
       "author": {
         "name": "gl11tchy"
       },

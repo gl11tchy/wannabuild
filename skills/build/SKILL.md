@@ -4,6 +4,20 @@
 
 WannaBuild is a 7-phase Spec-Driven Development framework that guides you from idea to shipped product. It uses 20 specialist AI agents coordinated through structured spec artifacts — your specs are the backbone, not an afterthought.
 
+## Workflow Start Indicator
+
+When WannaBuild starts, always emit a visible handoff banner before doing any phase work:
+
+- `🚦 WannaBuild STARTED`
+- show detected intent/target (`build`, `requirements`, etc.)
+- show mode state (`full|light|spark|resume`) and current phase if resuming
+
+Example:
+
+`🚦 WannaBuild STARTED • Intent: build • Mode: unresolved`
+
+If intent is a fresh build request (`I wanna build`, `spark build`, `build ...`), the first required action is mode selection.
+
 ## Architecture
 
 ```
@@ -56,7 +70,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 
 ## Mode Selection
 
-Before any phase routing, ask the user which mode they want. This fires **once** at session start — on resume, the stored mode is used silently.
+Before any phase routing, ask the user which mode they want. This fires **once** at session start unless a valid `mode` already exists in `state.json`. On resume, use stored mode silently.
 
 > **Which mode?**
 > - **Full** — All 7 phases including design. Best for new products, new codebases, or features that require architectural decisions.
@@ -64,6 +78,18 @@ Before any phase routing, ask the user which mode they want. This fires **once**
 > - **Spark** — Same as Light, but this mode is speed-first and uses Spark-specific agent profiles.
 
 Both modes and Spark run the same SDD backbone with the same spec artifacts and the same ship phase. Spark and Light both skip design entirely and use a leaner review baseline (3 reviewers instead of 6). Use Full any time you're making significant architectural decisions.
+
+
+
+When the user says build intent without a mode, do **not** jump directly into Requirements. First send:
+
+`🚦 WannaBuild STARTED` and ask:
+
+- **Full** — all 7 phases
+- **Light** — requirements, tasks, implement, review, ship, document
+- **Spark** — same as Light with Spark agent profiles
+
+Then persist the selected mode before spawning any phase agent.
 
 **Persistence:** Write the chosen mode to `state.json` **before spawning any phase agent**. On resume, if `state.json` already has a valid `mode` key (`"full"`, `"light"`, or `"spark"`), use it silently — do not re-ask. If the value is absent, unrecognized, or unparseable (corrupt state), ask the mode question again and warn the user; then default to `"full"` if the response is still ambiguous. Legacy `state.json` files without a `mode` key default to `"full"` silently.
 
@@ -150,7 +176,7 @@ Phase detection is conversational. Infer intent from natural language:
 
 | User Says | Phase | Skill |
 |-----------|-------|-------|
-| "I wanna build..." / "I have an idea..." | Requirements | `wannabuild-requirements` |
+| "I wanna build..." / "I have an idea..." / "spark build..." | Requirements bootstrap with `Mode Selection` first | `wannabuild-requirements` |
 | "Let's define requirements" / "What should we build?" | Requirements | `wannabuild-requirements` |
 | "Let's design this" / "How should we architect..." | Design | `wannabuild-design` |
 | "Break this into tasks" / "What needs to be done?" | Tasks | `wannabuild-tasks` |
@@ -545,7 +571,7 @@ After max iterations:
 }
 ```
 
-The `mode` field is `"full"` or `"light"`. It is written immediately after the user answers the mode question — not at initialization. If absent or unrecognized (legacy or corrupt state), default to `"full"`.
+The `mode` field is `"full"`, `"light"`, or `"spark"`. It is written immediately after the user answers the mode question — not at initialization. If absent or unrecognized (legacy or corrupt state), default to `"full"`.
 
 ### State Update Rule
 
@@ -572,16 +598,16 @@ Users can skip to any phase. Warn about missing artifacts:
 > You're jumping to Implementation, but there's no requirements or design spec yet. The implementer will work from verbal instructions, but you'll miss spec-driven review validation. Continue or go back?
 
 ### Resume Logic
-If `.wannabuild/state.json` exists, read the stored `mode` and skip the mode question. Resume banner example:
+If `.wannabuild/state.json` exists, read the stored `mode` and skip the mode question. Resume must still emit a banner before continuing:
 
-> I see a WannaBuild project in progress — **Light mode**, **implement** phase, 5/8 tasks done. Continue where you left off?
+> `🚦 WannaBuild RESUME — mode: Light, phase: implement, tasks complete: 5/8. Continue where you left off?`
 
 When resuming mid-implementation, continue from the latest checkpoint instead of restarting the full task list.
 
 ## Trigger Conditions
 
 **Primary:** `/wannabuild-build`
-**Aliases:** `/wb`, "I wanna build"
+**Aliases:** `/wb`, "I wanna build", "spark build", "fast build", "quick build"
 
 ## Example: Full Session
 

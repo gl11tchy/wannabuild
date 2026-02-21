@@ -169,7 +169,13 @@ cp -r wannabuild/agents/* your-project/agents/
 I wanna build a user authentication system with OAuth and magic links
 ```
 
-WannaBuild detects intent, starts at Requirements, and walks through every phase.
+WannaBuild must acknowledge start with a visible banner and mode handoff:
+
+- `🚦 WannaBuild STARTED`
+- `Intent: build`
+- `Mode: choose now (full / light / spark)`
+
+WannaBuild detects intent, asks for mode selection, then starts at Requirements and walks through phases.
 
 ### Or jump to any phase
 
@@ -182,6 +188,14 @@ Review the code in src/auth/
 ```
 Ship it — all tests are passing
 ```
+
+### Spark fast-start phrases
+
+- `spark build ...`
+- `fast build ...`
+- `quick build ...`
+
+These bypass ambiguity and go directly to Spark mode selection path.
 
 ### Slash commands
 
@@ -262,6 +276,8 @@ Issues, PRs, and new agent ideas are welcome.
 <div align="center">
 
 **What do you wanna build?**
+
+(Workflow banner: `🚦 WannaBuild STARTED`)
 
 ```bash
 claude plugin install gh:gl11tchy/wannabuild
