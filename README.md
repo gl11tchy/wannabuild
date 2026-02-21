@@ -63,10 +63,10 @@ Talk like a human, build like a professional.
                       ▼
                    REVIEW ◄──────────────────────┐
                    ──────                         │
-                   6 specialists in parallel      │
-                   validate against spec          │
+                   Iteration 1: base reviewer set │
+                   Retry: adaptive rerun + gate   │
                         │                         │
-                     6/6 PASS? ─── NO ────────────┘
+             Active set unanimous PASS? ─ NO ─────┘
                         │                 (feedback → implement)
                      YES
                         │
@@ -95,7 +95,7 @@ Organized by phase. Every agent is a focused specialist — no generalists allow
 | **Tasks** | `wb-task-decomposer` | Atomic task decomposition from design spec |
 | | `wb-dependency-mapper` | Dependency graphs, critical path analysis |
 | | `wb-scope-validator` | Validates 100% of requirements have task coverage |
-| **Implement** | `wb-implementer` | Executes tasks, writes code + integration tests |
+| **Implement** | `wb-implementer` | Executes micro-steps, writes code + integration tests + checkpoints |
 | **Review** | `wb-security-reviewer` | OWASP top 10, secret detection, auth flows |
 | | `wb-performance-reviewer` | N+1 queries, memory leaks, scale issues |
 | | `wb-architecture-reviewer` | Design compliance, separation of concerns |
@@ -108,6 +108,8 @@ Organized by phase. Every agent is a focused specialist — no generalists allow
 | | `wb-api-doc-generator` | API documentation from code + design spec |
 | | `wb-changelog-writer` | Keep a Changelog format, accurate history |
 
+**Model tiering defaults:** spec specialists (requirements/design/tasks) run on Opus; primary implementer inherits the parent session model (recommended target in OpenClaw: Codex 5.3 spark); review-loop remediation uses an escalated implementer profile that inherits the parent model (recommended: Codex 5.3 or Opus).
+
 ---
 
 ## The Quality Loop
@@ -115,22 +117,25 @@ Organized by phase. Every agent is a focused specialist — no generalists allow
 The review phase isn't a checkbox. It's a loop.
 
 ```
-6 specialists run in parallel — each votes PASS or FAIL
+Iteration 1: base reviewer set (mode-dependent)
+  Full: 6 reviewers
+  Light: 3 reviewers
 
-  wb-security-reviewer    ─┐
-  wb-performance-reviewer  │
-  wb-architecture-reviewer ├──► aggregate results
-  wb-testing-reviewer      │
-  wb-integration-tester   ─┤      6/6 PASS?
-  wb-code-simplifier      ─┘         │
-                                   YES → proceed to Ship
-                                    NO → consolidated feedback
-                                         back to Implement
-                                         (max 3 iterations,
-                                          then escalate to human)
+If FAIL:
+  → consolidated feedback to escalated implementer
+  → Iteration 2+: adaptive rerun = impacted reviewers + integration tester (always)
+  → fallback to full base set if impact is ambiguous
+
+Ship requires unanimous PASS from the active reviewer set.
 ```
 
 **The hard gate:** `wb-integration-tester` checks that every acceptance criterion from the requirements spec has a corresponding, passing integration test. This is the only unoverridable gate in the system. No tests → no ship. Full stop.
+
+**Adaptive by default:** retry loops are selective (impacted reviewers + integration tester), and guardrails should pause-and-ask instead of silently fanning out agent runs.
+
+**Fast-track review option:** for tiny, low-risk changes, the first review iteration may use a reduced reviewer set (still including the integration hard gate), then automatically fallback to full base reviewers on any fail or routing uncertainty.
+
+**Micro-step by default:** implementation executes one small step at a time (verify + checkpoint each step), which reduces drift and speeds retry loops.
 
 ---
 
@@ -143,7 +148,7 @@ The review phase isn't a checkbox. It's a loop.
 /plugin install         wannabuild@gl11tchy
 ```
 
-All 8 skills and 20 agents are immediately available across every project.
+All 8 skills, 20 specialist agents, and the escalation implementer profile are immediately available across every project.
 
 ### Manual
 
@@ -222,7 +227,7 @@ Plus state files: `state.json`, `loop-state.json`, `decisions.md`.
 
 **Integration tests are non-negotiable.** Tests flow through every phase — from user stories with test scenarios, through tasks with test requirements, to an integration tester that hard-gates shipping.
 
-**Quality loops, not quality gates.** Code doesn't get checked once and shipped. It gets iterated until 6 specialists unanimously vote PASS.
+**Quality loops, not quality gates.** Code doesn't get checked once and shipped. It gets iterated with adaptive reruns until the active reviewer set (including integration tester) unanimously votes PASS.
 
 **Built for indie builders.** Not enterprise methodology shrunk down. Built ground-up for solo devs and small teams who need to ship fast *and* ship right.
 
@@ -234,7 +239,7 @@ Plus state files: `state.json`, `loop-state.json`, `decisions.md`.
 |--|----------------------|------------|
 | **Backbone** | Vibes | Spec-driven development |
 | **Entry point** | Commands & templates | Natural conversation |
-| **Review** | 1-2 passes, ship it | 6 specialists, loop until 6/6 PASS |
+| **Review** | 1-2 passes, ship it | Base set + adaptive reruns, unanimous active-set PASS required |
 | **Testing** | Afterthought | Integration tests are a hard gate |
 | **Docs** | Never written | Auto-generated from spec artifacts |
 | **Install** | Manual setup | One command, works everywhere |

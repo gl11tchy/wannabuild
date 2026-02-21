@@ -25,7 +25,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 | 1 | Requirements | `wannabuild-requirements` | wb-scope-analyst, wb-ux-perspective | `spec/requirements.md` |
 | 2 | Design | `wannabuild-design` | wb-tech-advisor, wb-architect, wb-risk-assessor | `spec/design.md` |
 | 3 | Tasks | `wannabuild-tasks` | wb-task-decomposer, wb-dependency-mapper, wb-scope-validator | `spec/tasks.md` |
-| 4 | Implement | `wannabuild-implement` | wb-implementer | Code + tests + commits |
+| 4 | Implement | `wannabuild-implement` | wb-implementer (default), wb-implementer-escalated (retry/high-complexity) | Code + tests + checkpoints |
 | 5 | Review | `wannabuild-review` | wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier | `loop-state.json` |
 | 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
 | 7 | Document | `wannabuild-document` | wb-readme-updater, wb-api-doc-generator, wb-changelog-writer | Updated docs |
@@ -37,7 +37,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 | 1 | Requirements | `wannabuild-requirements` | wb-scope-analyst, wb-ux-perspective | `spec/requirements.md` |
 | 2 | Design | — | **skipped** | — |
 | 3 | Tasks | `wannabuild-tasks` | wb-task-decomposer, wb-scope-validator | `spec/tasks.md` |
-| 4 | Implement | `wannabuild-implement` | wb-implementer | Code + tests + commits |
+| 4 | Implement | `wannabuild-implement` | wb-implementer (default), wb-implementer-escalated (retry/high-complexity) | Code + tests + checkpoints |
 | 5 | Review | `wannabuild-review` | wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester | `loop-state.json` |
 | 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
 | 7 | Document | `wannabuild-document` | wb-changelog-writer | Updated docs |
@@ -53,6 +53,29 @@ Before any phase routing, ask the user which mode they want. This fires **once**
 Both modes run the same SDD backbone with the same spec artifacts, the same integration tester hard gate, and the same ship phase. Light mode skips design entirely and runs a leaner review (3 reviewers instead of 6). Use Full any time you're making significant architectural decisions — Light assumes you already know how you're building it.
 
 **Persistence:** Write the chosen mode to `state.json` **before spawning any phase agent**. On resume, if `state.json` already has a valid `mode` key (`"full"` or `"light"`), use it silently — do not re-ask. If the value is absent, unrecognized, or unparseable (corrupt state), ask the mode question again and warn the user; then default to `"full"` if the response is still ambiguous. Legacy `state.json` files without a `mode` key default to `"full"` silently.
+
+## Model Tiering Defaults
+
+Quality stays non-negotiable, but model spend is differentiated by role:
+
+- **Spec phases run on Opus** (`wb-scope-analyst`, `wb-ux-perspective`, `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator`) to maximize spec quality.
+- **Default implementation inherits the parent session model** via `wb-implementer` (recommended target in OpenClaw: Codex 5.3 spark) for faster, tighter step execution.
+- **Escalated implementation inherits the parent model** via `wb-implementer-escalated` (recommended parent: Codex 5.3 or Opus) for high-complexity work or remediation after a failed review iteration.
+- **Hard gate remains unchanged:** integration testing still blocks ship on FAIL.
+
+Escalation rules:
+1. If complexity is flagged high up front, use `wb-implementer-escalated` immediately.
+2. If review iteration 1 fails, all remediation iterations use `wb-implementer-escalated`.
+
+## Adaptive Speed/Efficiency Defaults
+
+Quality gates stay strict, but retry behavior is adaptive by default:
+
+- **Iteration 1 review:** run the full reviewer set for the selected mode (Full=6, Light=3).
+- **Iteration 2+ review:** run only impacted reviewers **plus `wb-integration-tester` (always)**.
+- **Fallback safety:** if impact scope is ambiguous, rerun the full reviewer set.
+- **Context slicing:** pass only changed-file summaries + relevant spec excerpts (not full artifacts) to non-integration reviewers.
+- **Guardrail behavior:** when configured limits are hit, pause and ask the user whether to continue instead of silently fanning out.
 
 ## Spec-Driven Development Backbone
 
@@ -79,6 +102,9 @@ Every phase reads from and writes to `.wannabuild/spec/`. Specs are the source o
 │   ├── readme-updater.md         # Document agents
 │   ├── api-doc-generator.md
 │   └── changelog-writer.md
+├── checkpoints/                  # Micro-step evidence for implement/resume/review routing
+│   ├── task-1-step-1.md
+│   └── ...
 ├── review/                       # Reviewer verdicts — one file per agent per iteration
 │   ├── security-iter-1.json
 │   ├── performance-iter-1.json
@@ -90,6 +116,20 @@ Every phase reads from and writes to `.wannabuild/spec/`. Specs are the source o
 **The SDD contract:** Implementation is validated against `spec/requirements.md`. Reviews check code against acceptance criteria. Integration tests prove acceptance criteria are met. Nothing ships without spec validation.
 
 Reference: `skills/build/references/sdd-principles.md`
+
+### Fast-Track Review Decision Matrix (Execution Defaults)
+
+Only apply when this session is clearly tiny + low risk:
+
+- `files_changed <= 2`
+- `estimated_scope` is `tiny`
+- `risk_label` is `low`
+- no auth/session, secrets, crypto, DB schema migration, payment, or infra-policy risk flags
+- no reviewer confidence ambiguity from checkpoint/scope diff
+
+If eligible, Iteration 1 reviewer set is `wb-integration-tester` plus up to 2 high-confidence impacted reviewers.
+If **any** fast-track reviewer fails or confidence drops, rerun the full base reviewer set in the next review iteration.
+The integration hard gate is never bypassed.
 
 ## Phase Detection
 
@@ -133,6 +173,8 @@ All agents write their full analysis to `.wannabuild/outputs/` (or `.wannabuild/
     implementer-summary.md
     pr-craftsman.md, ci-guardian.md
     readme-updater.md, api-doc-generator.md, changelog-writer.md
+  checkpoints/
+    task-1-step-1.md, task-1-step-2.md, ...
   review/
     security-iter-1.json, performance-iter-1.json, ...  (one file per agent per iteration)
 ```
@@ -208,9 +250,25 @@ Task(subagent_type="wb-scope-validator", run_in_background=true)
 
 ### Foreground Pattern (Implement)
 ```
+# Default path
 Task(subagent_type="wb-implementer")
-  prompt: "Implement tasks. Full spec chain at .wannabuild/spec/"
+  prompt: "Implement tasks in micro-steps. Full spec chain at .wannabuild/spec/.
+           Write checkpoint files under .wannabuild/checkpoints/"
+
+# Escalated path (high-complexity upfront or any remediation after first failed review)
+Task(subagent_type="wb-implementer-escalated")
+  prompt: "Implement tasks/fixes in micro-steps. Full spec chain at .wannabuild/spec/.
+           Write checkpoint files under .wannabuild/checkpoints/"
 ```
+
+## Implement → Review Transition (Checkpoint-Aware)
+
+Before spawning reviewers, the orchestrator reads the latest checkpoint files in `.wannabuild/checkpoints/` and builds a changed-step summary.
+
+Required behavior:
+- include the **latest checkpoint** window in review inputs
+- pass changed files from checkpoints to adaptive reviewer routing
+- if no checkpoints exist, fall back to spec + diff-only routing and warn the user
 
 ## The Quality Loop
 
@@ -230,45 +288,42 @@ The most critical section. Reviews validate code against the specs, not just gen
 │      │            │                    │                     │
 │      └────────────┘◄────────────────────┘                    │
 │                                                              │
-│  Full mode: 6 reviewers, unanimous = 6/6                     │
-│  Light mode: 3 reviewers, unanimous = 3/3                    │
+│  Full mode base set: 6 reviewers                             │
+│  Light mode base set: 3 reviewers                            │
 │  Max iterations: 3 (then escalate to human)                  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ### Review Agent Spawning
 
-**Full mode — all 6 reviewers** run as parallel background tasks. Each writes full JSON verdict to `.wannabuild/review/[agent]-iter-{N}.json` and returns a one-line verdict summary:
+Build an active reviewer set before spawning review tasks:
 
 ```
-Task(subagent_type="wb-security-reviewer", run_in_background=true)
-  // Write to .wannabuild/review/security-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-performance-reviewer", run_in_background=true)
-  // Write to .wannabuild/review/performance-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-architecture-reviewer", run_in_background=true)
-  // Write to .wannabuild/review/architecture-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-testing-reviewer", run_in_background=true)
-  // Write to .wannabuild/review/testing-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-integration-tester", run_in_background=true)
-  // Write to .wannabuild/review/integration-tester-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-code-simplifier", run_in_background=true)
-  // Write to .wannabuild/review/code-simplifier-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
+base_reviewers_full  = [security, performance, architecture, testing, integration-tester, code-simplifier]
+base_reviewers_light = [security, architecture, integration-tester]
 
-// Each receives: specs at .wannabuild/spec/, code changes summary
+IF iteration == 1:
+  active_reviewers = base_reviewers_{mode}
+ELSE:
+  impacted = infer_impacted_reviewers(changed_files_since_last_iteration, previous_failures)
+  active_reviewers = union(impacted, [integration-tester])
+
+  IF active_reviewers is empty OR impact inference uncertain:
+    active_reviewers = base_reviewers_{mode}
 ```
 
-**Light mode — 3 reviewers** run as parallel background tasks. Same file-first pattern:
+Then spawn only `active_reviewers` in parallel background tasks (same file-first verdict contract):
 
 ```
-Task(subagent_type="wb-security-reviewer", run_in_background=true)
-  // Write to .wannabuild/review/security-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-architecture-reviewer", run_in_background=true)
-  // Write to .wannabuild/review/architecture-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-Task(subagent_type="wb-integration-tester", run_in_background=true)
-  // Write to .wannabuild/review/integration-tester-iter-{N}.json. Return: 'VERDICT: PASS|FAIL — ...'
-
-// Each receives: specs at .wannabuild/spec/, code changes summary
+for reviewer in active_reviewers:
+  Task(subagent_type=reviewer, run_in_background=true)
+    // Write to .wannabuild/review/[reviewer]-iter-{N}.json
+    // Return one-line VERDICT summary
 ```
+
+Context policy for reviewer prompts:
+- **Security/Architecture/Performance/Testing/Code-simplifier:** diff summary + touched files + relevant spec excerpts.
+- **Integration tester:** full acceptance criteria + test files + command output summaries.
 
 ### Verdict Schema
 
@@ -293,36 +348,49 @@ Each reviewer returns:
 ### Loop Logic
 
 ```
-iteration = 0
-max_iterations = 3
-reviewer_count = (mode == "full") ? 6 : 3
+iteration = 1
+max_iterations = config.max_review_iterations ?? 3
+base_reviewers = (mode == "full")
+  ? [security, performance, architecture, testing, integration-tester, code-simplifier]
+  : [security, architecture, integration-tester]
 
 LOOP:
-  spawn_reviewers(mode, background=true)
-  // Each reviewer writes to .wannabuild/review/[agent]-iter-{iteration}.json
-  // and returns a one-line verdict to the main conversation
+  enforce_guardrails_or_pause(
+    max_agent_runs_per_phase,
+    max_total_review_runs,
+    max_prompt_chars_per_reviewer,
+    policy="pause-and-ask"
+  )
+
+  IF iteration == 1:
+    active_reviewers = base_reviewers
+  ELSE:
+    impacted = infer_impacted_reviewers(changed_files_since_last_iteration, previous_failures)
+    active_reviewers = union(impacted, [integration-tester])
+    IF active_reviewers is empty OR impact inference uncertain:
+      active_reviewers = base_reviewers
+
+  spawn_reviewers(active_reviewers, background=true)
   wait_for_all_one_liners()
 
-  // Read verdict files to get full detail
   verdicts = read_all_verdict_files(iteration)
   passes = count(v.status == "PASS")
   fails = count(v.status == "FAIL")
 
-  update_loop_state(iteration, verdicts)
-  display_verdict_summary(passes, fails)
+  update_loop_state(iteration, active_reviewers, verdicts)
+  display_verdict_summary(passes, fails, active_reviewers)
 
-  IF passes == reviewer_count:
-    → SHIP phase (unanimous approval)
+  IF passes == len(active_reviewers):
+    → SHIP phase (unanimous approval from active reviewers)
   ELSE:
     iteration += 1
-    IF iteration >= max_iterations:
+    IF iteration > max_iterations:
       → ESCALATE to human
     ELSE:
-      // Read failing agents' detail files to build consolidated feedback
       feedback = aggregate_feedback_from_files(verdicts, iteration)
       display_feedback(feedback)
 
-      Task(subagent_type="wb-implementer")
+      Task(subagent_type="wb-implementer-escalated")
         prompt: "Fix review feedback: {feedback}. Specs at .wannabuild/spec/"
 
       → LOOP
@@ -346,18 +414,30 @@ The `wb-integration-tester` agent has special status:
 
 ```json
 {
-  "mode": "full",           // "full" (6 reviewers) or "light" (3 reviewers)
+  "mode": "full",                    // "full" (base=6) or "light" (base=3)
   "current_iteration": 2,
   "max_iterations": 3,
-  "reviewer_count": 6,      // 6 for full, 3 for light
+  "base_reviewer_count": 6,
   "status": "in_progress|approved|escalated",
+  "guardrails": {
+    "max_agent_runs_per_phase": 18,
+    "max_total_review_runs": 12,
+    "max_prompt_chars_per_reviewer": 12000,
+    "on_limit": "pause-and-ask"
+  },
   "iterations": [
     {
       "iteration": 1,
       "timestamp": "2026-02-19T10:00:00Z",
+      "active_reviewers": [
+        "wb-security-reviewer",
+        "wb-performance-reviewer",
+        "wb-architecture-reviewer",
+        "wb-testing-reviewer",
+        "wb-integration-tester",
+        "wb-code-simplifier"
+      ],
       "verdicts": {
-        // Full mode: all 6 keys present
-        // Light mode: wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester
         "wb-security-reviewer": {"status": "PASS", "issues": []},
         "wb-performance-reviewer": {"status": "FAIL", "issues": [{"severity": "high", "issue": "..."}]},
         "wb-architecture-reviewer": {"status": "PASS", "issues": []},
@@ -368,6 +448,20 @@ The `wb-integration-tester` agent has special status:
       "pass_count": 4,
       "fail_count": 2,
       "feedback_sent": "Consolidated feedback..."
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2026-02-19T10:07:00Z",
+      "active_reviewers": [
+        "wb-performance-reviewer",
+        "wb-integration-tester"
+      ],
+      "verdicts": {
+        "wb-performance-reviewer": {"status": "PASS", "issues": []},
+        "wb-integration-tester": {"status": "PASS", "issues": []}
+      },
+      "pass_count": 2,
+      "fail_count": 0
     }
   ]
 }
@@ -410,7 +504,7 @@ After max iterations:
 
 **The orchestrator NEVER fixes code.** This is the most important invariant.
 
-- Reviewers find issues → orchestrator aggregates → implementer fixes → all reviewers re-run
+- Reviewers find issues → orchestrator aggregates → implementer fixes → adaptive reviewer rerun (impacted + integration tester)
 - The orchestrator routes, synthesizes, and manages state. It never edits code.
 - If the implementer can't fix it, escalate to the human. Don't attempt the fix.
 
@@ -447,7 +541,7 @@ All phase state updates **merge into existing state.json** — they never replac
 ### State Initialization
 
 ```bash
-mkdir -p .wannabuild/spec .wannabuild/outputs .wannabuild/review
+mkdir -p .wannabuild/spec .wannabuild/outputs .wannabuild/checkpoints .wannabuild/review
 echo '{"current_phase":"requirements","phase_status":"pending","artifacts":{}}' > .wannabuild/state.json
 # mode is written immediately after the user answers the mode question, before any phase agent is spawned
 ```
@@ -468,6 +562,8 @@ Users can skip to any phase. Warn about missing artifacts:
 If `.wannabuild/state.json` exists, read the stored `mode` and skip the mode question. Resume banner example:
 
 > I see a WannaBuild project in progress — **Light mode**, **implement** phase, 5/8 tasks done. Continue where you left off?
+
+When resuming mid-implementation, continue from the latest checkpoint instead of restarting the full task list.
 
 ## Trigger Conditions
 
@@ -525,9 +621,9 @@ Start implementing?
 User: Let's go.
 
 [Spawns wb-implementer with full spec chain]
-[Implementer works through tasks, writes tests, commits]
+[Implementer works through tasks in micro-steps, writes tests, and records checkpoints]
 
-Orchestrator: Implementation complete. Running review...
+Orchestrator: Implementation complete. Running review from latest checkpoint window...
 
 [Spawns all 6 reviewers in parallel — each writes to .wannabuild/review/[agent]-iter-1.json]
 [Agents return one-line verdicts. Orchestrator reads review files for detail.]
@@ -543,16 +639,15 @@ Orchestrator: Review — Iteration 1:
 Sending feedback to implementer...
 
 [Orchestrator reads failing agents' .wannabuild/review/ files, aggregates feedback]
-[Spawns wb-implementer with consolidated feedback]
-[Implementer fixes, adds tests]
-[Spawns all 6 reviewers again — writes to [agent]-iter-2.json]
+[Spawns wb-implementer-escalated with consolidated feedback]
+[Escalated implementer fixes, adds tests]
+[Spawns impacted reviewers + integration tester for iteration 2]
 
-Orchestrator: Review — Iteration 2:
-  ✓ Security: PASS    ✓ Performance: PASS
-  ✓ Architecture: PASS ✓ Testing: PASS
-  ✓ Integration Tester: PASS ✓ Code Simplifier: PASS
+Orchestrator: Review — Iteration 2 (adaptive rerun):
+  ✓ Performance: PASS
+  ✓ Integration Tester: PASS
 
-6/6 PASS — Ready to ship!
+2/2 PASS — Ready to ship!
 
 [Spawns wb-pr-craftsman → wb-ci-guardian sequentially — each writes to .wannabuild/outputs/]
 [Spawns wb-readme-updater + wb-api-doc-generator + wb-changelog-writer in parallel — each writes to .wannabuild/outputs/]
@@ -568,6 +663,13 @@ Optional `.wannabuild/config.json`:
 {
   "max_review_iterations": 3,
   "auto_advance": false,
-  "skip_phases": []
+  "skip_phases": [],
+  "adaptive_review_reruns": true,
+  "review_rerun_policy": "impacted_plus_integration",
+  "review_context_scope": "diff_plus_targeted_spec",
+  "max_agent_runs_per_phase": 18,
+  "max_total_review_runs": 12,
+  "max_prompt_chars_per_reviewer": 12000,
+  "on_limit": "pause-and-ask"
 }
 ```

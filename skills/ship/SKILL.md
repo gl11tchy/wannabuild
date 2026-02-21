@@ -35,7 +35,7 @@ Phase 6 of 7 in the WannaBuild SDD pipeline. Creates a well-structured PR refere
   "review": {
     "iterations": 2,
     "final_verdict": "APPROVED",
-    "all_agents_passed": true
+    "all_active_reviewers_passed": true
   }
 }
 ```
@@ -48,9 +48,10 @@ Review approval (input)
         ▼
 ┌─────────────────────────┐
 │  Pre-Ship Checklist      │
-│  - All changes committed │
-│  - Branch up to date     │
-│  - No merge conflicts    │
+│  - Checkpoint evidence complete │
+│  - All changes committed        │
+│  - Branch/workspace ready       │
+│  - No merge conflicts           │
 └────────────┬────────────┘
              │
              ▼
@@ -110,12 +111,16 @@ The PR Craftsman uses spec artifacts to create comprehensive descriptions:
 
 ## Testing
 - Integration tests: [count] written, all passing
-- Review: Passed [reviewer_count]/[reviewer_count] specialists in [N] iterations
+- Review: Active-set unanimous PASS in [N] iterations
 - Test coverage: All acceptance criteria have integration tests
 
+## Execution Evidence
+- Checkpoints reviewed: [count]
+- Latest checkpoint window: [task-step range]
+
 ## Review History
-- Iteration 1: [N/reviewer_count PASS] — fixed [issues]
-- Iteration 2: [reviewer_count/reviewer_count PASS] — approved
+- Iteration 1 (base set): [[passes]/[active_count] PASS] — fixed [issues]
+- Iteration 2+ (adaptive): [[passes]/[active_count] PASS] — approved
 ```
 
 ## CI Guardian: Integration Test Verification
@@ -190,6 +195,7 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 
 ## Quality Checklist
 
+- [ ] Checkpoint evidence is complete and reviewable
 - [ ] All changes committed (no dirty working tree)
 - [ ] PR created with spec references
 - [ ] CI checks passed (including integration tests)

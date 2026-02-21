@@ -2,7 +2,7 @@
 name: wb-dependency-mapper
 description: "Maps task dependencies for WannaBuild tasks phase. Identifies blocking relationships, critical path, and parallelization opportunities."
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 # Dependency Mapper

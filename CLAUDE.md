@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-WannaBuild is a Spec-Driven Development framework for indie hackers, packaged as a Claude Code plugin. It guides developers through 7 phases using 20 specialist AI agents. This is a **pure documentation repository** — no build system, no dependencies, no tests. Skills are markdown files (SKILL.md) that define phase orchestration. Agents are markdown files (agents/wb-*.md) with YAML frontmatter that define specialist behavior.
+WannaBuild is a Spec-Driven Development framework for indie hackers, packaged as a Claude Code plugin. It guides developers through 7 phases using 20 specialist AI agents plus an escalated implementer profile for remediation/high-complexity runs. This is a **pure documentation repository** — no build system, no dependencies, no tests. Skills are markdown files (SKILL.md) that define phase orchestration. Agents are markdown files (agents/wb-*.md) with YAML frontmatter that define specialist behavior.
 
 ## Repository Structure
 
 ```
 .claude-plugin/
   plugin.json                          # Plugin manifest (name, version, author)
-agents/                                # 20 specialist agent files
+agents/                                # 21 agent profiles (20 specialists + 1 escalated implementer)
   wb-scope-analyst.md                  # Phase 1: Requirements
   wb-ux-perspective.md                 # Phase 1: Requirements
   wb-tech-advisor.md                   # Phase 2: Design
@@ -20,7 +20,8 @@ agents/                                # 20 specialist agent files
   wb-task-decomposer.md               # Phase 3: Tasks
   wb-dependency-mapper.md              # Phase 3: Tasks
   wb-scope-validator.md                # Phase 3: Tasks
-  wb-implementer.md                    # Phase 4: Implement
+  wb-implementer.md                    # Phase 4: Implement (default)
+  wb-implementer-escalated.md          # Phase 4: Implement (retry/high-complexity)
   wb-security-reviewer.md             # Phase 5: Review
   wb-performance-reviewer.md          # Phase 5: Review
   wb-architecture-reviewer.md         # Phase 5: Review
@@ -37,7 +38,7 @@ skills/
   requirements/SKILL.md                # Phase 1: 2 agents → .wannabuild/spec/requirements.md
   design/SKILL.md                      # Phase 2: 3 agents → .wannabuild/spec/design.md
   tasks/SKILL.md                       # Phase 3: 3 agents → .wannabuild/spec/tasks.md
-  implement/SKILL.md                   # Phase 4: 1 agent executes tasks with integration tests
+  implement/SKILL.md                   # Phase 4: implementer profiles execute micro-steps with integration tests
   review/SKILL.md                      # Phase 5: 6 agents validate against spec (quality loop)
   ship/SKILL.md                        # Phase 6: 2 agents — PR + CI
   document/SKILL.md                    # Phase 7: 3 agents — README, API docs, changelog
@@ -56,7 +57,7 @@ When installed as a plugin, skills are prefixed with `wannabuild-`:
 REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
                                      │         │
                                      ▼         │
-                                  REVIEW ──────┘  (loop until 6/6 pass)
+                                  REVIEW ──────┘  (loop until active-set unanimous pass)
                                      │
                                      ▼
                                   SHIP → DOCUMENT
@@ -66,15 +67,15 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 
 1. **Specs are the backbone.** Every phase reads from and writes to `.wannabuild/spec/`. Implementation is validated against `spec/requirements.md`. Nothing ships without spec validation.
 
-2. **Role separation is absolute.** The orchestrator NEVER fixes code. Reviewers find issues → feedback goes to implementer → implementer fixes → all 6 reviewers re-run. This is the most important invariant in the system.
+2. **Role separation is absolute.** The orchestrator NEVER fixes code. Reviewers find issues → feedback goes to implementer-escalated → remediation happens in micro-steps with checkpoints → adaptive reviewers re-run (+ integration tester always). This is the most important invariant in the system.
 
-3. **Quality loop requires unanimous approval.** All 6 review agents must PASS before shipping. If any fail, consolidated feedback returns to the implementer. Max 3 iterations before escalating to human.
+3. **Quality loop requires unanimous approval.** Iteration 1 runs the base reviewer set for mode (Full=6, Light=3). Retry iterations run impacted reviewers + integration tester (always), and the active reviewer set must unanimously PASS before shipping. Max 3 iterations before escalating to human.
 
 4. **Integration tests are non-negotiable.** The wb-integration-tester agent is a hard gate — its FAIL blocks shipping with no override path. Every acceptance criterion must have a corresponding integration test.
 
 5. **Agents are spawned via Task tool.** The orchestrator (a skill) spawns specialist agents (in `agents/`) via Claude Code's native Task tool. No other spawning mechanism exists.
 
-6. **State lives in `.wannabuild/`** — `state.json` (current phase), `spec/requirements.md`, `spec/design.md`, `spec/tasks.md`, `loop-state.json` (review voting history), `decisions.md`.
+6. **State lives in `.wannabuild/`** — `state.json` (current phase), `spec/requirements.md`, `spec/design.md`, `spec/tasks.md`, `checkpoints/` (micro-step evidence), `loop-state.json` (review voting history), `decisions.md`.
 
 7. **Phase detection is conversational.** "I wanna build..." → Requirements. "Let's design..." → Design. "Ship it" → Ship. Users can skip or revisit any phase.
 

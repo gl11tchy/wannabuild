@@ -181,7 +181,7 @@ After all agents complete (3 in Full mode, 2 in Light mode), the orchestrator re
    - Scope creep tasks → flag for user decision
    - Missing integration tests → add Integration Test field to tasks
 4. **Add critical path** and parallelization info from Dependency Mapper
-5. **Final validation:** Every task has files, acceptance criteria, and integration test requirements
+5. **Final validation:** Every task has files, acceptance criteria, integration test requirements, and micro-step checkpoints
 6. **Present to user** for review
 
 ## Output Artifact
@@ -200,6 +200,10 @@ The phase produces `.wannabuild/spec/tasks.md`:
 - **Acceptance:** [how to verify]
 - **Integration Test:** [required test scenarios]
 - **Complexity:** S/M/L
+- **Micro-Steps:**
+  1. [2–5 min step]
+     - **Verify:** [command + expected output]
+     - **Checkpoint:** `.wannabuild/checkpoints/task-1-step-1.md`
 
 ### Task 2: [title]
 - **Status:** pending
@@ -208,6 +212,10 @@ The phase produces `.wannabuild/spec/tasks.md`:
 - **Acceptance:** [criteria]
 - **Integration Test:** [required tests]
 - **Complexity:** S/M/L
+- **Micro-Steps:**
+  1. [2–5 min step]
+     - **Verify:** [command + expected output]
+     - **Checkpoint:** `.wannabuild/checkpoints/task-2-step-1.md`
 
 [Continue for all tasks...]
 
@@ -288,7 +296,7 @@ Merge into existing state.json (preserving `mode` and all other existing keys). 
 
 After synthesis:
 
-> Here's your implementation plan — [N] tasks on the critical path, estimated [size]. Each task has its target files, acceptance criteria, and required integration tests defined. Review the task order and let me know if you want to adjust anything before we start coding.
+> Here's your implementation plan — [N] tasks on the critical path, estimated [size]. Each task has target files, acceptance criteria, required integration tests, and micro-step checkpoints defined. Review the task order and let me know if you want to adjust anything before we start coding.
 
 The user can:
 - **Approve:** Move to Implement phase
@@ -308,6 +316,9 @@ The user can:
 - [ ] All requirements from `spec/requirements.md` have task coverage
 - [ ] All acceptance criteria have integration test coverage in task specs
 - [ ] Task sizes are honest (no L tasks that should be broken down)
+- [ ] Every task includes ordered Micro-Steps with 2–5 min granularity
+- [ ] Every micro-step has Verify + Checkpoint fields
+- [ ] No single micro-step exceeds ~15 minutes without explicit split
 - [ ] Scope Validator verdict is PASS
 
 ## Edge Cases

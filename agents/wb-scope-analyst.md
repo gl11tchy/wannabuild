@@ -2,7 +2,7 @@
 name: wb-scope-analyst
 description: "Analyzes project scope for WannaBuild requirements phase. Determines MVP boundaries, identifies scope risks, and defines what's in/out."
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 # Scope Analyst

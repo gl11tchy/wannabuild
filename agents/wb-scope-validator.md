@@ -2,7 +2,7 @@
 name: wb-scope-validator
 description: "Validates task coverage against requirements for WannaBuild tasks phase. Ensures every requirement has tasks and no scope creep has occurred."
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 # Scope Validator

@@ -2,7 +2,7 @@
 name: wb-risk-assessor
 description: "Identifies and assesses technical risks for WannaBuild design phase. Creates risk register with probability, impact, and mitigation strategies."
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 # Risk Assessor

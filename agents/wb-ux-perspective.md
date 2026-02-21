@@ -2,7 +2,7 @@
 name: wb-ux-perspective
 description: "Provides UX analysis for WannaBuild requirements phase. Maps user journeys, identifies edge cases, and ensures the product makes sense from a user's perspective."
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 # UX Perspective Analyst

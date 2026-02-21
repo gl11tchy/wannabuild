@@ -2,11 +2,12 @@
 
 > "Does the code match the spec?"
 
-Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. All reviewers must PASS for code to ship. The integration tester is a hard gate — no override for missing tests.
+Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. The active reviewer set for each iteration must unanimously PASS for code to ship. The integration tester is a hard gate — no override for missing tests.
 
-The reviewer set depends on the session mode (stored in `.wannabuild/state.json`):
-- **Full mode:** All 6 reviewers — unanimous = 6/6
-- **Light mode:** 3 reviewers — unanimous = 3/3
+The reviewer set depends on the session mode (stored in `.wannabuild/state.json`) and iteration:
+- **Iteration 1:** run the full base set for the mode (Full=6, Light=3)
+- **Iteration 2+:** run only impacted reviewers + `wb-integration-tester` (always)
+- **Fallback:** if impact is ambiguous, run the full base set
 
 ## Agents
 
@@ -28,6 +29,14 @@ The reviewer set depends on the session mode (stored in `.wannabuild/state.json`
 | Security Reviewer | `wb-security-reviewer` | OWASP, secrets, auth vulnerabilities | No |
 | Architecture Reviewer | `wb-architecture-reviewer` | Design compliance, separation of concerns | No |
 | Integration Tester | `wb-integration-tester` | Acceptance criteria → test mapping, runs tests | **YES** |
+
+## Fast-Track Review Contract (Mode-agnostic)
+
+- Iteration 1 may start with the reduced reviewer set only if matrix criteria in `AGENTS.md` are met.
+- Set must always include `wb-integration-tester`.
+- Any FAIL in fast-track triggers the next iteration to run the full base reviewer set.
+- If impact routing confidence is unclear, route to the full base reviewer set immediately.
+- Do not reduce hard-gate logic in any scenario.
 
 ## Trigger Conditions
 
@@ -53,129 +62,90 @@ The reviewer set depends on the session mode (stored in `.wannabuild/state.json`
   "implementation": {
     "tasks_completed": 8,
     "tests_written": 15,
-    "commits": ["abc1234", "def5678"]
+    "checkpoints": [".wannabuild/checkpoints/task-1-step-1.md", "..."],
+    "changed_files_from_last_checkpoint_window": ["src/auth.ts", "tests/auth.integration.test.ts"]
   }
 }
 ```
 
+Checkpoint summaries are first-class review input. Reviewer routing should prioritize changed files from the latest checkpoint window before falling back to broader diff context.
+
 ## Execution Flow
 
-**Full mode (6 reviewers):**
 ```
 Code changes + spec artifacts (input)
         │
         ▼
 ┌──────────────────────────────────────────────────────────────┐
-│  All 6 Reviewers in Parallel (background)                    │
-│                                                              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐                    │
-│  │ Security │ │  Perf    │ │  Arch    │                    │
-│  │ Reviewer │ │ Reviewer │ │ Reviewer │                    │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘                    │
-│       │             │            │                           │
-│  ┌────┴─────┐ ┌─────┴────┐ ┌────┴─────┐                    │
-│  │ Testing  │ │Integ.    │ │  Code    │                    │
-│  │ Reviewer │ │ Tester   │ │Simplifier│                    │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘                    │
-│       │             │            │                           │
-└───────┼─────────────┼────────────┼───────────────────────────┘
-        │             │            │
-        ▼             ▼            ▼
-  ┌──────────────────────────────────────┐
-  │  Orchestrator: Collect 6 Verdicts    │
-  │  Update loop-state.json              │
-  │  6/6 PASS? → Ship                   │
-  │  Any FAIL? → Feedback → Implement   │
-  └──────────────────────────────────────┘
-```
-
-**Light mode (3 reviewers):**
-```
-Code changes + spec artifacts (input)
+│ Iteration 1: Full base reviewer set for mode                │
+│   - Full mode: security, performance, architecture, testing, │
+│                integration, code-simplifier                 │
+│   - Light mode: security, architecture, integration         │
+└──────────────────────────────────────────────────────────────┘
         │
         ▼
-┌──────────────────────────────────────────────┐
-│  3 Reviewers in Parallel (background)        │
-│                                              │
-│  ┌──────────┐ ┌──────────┐ ┌────────────┐   │
-│  │ Security │ │  Arch    │ │  Integ.    │   │
-│  │ Reviewer │ │ Reviewer │ │  Tester    │   │
-│  └────┬─────┘ └────┬─────┘ └─────┬──────┘   │
-│       │             │             │          │
-└───────┼─────────────┼─────────────┼──────────┘
-        │             │             │
-        ▼             ▼             ▼
-  ┌──────────────────────────────────────┐
-  │  Orchestrator: Collect 3 Verdicts    │
-  │  Update loop-state.json              │
-  │  3/3 PASS? → Ship                   │
-  │  Any FAIL? → Feedback → Implement   │
-  └──────────────────────────────────────┘
+Collect verdicts → update loop-state → all active reviewers PASS?
+        │
+   YES  ▼                                     NO
+      Ship                        Aggregate failures + changed files
+                                              │
+                                              ▼
+                                Escalated implementer remediates
+                                              │
+                                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Iteration 2+: Adaptive reviewer rerun                       │
+│   active_reviewers = impacted_reviewers(changes, failures)  │
+│                      + integration tester (always)           │
+│   if impact uncertain: fallback to full base reviewer set    │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ## Agent Spawning
 
-**Full mode — all 6 reviewers as parallel background tasks:**
+Build the reviewer list per iteration before spawning:
 
 ```
-Task(subagent_type="wb-security-reviewer", run_in_background=true)
-  prompt: "Review code for security. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/security-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/security-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/security-iter-{N}.json'"
+base_reviewers_full  = [wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier]
+base_reviewers_light = [wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester]
 
-Task(subagent_type="wb-performance-reviewer", run_in_background=true)
-  prompt: "Review code for performance. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/performance-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/performance-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/performance-iter-{N}.json'"
+IF iteration == 1:   # first pass
+  active_reviewers = base_reviewers_{mode}
+ELSE:
+  impacted = infer_impacted_reviewers(changed_files_since_last_iteration, prior_failures)
+  active_reviewers = union(impacted, [wb-integration-tester])
 
-Task(subagent_type="wb-architecture-reviewer", run_in_background=true)
-  prompt: "Review architecture compliance. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/architecture-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/architecture-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/architecture-iter-{N}.json'"
-
-Task(subagent_type="wb-testing-reviewer", run_in_background=true)
-  prompt: "Review test quality. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/testing-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/testing-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/testing-iter-{N}.json'"
-
-Task(subagent_type="wb-integration-tester", run_in_background=true)
-  prompt: "Validate integration tests against acceptance criteria. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/integration-tester-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — all criteria covered. Details at .wannabuild/review/integration-tester-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] criteria missing tests. Details at .wannabuild/review/integration-tester-iter-{N}.json'"
-
-Task(subagent_type="wb-code-simplifier", run_in_background=true)
-  prompt: "Review code complexity. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/code-simplifier-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/code-simplifier-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/code-simplifier-iter-{N}.json'"
+  IF active_reviewers empty OR impact uncertain:
+    active_reviewers = base_reviewers_{mode}
 ```
 
-**Light mode — 3 reviewers as parallel background tasks:**
+Spawn only `active_reviewers` in parallel (background):
 
 ```
-Task(subagent_type="wb-security-reviewer", run_in_background=true)
-  prompt: "Review code for security. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/security-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/security-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/security-iter-{N}.json'"
-
-Task(subagent_type="wb-architecture-reviewer", run_in_background=true)
-  prompt: "Review architecture compliance. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/architecture-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — no issues found. Details at .wannabuild/review/architecture-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/architecture-iter-{N}.json'"
-
-Task(subagent_type="wb-integration-tester", run_in_background=true)
-  prompt: "Validate integration tests against acceptance criteria. Specs at .wannabuild/spec/. [diff summary].
-           Write your full JSON verdict to .wannabuild/review/integration-tester-iter-{N}.json.
-           Return ONLY: 'VERDICT: PASS — all criteria covered. Details at .wannabuild/review/integration-tester-iter-{N}.json'
-                     OR 'VERDICT: FAIL — [M] criteria missing tests. Details at .wannabuild/review/integration-tester-iter-{N}.json'"
+for reviewer in active_reviewers:
+  Task(subagent_type="[reviewer]", run_in_background=true)
+    prompt: "Review using relevant specs + scoped diff context.
+             Write full JSON verdict to .wannabuild/review/[reviewer]-iter-{N}.json.
+             Return one-line VERDICT summary with file path."
 ```
+
+### Reviewer Impact Routing Matrix
+
+Use changed files from last checkpoint window + prior failures to choose impacted reviewers:
+
+- `wb-security-reviewer`: auth/session/permission/crypto/secrets/input-validation changes.
+- `wb-performance-reviewer`: DB query paths, loops over collections, caching, rendering hotspots.
+- `wb-architecture-reviewer`: module boundaries, service contracts, API shape, state management.
+- `wb-testing-reviewer`: test harness, fixtures, assertions, coverage strategy changes.
+- `wb-code-simplifier`: large refactors, abstraction churn, dead-code risk areas.
+- `wb-integration-tester`: **always included** (hard gate).
+
+If routing confidence is low, run the full base reviewer set.
+
+### Context Scope Rules
+
+- Non-integration reviewers get: changed file list, diff summary, and only relevant spec excerpts.
+- Integration tester gets: full acceptance criteria map + relevant test files + test command output summary.
 
 ## Verdict Format
 
@@ -221,40 +191,27 @@ The integration tester additionally returns:
 
 After all reviewers complete, read each `.wannabuild/review/[agent]-iter-{N}.json` file to collect full verdicts. Parse the `status` and `issues` fields to build the display. (The one-line returns tell you which agents completed, but all detail comes from the files.)
 
-Display (counts reflect mode — 6 in Full, 3 in Light):
+Display (counts reflect the **active reviewer set** for that iteration):
 
 ```
 Review Results — Iteration [N]:
+  Active reviewers: Security, Performance, Integration Tester
   ✓ Security: PASS
-  ✓ Performance: PASS
-  ✗ Architecture: FAIL — [summary]
-  ✓ Testing: PASS
-  ✗ Integration Tester: FAIL — [summary]
-  ✓ Code Simplifier: PASS
-
-  [4/6 PASS] — Sending feedback to implementer...
-```
-
-Or on success (Full mode):
-
-```
-Review Results — Iteration [N]:
-  ✓ Security: PASS     ✓ Performance: PASS
-  ✓ Architecture: PASS ✓ Testing: PASS
-  ✓ Integration Tester: PASS ✓ Code Simplifier: PASS
-
-  [6/6 PASS] — Unanimous approval! Ready to ship.
-```
-
-Or on success (Light mode):
-
-```
-Review Results — Iteration [N]:
-  ✓ Security: PASS
-  ✓ Architecture: PASS
+  ✗ Performance: FAIL — [summary]
   ✓ Integration Tester: PASS
 
-  [3/3 PASS] — Unanimous approval! Ready to ship.
+  [2/3 PASS] — Sending feedback to wb-implementer-escalated...
+```
+
+Or on adaptive retry success:
+
+```
+Review Results — Iteration [N]:
+  Active reviewers: Performance, Integration Tester
+  ✓ Performance: PASS
+  ✓ Integration Tester: PASS
+
+  [2/2 PASS] — Unanimous approval for active set. Ready to ship.
 ```
 
 ## The Integration Tester: Hard Gate
@@ -271,7 +228,7 @@ This enforces WannaBuild's core principle: **integration tests are non-negotiabl
 
 ## Feedback Aggregation
 
-When any reviewer fails, read the detail files for all failing agents (`.wannabuild/review/[agent]-iter-{N}.json`), then aggregate their issues into consolidated feedback for the implementer:
+When any reviewer fails, read the detail files for all failing agents (`.wannabuild/review/[agent]-iter-{N}.json`), then aggregate their issues into consolidated feedback for `wb-implementer-escalated`:
 
 ```json
 {
@@ -286,7 +243,7 @@ When any reviewer fails, read the detail files for all failing agents (`.wannabu
 }
 ```
 
-This consolidated feedback (not the raw agent files) is passed to the implementer for fixes. Then ALL reviewers re-run (not just the ones that failed) — 6 in Full mode, 3 in Light mode.
+This consolidated feedback (not the raw agent files) is passed to `wb-implementer-escalated` for fixes. Then the next review iteration runs the adaptive active reviewer set (impacted reviewers + integration tester; full fallback when impact is ambiguous).
 
 ## Loop State
 
@@ -314,7 +271,7 @@ On unanimous approval:
   "review": {
     "iterations": 2,
     "final_verdict": "APPROVED",
-    "all_agents_passed": true
+    "all_active_reviewers_passed": true
   }
 }
 ```
@@ -327,7 +284,7 @@ Elite Code Review can also run standalone (outside the WannaBuild pipeline):
 User: /wannabuild-review
 
 Orchestrator: I'll review the recent changes with my specialist team...
-[Spawns all reviewers against the current diff or specified files]
+[Spawns the mode base reviewer set against the current diff or specified files]
 [Reports verdicts]
 ```
 
@@ -335,9 +292,10 @@ When running standalone without spec artifacts, reviewers use general best pract
 
 ## Quality Checklist
 
-- [ ] All reviewers spawned and returned verdicts (6 in Full mode, 3 in Light mode)
+- [ ] Active reviewer set selected correctly for the iteration (base on iter-1, adaptive on retries)
+- [ ] Integration tester included in every iteration
 - [ ] Verdicts are valid JSON with required fields
-- [ ] Loop state updated in `loop-state.json` (includes `mode` and `reviewer_count`)
-- [ ] Feedback aggregated by file (not by agent) for implementer
+- [ ] Loop state updated in `loop-state.json` (includes `mode`, `active_reviewers`, and counts)
+- [ ] Feedback aggregated by file (not by agent) for `wb-implementer-escalated`
 - [ ] Integration tester ran the actual test suite
-- [ ] Unanimous approval before proceeding to Ship
+- [ ] Unanimous approval from active reviewer set before proceeding to Ship

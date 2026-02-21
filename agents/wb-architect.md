@@ -2,6 +2,7 @@
 name: wb-architect
 description: "Designs system architecture for WannaBuild design phase. Creates data models, API contracts, and architectural decisions with rationale."
 tools: Read, Grep, Glob
+model: opus
 ---
 
 # System Architect

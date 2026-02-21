@@ -4,7 +4,7 @@ This document provides essential information for autonomous AI agents working wi
 
 ## Overview
 
-WannaBuild is a Spec-Driven Development framework packaged as a Claude Code plugin. It has 20 specialist AI agents across 7 phases. The orchestrator is a skill (main conversation context) that spawns specialist agents via Claude Code's native Task tool. Each specialist is a standalone agent file in `agents/`.
+WannaBuild is a Spec-Driven Development framework packaged as a Claude Code plugin. It has 20 core specialist agents across 7 phases, plus an escalation implementer profile for remediation/high-complexity runs. The orchestrator is a skill (main conversation context) that spawns specialist agents via Claude Code's native Task tool. Each specialist is a standalone agent file in `agents/`.
 
 ## Architecture
 
@@ -13,7 +13,7 @@ Orchestrator (skill: wannabuild-build) → spawns agents via Task tool
 ├── Phase 1: Requirements  → wb-scope-analyst, wb-ux-perspective
 ├── Phase 2: Design        → wb-tech-advisor, wb-architect, wb-risk-assessor
 ├── Phase 3: Tasks         → wb-task-decomposer, wb-dependency-mapper, wb-scope-validator
-├── Phase 4: Implement     → wb-implementer
+├── Phase 4: Implement     → wb-implementer (default), wb-implementer-escalated (retry/high-complexity)
 ├── Phase 5: Review        → wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer,
 │                            wb-testing-reviewer, wb-integration-tester, wb-code-simplifier
 ├── Phase 6: Ship          → wb-pr-craftsman, wb-ci-guardian
@@ -26,7 +26,7 @@ Orchestrator (skill: wannabuild-build) → spawns agents via Task tool
 wannabuild/
 ├── .claude-plugin/              # Plugin manifest
 │   └── plugin.json
-├── agents/                      # 20 specialist agent files (wb-*.md)
+├── agents/                      # 21 agent profiles (20 specialists + 1 implementer escalation profile)
 ├── skills/                      # Phase skills (SKILL.md per phase)
 │   ├── build/                   # Orchestrator skill
 │   │   └── references/          # SDD principles, philosophy
@@ -81,12 +81,14 @@ All phases read from and write to `.wannabuild/spec/` in the target project:
    - Produces `spec/tasks.md` with ordered, testable tasks
 
 4. **Implement Phase** — Use `wannabuild-implement` skill
-   - Spawns wb-implementer in foreground
-   - Writes code + integration tests, commits atomically
+   - Spawns wb-implementer in foreground by default
+   - Uses wb-implementer-escalated for high-complexity or review-loop remediation
+   - Writes code + integration tests through micro-step checkpoints + verification loops
 
 5. **Review Phase** — Use `wannabuild-review` skill
-   - Spawns all 6 reviewers in parallel
-   - Quality loop: iterate until unanimous 6/6 PASS
+   - Iteration 1 spawns the base reviewer set for mode (Full=6, Light=3)
+   - Retry iterations use adaptive reruns (impacted reviewers + integration tester)
+   - Quality loop continues until unanimous PASS from the active reviewer set
    - Integration tester is a hard gate (no override for missing tests)
 
 6. **Ship Phase** — Use `wannabuild-ship` skill
@@ -111,12 +113,36 @@ All phases read from and write to `.wannabuild/spec/` in the target project:
 
 ### Quality Loop
 
-- 6 specialist agents run in parallel
-- Each returns PASS or FAIL with structured JSON verdict
-- If ANY fails, aggregated feedback goes back to implementer
-- Loop continues until UNANIMOUS APPROVAL (6/6)
+- Iteration 1 runs the full base reviewer set (Full=6, Light=3)
+- Iteration 2+ runs adaptive reviewer reruns (impacted reviewers + integration tester)
+- Each reviewer returns PASS or FAIL with structured JSON verdict
+- If ANY fails, aggregated feedback goes to `wb-implementer-escalated`
+- Loop continues until unanimous approval from the active reviewer set
 - Max 3 iterations before escalation
+- Guardrails should pause-and-ask when run/context limits are reached (no silent fan-out)
+- **Fast-Track Decision Matrix (optional):**
+- Eligible only when all conditions are true:
+  - `files_changed <= 2`
+  - `estimated_scope` is `tiny`
+  - `risk_label` is `low`
+  - no `db` migration, auth/session, secret-handling, or payment/financial changes
+- Reviewer set for Iteration 1: `wb-integration-tester` plus at most 2 high-confidence impacted reviewers
+- Integration hard gate is always included and unchanged
+- If **any** reviewer fails, impact confidence is uncertain, or gating signals conflict, next iteration switches to the full base reviewer set for that mode
 - **Integration tester FAIL blocks shipping — no override path**
+
+### Execution Defaults
+
+- Implementation runs in micro-steps by default (one tiny step, verify, checkpoint, continue).
+- `.wannabuild/checkpoints/` is the source of execution evidence for resume and review routing.
+- VCS commits are optional during implementation; they are packaging concerns handled in ship workflows.
+
+### Model Tiering Defaults
+
+- **Spec quality first:** Requirements, Design, and Tasks specialists are pinned to `opus`.
+- **Default implementation:** `wb-implementer` inherits the parent session model (recommended target in OpenClaw: Codex 5.3 spark).
+- **Escalation path:** `wb-implementer-escalated` inherits the parent model (recommended parent: Codex 5.3 or Opus).
+- **Escalation trigger:** use escalated implementer after the first failed review iteration, or immediately for high-complexity work.
 
 ## Agent File Format
 
@@ -143,13 +169,13 @@ model: sonnet                  # Optional: omit to inherit parent model
 ## Testing Framework Changes
 
 Since this is a documentation/framework repository:
-- No unit tests required
-- No build commands needed
-- Skills and agents are validated by running them in Claude Code against real projects
+- Unit tests are expected in target projects and are required where applicable by integration-gate checks.
+- No build commands are required inside this repository; skills and agents are validated by running them in Claude Code against real projects.
+- Skills and agents are validated by running them in Claude Code against real projects.
 
-## Committing Changes
+## VCS Notes
 
-Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`.
+During implementation, checkpoint files are the required evidence. Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`) are optional during active implementation, but code must be committed before ship/PR creation.
 
 ## Dependencies
 

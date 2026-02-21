@@ -46,7 +46,8 @@ The agent set depends on the session mode (stored in `.wannabuild/state.json`):
   "ship": {
     "pr_number": 42,
     "pr_url": "...",
-    "merge_commit": "abc1234"
+    "merge_commit": "abc1234",
+    "checkpoint_summary": ".wannabuild/checkpoints/"
   }
 }
 ```
@@ -108,7 +109,7 @@ Task(subagent_type="wb-api-doc-generator", run_in_background=true)
            Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/api-doc-generator.md'"
 
 Task(subagent_type="wb-changelog-writer", run_in_background=true)
-  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Git log: {recent_commits}.
+  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Change evidence: {recent_commits_or_checkpoints}.
            Write your full output to .wannabuild/outputs/changelog-writer.md.
            Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/changelog-writer.md'"
 ```
@@ -117,7 +118,7 @@ Task(subagent_type="wb-changelog-writer", run_in_background=true)
 
 ```
 Task(subagent_type="wb-changelog-writer", run_in_background=true)
-  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Git log: {recent_commits}.
+  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Change evidence: {recent_commits_or_checkpoints}.
            Write your full output to .wannabuild/outputs/changelog-writer.md.
            Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/changelog-writer.md'"
 ```
@@ -197,7 +198,7 @@ After all documentation is updated:
 > **Requirements:** [N] user stories, [N] acceptance criteria
 > **Design:** [architecture summary]
 > **Implementation:** [N] tasks completed, [N] integration tests
-> **Review:** Passed [reviewer_count]/[reviewer_count] specialists in [N] iterations
+> **Review:** Active-set unanimous PASS in [N] iterations (adaptive reruns)
 > **Shipped:** PR #[N] merged
 > **Documentation:** README, API docs, and changelog updated *(Full mode)* / Changelog updated *(Light mode)*
 >

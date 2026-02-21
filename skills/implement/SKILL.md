@@ -2,15 +2,18 @@
 
 > "Let's build this thing."
 
-Phase 4 of 7 in the WannaBuild SDD pipeline. The implementer works through the task spec, writing feature code and integration tests, making atomic commits.
+Phase 4 of 7 in the WannaBuild SDD pipeline. The implementer works through the task spec in micro-steps, writing feature code and integration tests with checkpoint evidence after each verified step.
 
 ## Agent
 
 | Agent | File | Role |
 |-------|------|------|
-| Implementer | `wb-implementer` | Executes tasks from spec, writes code + integration tests, commits |
+| Implementer (default) | `wb-implementer` | Executes tasks from spec using the parent session model (recommended: Codex 5.3 spark in OpenClaw), writes code + integration tests, checkpoints |
+| Implementer (escalated) | `wb-implementer-escalated` | Same implementation role, but inherits parent model for high-complexity work and review-loop remediation |
 
-This is a single-agent phase. The implementer runs in the foreground with full tool access.
+This phase runs one implementer at a time in the foreground with full tool access.
+- Default: `wb-implementer`
+- Escalated: `wb-implementer-escalated` (high-complexity upfront or after first failed review iteration)
 
 ## Trigger Conditions
 
@@ -54,7 +57,7 @@ spec/tasks.md (ordered task list)
 │  4. Write tests first   │
 │  5. Implement feature   │
 │  6. Run test suite      │
-│  7. Commit atomically   │
+│  7. Write checkpoint    │
 │  8. Update task status  │
 │                         │
 │  Repeat until all done  │
@@ -70,8 +73,15 @@ spec/tasks.md (ordered task list)
 ## Agent Spawning
 
 ```
+# Default implementation path
 Task(subagent_type="wb-implementer")
   prompt: "Implement all tasks from .wannabuild/spec/tasks.md.
+           Read the full spec chain at .wannabuild/spec/ first.
+           Codebase at: {codebase_path}"
+
+# Escalated path (high-complexity upfront or post-review remediation)
+Task(subagent_type="wb-implementer-escalated")
+  prompt: "Implement/fix tasks from .wannabuild/spec/tasks.md or aggregated review feedback.
            Read the full spec chain at .wannabuild/spec/ first.
            Codebase at: {codebase_path}"
 ```
@@ -87,6 +97,16 @@ Every task with an "Integration Test" field MUST have corresponding test code. T
 - A task is NOT complete until its tests pass
 - This is validated by `wb-integration-tester` in the Review phase
 
+## Checkpoint Format
+
+Each completed micro-step writes a checkpoint file at:
+- `.wannabuild/checkpoints/task-{N}-step-{M}.md`
+
+Checkpoint content should include:
+- changed files
+- verify command + result
+- pending next micro-step
+
 ## Task Execution Protocol
 
 For each task in `spec/tasks.md`:
@@ -94,10 +114,10 @@ For each task in `spec/tasks.md`:
 1. **Read the task** — understand files, deps, acceptance criteria, required tests
 2. **Check dependencies** — verify prerequisite tasks are complete
 3. **Study existing code** — read target files, match patterns and conventions
-4. **Write integration test** — define expected behavior as a test (TDD approach when applicable)
-5. **Implement** — minimum code to satisfy acceptance criteria and pass tests
+4. **Execute micro-steps in order** — one micro-step at a time (`read step -> implement minimal change -> verify -> write checkpoint -> continue`)
+5. **Write integration test** — define expected behavior as a test (TDD approach when applicable)
 6. **Run tests** — verify changes work and don't break existing tests
-7. **Commit** — atomic commit with conventional message (`feat:`, `fix:`, `test:`)
+7. **Write checkpoint evidence** — `.wannabuild/checkpoints/task-{N}-step-{M}.md`
 8. **Report status** — mark task complete, note any deviations from spec
 
 ## Handling Review Feedback
@@ -115,13 +135,14 @@ When the quality loop sends feedback (after a FAIL verdict), the implementer rec
 }
 ```
 
-The implementer addresses each issue, runs tests again, and commits fixes. It does NOT skip integration test requirements — those are non-negotiable regardless of which iteration.
+The escalated implementer (`wb-implementer-escalated`) addresses each issue, runs tests again, and records checkpoint evidence per micro-step. Remediation should stay scoped to failing areas so adaptive review reruns remain fast. It does NOT skip integration test requirements — those are non-negotiable regardless of which iteration.
 
 ## Coding Standards
 
 - **Follow existing patterns.** Match the codebase's style, naming, and structure.
 - **Quality, not perfection.** Ship working code. Don't gold-plate.
-- **Commit frequently.** One task = one commit minimum.
+- **checkpoint every micro-step.**
+- **VCS commits are optional during micro-steps, but mandatory before ship/PR creation.**
 - **Test as you go.** Run the test suite after each task.
 
 ## When to Ask vs. Push Forward
@@ -145,7 +166,7 @@ The implementer reports per-task progress:
 ### Task [N]: [title] — COMPLETE
 **Files changed:** [list]
 **Tests written:** [test file: descriptions]
-**Commit:** [hash and message]
+**Checkpoints:** [.wannabuild/checkpoints/task-{N}-step-{M}.md, ...]
 **Notes:** [discoveries, deviations]
 ```
 
@@ -192,7 +213,7 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
     "tasks_completed": 8,
     "tasks_total": 8,
     "tests_written": 15,
-    "commits": ["abc1234", "def5678", "..."]
+    "checkpoints": [".wannabuild/checkpoints/task-1-step-1.md", "..."]
   }
 }
 ```
@@ -209,7 +230,7 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 - [ ] All tasks from `spec/tasks.md` are complete
 - [ ] Every task with an Integration Test field has written tests
 - [ ] All tests pass (new and existing)
-- [ ] Commits follow conventional commit format
+- [ ] Checkpoint evidence exists for each completed micro-step
 - [ ] No hardcoded secrets, tokens, or credentials
 - [ ] Code follows existing codebase patterns
 - [ ] Spec deviations are documented
