@@ -69,4 +69,4 @@ Return your analysis as structured markdown:
 - Think like a user, not a developer. "The API returns 404" is a developer concern. "The user sees a broken page" is a UX concern.
 - Every user story must have integration test scenarios. No story is complete without defining how to test it.
 - Flag empty states — they're the most commonly forgotten UX element.
-- Keep it practical. This is for indie hackers, not enterprise UX teams.
+- Keep it practical. This is for indie builders, not enterprise UX teams.

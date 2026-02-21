@@ -220,7 +220,7 @@ In return, WannaBuild gives you:
 
 ## The Future
 
-WannaBuild will evolve based on what indie hackers actually need. Current ideas:
+WannaBuild will evolve based on what indie builders actually need. Current ideas:
 - **Learn from your patterns** — Adapt to your coding style
 - **Team mode** — Coordinate multiple agents on larger features
 - **Integration plugins** — Connect to Linear, Notion, etc.

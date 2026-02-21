@@ -4,7 +4,7 @@
 
 Most AI coding frameworks feel like enterprise software shrunk down for solo developers. Heavy documentation, rigid phases, lots of commands to memorize.
 
-WannaBuild is different. It's built ground-up for indie hackers who need to ship quality code fast — with specs as the backbone, not bureaucracy.
+WannaBuild is different. It's built ground-up for indie builders who need to ship quality code fast — with specs as the backbone, not bureaucracy.
 
 ## Core Principles
 
@@ -53,7 +53,7 @@ Each expert does one thing exceptionally well.
 
 Unit tests verify components in isolation. Integration tests verify that **the thing you built actually works as a whole**.
 
-For indie hackers shipping real products, integration tests catch the bugs that matter — API endpoints returning wrong data, auth flows breaking on edge cases, database queries failing with real data.
+For indie builders shipping real products, integration tests catch the bugs that matter — API endpoints returning wrong data, auth flows breaking on edge cases, database queries failing with real data.
 
 WannaBuild enforces this through every phase:
 - Requirements include test scenarios for every user story

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-WannaBuild is a Spec-Driven Development framework for indie hackers, packaged as a Claude Code plugin. It guides developers through 7 phases using 20 specialist AI agents plus an escalated implementer profile for remediation/high-complexity runs. This is a **pure documentation repository** — no build system, no dependencies, no tests. Skills are markdown files (SKILL.md) that define phase orchestration. Agents are markdown files (agents/wb-*.md) with YAML frontmatter that define specialist behavior.
+WannaBuild is a Spec-Driven Development framework for indie builders, packaged as a Claude Code plugin. It guides developers through 7 phases using 20 specialist AI agents plus an escalated implementer profile for remediation/high-complexity runs. This is a **pure documentation repository** — no build system, no dependencies, no tests. Skills are markdown files (SKILL.md) that define phase orchestration. Agents are markdown files (agents/wb-*.md) with YAML frontmatter that define specialist behavior.
 
 ## Repository Structure
 

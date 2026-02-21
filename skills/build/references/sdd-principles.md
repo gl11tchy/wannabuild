@@ -61,7 +61,7 @@ Specs should be as detailed as needed and no more. For a weekend project, a requ
 
 ### Why Integration Tests Are Non-Negotiable
 
-Unit tests verify components in isolation. Integration tests verify that **the thing you built actually works as a whole**. For indie hackers shipping real products, integration tests catch the bugs that matter:
+Unit tests verify components in isolation. Integration tests verify that **the thing you built actually works as a whole**. For indie builders shipping real products, integration tests catch the bugs that matter:
 - API endpoints that return wrong data
 - Auth flows that break on edge cases
 - Database queries that work in isolation but fail with real data
