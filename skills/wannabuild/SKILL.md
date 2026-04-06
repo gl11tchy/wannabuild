@@ -56,6 +56,8 @@ mkdir -p "$WB_PATH/.wannabuild"
 
 Then write `.wannabuild/workspace.json` in the new workspace:
 
+(Substitute the actual shell variable values from the commands above, not the placeholder strings.)
+
 ```json
 {
   "workspace_id": "<WB_ID>",
@@ -74,13 +76,13 @@ Then write `.wannabuild/state.json`:
   "current_stage": "discover",
   "stage_status": "in_progress",
   "mode": "standard",
-  "started_at": "<ISO timestamp>",
-  "updated_at": "<ISO timestamp>",
+  "started_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
+  "updated_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
   "artifacts": {}
 }
 ```
 
-If workspace bootstrap fails, stop and report the failure instead of continuing in-place.
+If workspace bootstrap fails, delete `$WB_PATH` if it was partially created, then stop and report the error without continuing.
 
 > **Note:** If working from the WannaBuild repo directly, you can also run `scripts/wannabuild-workspace.sh --json` from the target project root instead of the inline commands above.
 
@@ -160,7 +162,7 @@ Persist the choice in `.wannabuild/state.json`:
 - `control_mode: "guided"`
 - `control_mode: "autonomous"`
 
-Update `.wannabuild/state.json` — set `current_stage: "control_mode_decision"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
+Update `.wannabuild/state.json` — set `current_stage: "control_mode_decision"`, `stage_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Then, once the user chooses:
 
@@ -229,7 +231,7 @@ Run these agents as a separate post-implementation gate:
 
 Write verdicts into `.wannabuild/review/`.
 
-Update `.wannabuild/state.json` — set `current_stage: "review"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
+Update `.wannabuild/state.json` — set `current_stage: "review"`, `stage_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Do not treat implementation-time checks as the Review stage.
 
@@ -250,7 +252,7 @@ QA must:
 - confirm integration behavior
 - write `.wannabuild/outputs/qa-summary.md`
 
-Update `.wannabuild/state.json` — set `current_stage: "qa"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
+Update `.wannabuild/state.json` — set `current_stage: "qa"`, `stage_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Do not collapse QA into implementation verification.
 
@@ -267,12 +269,12 @@ Do not emit the final Summary until Review and QA are both complete.
 
 Before summarizing, verify:
 - `.wannabuild/review/` exists and contains at least one `*.json` verdict file
-- All verdict files have `"status": "PASS"`
+- All verdict files have `"status": "PASS"` — any other status value blocks the summary
 - `.wannabuild/outputs/qa-summary.md` exists
 
 If any check fails, block the summary and report what is missing.
 
-Then update `.wannabuild/state.json` — set `current_stage: "summary"`, `stage_status: "complete"`, `updated_at: <ISO timestamp>`.
+Then update `.wannabuild/state.json` — set `current_stage: "summary"`, `stage_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 If `control_mode` is `guided`, ask before final summary:
 
@@ -316,6 +318,6 @@ Persist and update these public stages in `.wannabuild/state.json`:
 9. `qa`
 10. `summary`
 
-When entering or completing a stage, update `.wannabuild/state.json` — set `current_stage: "<stage>"`, `stage_status: "in_progress"` or `stage_status: "complete"`, `updated_at: <ISO timestamp>`.
+When entering or completing a stage, update `.wannabuild/state.json` — set `current_stage: "<stage>"`, `stage_status: "in_progress"` or `stage_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Do not skip stages silently.
