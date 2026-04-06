@@ -33,21 +33,56 @@ Only begin Discover after the user provides an actual task.
 
 If the current project is a git repo and the user has provided a concrete task:
 
-1. create an isolated workspace before Discover
-2. continue all reads and writes in that workspace only
-3. never continue work in the original checkout
+1. Create an isolated workspace before Discover
+2. Continue all reads and writes in that workspace only
+3. Never continue work in the original checkout
 
-Use:
+Run these commands from the target project root:
 
-`../../scripts/wannabuild-workspace.sh --json`
+```bash
+GIT_ROOT=$(git rev-parse --show-toplevel)
+REPO_NAME=$(basename "$GIT_ROOT")
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
+WB_TS=$(date +%Y%m%d%H%M%S)
+WB_RAND=$(python3 -c "import secrets; print(''.join(secrets.choice('abcdefghijklmnopqrstuvwxyz0123456789') for _ in range(6)))")
+WB_ID="${WB_TS}-build-${WB_RAND}"
+WB_PARENT="$(dirname "$GIT_ROOT")/.wannabuild-workspaces/${REPO_NAME}"
+WB_PATH="${WB_PARENT}/${WB_ID}"
+WB_BRANCH="wannabuild/${WB_ID}"
+mkdir -p "$WB_PARENT"
+git worktree add -b "$WB_BRANCH" "$WB_PATH" HEAD
+mkdir -p "$WB_PATH/.wannabuild"
+```
 
-Then initialize session state in the new workspace:
+Then write `.wannabuild/workspace.json` in the new workspace:
 
-`../../scripts/wannabuild-session.sh init <workspace_path>`
+```json
+{
+  "workspace_id": "<WB_ID>",
+  "source_repo": "<GIT_ROOT>",
+  "source_branch": "<CURRENT_BRANCH>",
+  "workspace_path": "<WB_PATH>",
+  "branch_name": "<WB_BRANCH>",
+  "dirty_snapshot": false
+}
+```
 
-Write `.wannabuild/workspace.json` and `.wannabuild/state.json` in the isolated workspace before continuing.
+Then write `.wannabuild/state.json`:
+
+```json
+{
+  "current_stage": "discover",
+  "stage_status": "in_progress",
+  "mode": "standard",
+  "started_at": "<ISO timestamp>",
+  "updated_at": "<ISO timestamp>",
+  "artifacts": {}
+}
+```
 
 If workspace bootstrap fails, stop and report the failure instead of continuing in-place.
+
+> **Note:** If working from the WannaBuild repo directly, you can also run `scripts/wannabuild-workspace.sh --json` from the target project root instead of the inline commands above.
 
 ## Workflow
 
@@ -75,18 +110,19 @@ Run this condensed workflow:
 
 ## Internal References
 
-Use these repo contracts as needed:
+Use these contracts as needed. If installed via the Claude Code marketplace, these are available at their relative paths within the plugin. If working directly from the repo, they are at the same relative paths.
 
-- `../../AGENTS.md`
-- `../build/SKILL.md`
-- `../requirements/SKILL.md`
-- `../design/SKILL.md`
-- `../tasks/SKILL.md`
-- `../implement/SKILL.md`
-- `../review/SKILL.md`
-- `../ship/SKILL.md`
-- `../document/SKILL.md`
-- `../../scripts/validate-wannabuild-artifacts.sh`
+- `AGENTS.md` (repo root) — primary operator contract
+- `skills/build/SKILL.md` — full orchestrator contract
+- `skills/requirements/SKILL.md`
+- `skills/design/SKILL.md`
+- `skills/tasks/SKILL.md`
+- `skills/implement/SKILL.md`
+- `skills/review/SKILL.md`
+- `skills/ship/SKILL.md`
+- `skills/document/SKILL.md`
+
+> **Optional scripts (repo install only):** `scripts/validate-wannabuild-artifacts.sh` can be used for artifact validation if the WannaBuild repo is accessible. It is not required for normal skill execution.
 
 ## Startup
 
@@ -124,11 +160,12 @@ Persist the choice in `.wannabuild/state.json`:
 - `control_mode: "guided"`
 - `control_mode: "autonomous"`
 
-Use:
+Update `.wannabuild/state.json` — set `current_stage: "control_mode_decision"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
 
-- `../../scripts/wannabuild-session.sh set-stage <workspace_path> control_mode_decision in_progress`
-- `../../scripts/wannabuild-session.sh set-control-mode <workspace_path> guided`
-- `../../scripts/wannabuild-session.sh set-control-mode <workspace_path> autonomous`
+Then, once the user chooses:
+
+- Guided: Update `.wannabuild/state.json` — set `control_mode: "guided"`.
+- Autonomous: Update `.wannabuild/state.json` — set `control_mode: "autonomous"`.
 
 ## Research Gate
 
@@ -192,9 +229,7 @@ Run these agents as a separate post-implementation gate:
 
 Write verdicts into `.wannabuild/review/`.
 
-Use:
-
-`../../scripts/wannabuild-session.sh set-stage <workspace_path> review in_progress`
+Update `.wannabuild/state.json` — set `current_stage: "review"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
 
 Do not treat implementation-time checks as the Review stage.
 
@@ -215,9 +250,7 @@ QA must:
 - confirm integration behavior
 - write `.wannabuild/outputs/qa-summary.md`
 
-Use:
-
-`../../scripts/wannabuild-session.sh set-stage <workspace_path> qa in_progress`
+Update `.wannabuild/state.json` — set `current_stage: "qa"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
 
 Do not collapse QA into implementation verification.
 
@@ -232,13 +265,14 @@ If `control_mode` is `autonomous`, proceed adaptively.
 
 Do not emit the final Summary until Review and QA are both complete.
 
-Before summarizing, require:
+Before summarizing, verify:
+- `.wannabuild/review/` exists and contains at least one `*.json` verdict file
+- All verdict files have `"status": "PASS"`
+- `.wannabuild/outputs/qa-summary.md` exists
 
-- `../../scripts/wannabuild-gate-check.sh <workspace_path> summary`
+If any check fails, block the summary and report what is missing.
 
-Then set:
-
-`../../scripts/wannabuild-session.sh set-stage <workspace_path> summary complete`
+Then update `.wannabuild/state.json` — set `current_stage: "summary"`, `stage_status: "complete"`, `updated_at: <ISO timestamp>`.
 
 If `control_mode` is `guided`, ask before final summary:
 
@@ -282,9 +316,6 @@ Persist and update these public stages in `.wannabuild/state.json`:
 9. `qa`
 10. `summary`
 
-Use:
-
-- `../../scripts/wannabuild-session.sh set-stage <workspace_path> <stage> in_progress`
-- `../../scripts/wannabuild-session.sh set-stage <workspace_path> <stage> complete`
+When entering or completing a stage, update `.wannabuild/state.json` — set `current_stage: "<stage>"`, `stage_status: "in_progress"` or `stage_status: "complete"`, `updated_at: <ISO timestamp>`.
 
 Do not skip stages silently.
