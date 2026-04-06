@@ -25,8 +25,6 @@ If invoked with a concrete task:
 
 1. Check for `.wannabuild/state.json` — if it exists and is recoverable, resume with:
    `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
-2. Otherwise emit the start banner and begin Discover immediately.
-
-If the current directory is inside a git repo, create an isolated workspace before Discover (see Mandatory Workspace Bootstrap in the wannabuild skill).
+2. Otherwise: if inside a git repo, create an isolated workspace first (see Mandatory Workspace Bootstrap in the wannabuild skill), then emit the start banner and begin Discover.
 
 Use the `wannabuild` skill for the full workflow contract.
