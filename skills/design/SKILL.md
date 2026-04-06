@@ -2,11 +2,7 @@
 
 > Phase 2 of 7 in the WannaBuild SDD pipeline. Transforms requirements into a technical blueprint with architecture, tech stack decisions, data models, API contracts, testing strategy, and risk assessment.
 
-## Light Mode: This Phase Is Skipped
-
-In Light mode, the orchestrator transitions directly from Requirements to Tasks. No design.md is written. The implementer infers architecture from the existing codebase. Use Full mode when you need to establish architecture, choose a tech stack, or assess risks before coding.
-
-## Agents (Full Mode Only)
+## Agents
 
 | Agent | File | Role |
 |-------|------|------|
@@ -22,7 +18,7 @@ In Light mode, the orchestrator transitions directly from Requirements to Tasks.
 - "How should we build it?"
 
 **Implicit (from orchestrator):**
-- Requirements phase completes → auto-transition to Design (Full mode only)
+- Requirements phase completes → auto-transition to Design
 
 ## Input
 

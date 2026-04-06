@@ -2,7 +2,22 @@
 
 > "What do you wanna build?"
 
-WannaBuild is a 7-phase Spec-Driven Development framework that guides you from idea to shipped product. It uses 20 specialist AI agents coordinated through structured spec artifacts — your specs are the backbone, not an afterthought.
+WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts.
+
+## Public Workflow Model
+
+The intended user-facing flow is:
+
+1. Discover
+2. Control mode gate
+3. Research gate
+4. Plan
+5. Implement gate
+6. Review
+7. QA
+8. Summary
+
+Internally, the orchestrator uses finer-grained phases and artifacts to keep the workflow rigorous. Those phases are execution detail; the external experience should stay compact.
 
 ## Workflow Start Indicator
 
@@ -12,7 +27,7 @@ WannaBuild must emit deterministic start banners before doing any phase work.
 
 Use **exactly** this line for fresh starts:
 
-`[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`
+`[WB-START] WannaBuild STARTED | intent=build | mode=standard`
 
 If the user gave any explicit intent (`build`, `requirements`, `tasks`, `implement`, etc.), include it in `intent=<...>`.
 
@@ -20,16 +35,17 @@ If the user gave any explicit intent (`build`, `requirements`, `tasks`, `impleme
 
 If `.wannabuild/state.json` exists and is recoverable, use this exact line:
 
-`[WB-RESUME] WannaBuild RESUME | mode=<full|light|spark> | phase=<current_phase> | progress=<done>/<total>`
+`[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
 
 Examples:
-- `[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`
-- `[WB-START] WannaBuild STARTED | intent=build | mode=spark`
-- `[WB-RESUME] WannaBuild RESUME | mode=light | phase=implement | progress=5/8`
+- `[WB-START] WannaBuild STARTED | intent=build | mode=standard`
+- `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=implement | progress=5/8`
 
-For fresh build intent (`I wanna build`, `spark build`, `build ...`), the first required action is mode selection.
+For fresh build intent (`I wanna build`, `build ...`), start discovery immediately.
 
 ## Architecture
+
+Internal phase graph:
 
 ```
 REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
@@ -41,95 +57,144 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
                                   SHIP → DOCUMENT
 ```
 
-**20 specialist agents** across **7 phases**, all spawned via Claude Code's native Task tool.
+**20 specialist agents** across **7 internal phases**, used behind the condensed workflow model.
 
-### Full Mode
+## Public-to-Internal Mapping
+
+| Public Step | Internal Execution Surfaces |
+|---|---|
+| Discover | Requirements |
+| Control mode gate | Guided or autonomous preference |
+| Research gate | Optional research burst using specialist agents |
+| Plan | Design + Tasks |
+| Implement gate | Solo-owner or parallel implementation choice |
+| Implement | Implement |
+| Review | Review |
+| QA | Integration gate + final verification |
+| Summary | Ship/Document/handoff synthesis |
+
+### Standard Internal Flow
 
 | # | Phase | Skill | Agents | Spec Artifact |
 |---|-------|-------|--------|---------------|
 | 1 | Requirements | `wannabuild-requirements` | wb-scope-analyst, wb-ux-perspective | `spec/requirements.md` |
 | 2 | Design | `wannabuild-design` | wb-tech-advisor, wb-architect, wb-risk-assessor | `spec/design.md` |
 | 3 | Tasks | `wannabuild-tasks` | wb-task-decomposer, wb-dependency-mapper, wb-scope-validator | `spec/tasks.md` |
-| 4 | Implement | `wannabuild-implement` | wb-implementer (default), wb-implementer-escalated (retry/high-complexity) | Code + tests + checkpoints |
+| 4 | Implement | `wannabuild-implement` | wb-implementer, wb-implementer-escalated | Code + tests + checkpoints |
 | 5 | Review | `wannabuild-review` | wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier | `loop-state.json` |
 | 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
 | 7 | Document | `wannabuild-document` | wb-readme-updater, wb-api-doc-generator, wb-changelog-writer | Updated docs |
 
-### Light Mode
+## Single Workflow Mode
 
-| # | Phase | Skill | Agents | Spec Artifact |
-|---|-------|-------|--------|---------------|
-| 1 | Requirements | `wannabuild-requirements` | wb-scope-analyst, wb-ux-perspective | `spec/requirements.md` |
-| 2 | Design | — | **skipped** | — |
-| 3 | Tasks | `wannabuild-tasks` | wb-task-decomposer, wb-scope-validator | `spec/tasks.md` |
-| 4 | Implement | `wannabuild-implement` | wb-implementer (default), wb-implementer-escalated (retry/high-complexity) | Code + tests + checkpoints |
-| 5 | Review | `wannabuild-review` | wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester | `loop-state.json` |
-| 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
-| 7 | Document | `wannabuild-document` | wb-readme-updater, wb-api-doc-generator, wb-changelog-writer | Updated docs |
+WannaBuild now runs one standard workflow mode at the top level.
 
-### Spark Mode
+- do not ask the user to choose Full, Light, or Spark
+- start with the standard start banner
+- proceed into Discover immediately
 
-| # | Phase | Skill | Agents | Spec Artifact |
-|---|-------|-------|--------|---------------|
-| 1 | Requirements | `wannabuild-requirements` | wb-scope-analyst, wb-ux-perspective | `spec/requirements.md` |
-| 2 | Design | — | **skipped** | — |
-| 3 | Tasks | `wannabuild-tasks` | wb-task-decomposer, wb-scope-validator | `spec/tasks.md` |
-| 4 | Implement | `wannabuild-implement` | wb-implementer-spark (default), wb-implementer-escalated-spark (retry/high-complexity) | Code + tests + checkpoints |
-| 5 | Review | `wannabuild-review` | wb-security-reviewer-spark, wb-architecture-reviewer-spark, wb-integration-tester-spark | `loop-state.json` |
-| 6 | Ship | `wannabuild-ship` | wb-pr-craftsman, wb-ci-guardian | PR |
-| 7 | Document | `wannabuild-document` | wb-readme-updater, wb-api-doc-generator, wb-changelog-writer | Updated docs |
+For compatibility with older internal phase files, hidden state may still persist `mode: "full"`. That compatibility field is not a user-facing concept anymore.
 
-## Mode Selection
+## Control Mode Gate
 
-Before any phase routing, ask the user which mode they want. This fires **once** at session start unless a valid `mode` already exists in `state.json`. On resume, use stored mode silently.
+After Discover, ask exactly once:
 
-> **Which mode?**
-> - **Full** — All 7 phases including design. Best for new products, new codebases, or features that require architectural decisions.
-> - **Light** — Skips design. Requirements → Tasks → Implement → Review → Ship → Document. Best for everyday features and fixes on an existing codebase where the architecture is already known.
-> - **Spark** — Same as Light, but this mode is speed-first and uses Spark-specific agent profiles.
+1. Continue in guided mode
+2. Switch to autonomous mode
 
-Both modes and Spark run the same SDD backbone with the same spec artifacts and the same ship phase. Spark and Light both skip design entirely and use a leaner review baseline (3 reviewers instead of 6). Use Full any time you're making significant architectural decisions.
+Guided mode:
 
+- ask for user preference at each later gate
+- do not advance silently
 
+Autonomous mode:
 
-When the user says build intent without a mode, do **not** jump directly into Requirements. First send:
+- continue adaptively through later gates without asking every time
+- still stop for destructive actions, real blockers, or ambiguity that changes scope materially
 
-`[WB-START] WannaBuild STARTED | intent=build | mode=unresolved` and ask:
+Persist the choice as `control_mode` in `.wannabuild/state.json`.
 
-- **Full** — all 7 phases
-- **Light** — requirements, tasks, implement, review, ship, document
-- **Spark** — same as Light with Spark agent profiles
+## Adaptive Research Gate
 
-Then persist the selected mode before spawning any phase agent.
+After discovery, decide whether more investigation would materially improve planning quality.
 
-**Persistence:** Write the chosen mode to `state.json` **before spawning any phase agent**. On resume, if `state.json` already has a valid `mode` key (`"full"`, `"light"`, or `"spark"`), use it silently — do not re-ask. If the value is absent, unrecognized, or unparseable (corrupt state), ask the mode question again and warn the user; then default to `"full"` if the response is still ambiguous. Legacy `state.json` files without a `mode` key default to `"full"` silently.
+When research is warranted, ask the user:
+
+1. Kick off research agents
+2. Move to planning
+
+Use the research gate when one or more of these are true:
+
+- architecture direction remains unclear
+- a package, framework, or external dependency decision matters
+- codebase reconnaissance is incomplete
+- domain, API, auth, billing, or infra uncertainty is still high
+- parallel investigation would reduce planning risk
+
+If the user chooses research:
+
+- run a bounded research burst using existing specialists
+- default set:
+  - `wb-tech-advisor`
+  - `wb-architect`
+  - `wb-risk-assessor`
+- optional additions:
+  - `wb-scope-analyst`
+  - `wb-ux-perspective`
+- synthesize findings into `.wannabuild/outputs/research-summary.md`
+- then proceed to planning
+
+If the user chooses planning:
+
+- move directly to Design + Tasks
+
+## Implementation Gate
+
+After planning is complete and the approach is verified, ask the user:
+
+1. Implement in solo-owner mode
+2. Implement with parallel agents
+
+Default to solo-owner mode unless the work splits cleanly.
 
 ## Model Tiering Defaults
 
 Quality stays non-negotiable, but model spend is differentiated by role:
 
 - **Spec phases run on Opus** (`wb-scope-analyst`, `wb-ux-perspective`, `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator`) to maximize spec quality.
-- **Default implementation:** `wb-implementer` for Full/Light; `wb-implementer-spark` in Spark mode.
-- **Escalated implementation:** `wb-implementer-escalated` for Full/Light; `wb-implementer-escalated-spark` in Spark mode.
+- **Default implementation:** `wb-implementer`
+- **Escalated implementation:** `wb-implementer-escalated`
 - **Hard gate remains unchanged:** integration testing still blocks ship on FAIL.
 
 Escalation rules:
 1. If complexity is flagged high up front, use `wb-implementer-escalated` immediately.
 2. If review iteration 1 fails, all remediation iterations use `wb-implementer-escalated`.
 
-## Adaptive Speed/Efficiency Defaults
+## Adaptive Review Defaults
 
 Quality gates stay strict, but retry behavior is adaptive by default:
 
-- **Iteration 1 review:** run the full reviewer set for the selected mode (Full=6, Light=3, Spark=3).
+- **Iteration 1 review:** run the base reviewer set.
 - **Iteration 2+ review:** run only impacted reviewers **plus `wb-integration-tester` (always)**.
 - **Fallback safety:** if impact scope is ambiguous, rerun the full reviewer set.
 - **Context slicing:** pass only changed-file summaries + relevant spec excerpts (not full artifacts) to non-integration reviewers.
 - **Guardrail behavior:** when configured limits are hit, pause and ask the user whether to continue instead of silently fanning out.
 
-## Spec-Driven Development Backbone
+## Parallelization Policy
 
-Every phase reads from and writes to `.wannabuild/spec/`. Specs are the source of truth:
+Parallelism is selective, not a default aesthetic.
+
+- **Keep sequential by default** for Discover, Plan, QA, and Summary.
+- **Use parallelism** for:
+  - internal discovery analysis when multiple bounded perspectives materially help
+  - implementation only when workstreams are truly disjoint
+  - review hats that can inspect the same finished work independently
+- **Do not parallelize** merely because multiple agents exist. Coherence beats fan-out.
+- **If uncertain, stay single-owner** until the work naturally splits.
+
+## Artifact Backbone
+
+Internal phases read from and write to `.wannabuild/spec/`. Specs remain the source of truth:
 
 ```
 .wannabuild/
@@ -138,7 +203,7 @@ Every phase reads from and writes to `.wannabuild/spec/`. Specs are the source o
 │   ├── requirements.md           # Phase 1: What — user stories, acceptance criteria, scope
 │   ├── design.md                 # Phase 2: How — architecture, tech stack, data models, risks
 │   └── tasks.md                  # Phase 3: Do — ordered atomic tasks with deps and file targets
-├── outputs/                      # Full agent outputs (file-first pattern — keeps main context lean)
+├── outputs/                      # Agent outputs (file-first pattern — keeps main context lean)
 │   ├── scope-analyst.md          # Requirements agents
 │   ├── ux-perspective.md
 │   ├── architect.md              # Design agents
@@ -163,7 +228,7 @@ Every phase reads from and writes to `.wannabuild/spec/`. Specs are the source o
 └── decisions.md                  # Architecture decision log (appended by any phase)
 ```
 
-**The SDD contract:** Implementation is validated against `spec/requirements.md`. Reviews check code against acceptance criteria. Integration tests prove acceptance criteria are met. Nothing ships without spec validation.
+**Core contract:** implementation is validated against `spec/requirements.md`; reviews check code against acceptance criteria; integration tests prove those criteria are met.
 
 Reference: `skills/build/references/sdd-principles.md`
 
@@ -181,33 +246,34 @@ If eligible, Iteration 1 reviewer set is `wb-integration-tester` plus up to 2 hi
 If **any** fast-track reviewer fails or confidence drops, rerun the full base reviewer set in the next review iteration.
 The integration hard gate is never bypassed.
 
-## Phase Detection
+## Public Step Routing
 
-Phase detection is conversational. Infer intent from natural language:
+Public routing is conversational. The user should mostly experience step-level intent, not internal phase mechanics.
 
-| User Says | Phase | Skill |
-|-----------|-------|-------|
-| "I wanna build..." / "I have an idea..." / "spark build..." | Requirements bootstrap with `Mode Selection` first | `wannabuild-requirements` |
-| "Let's define requirements" / "What should we build?" | Requirements | `wannabuild-requirements` |
-| "Let's design this" / "How should we architect..." | Design | `wannabuild-design` |
-| "Break this into tasks" / "What needs to be done?" | Tasks | `wannabuild-tasks` |
-| "Let's build it" / "Start coding" / "Implement" | Implement | `wannabuild-implement` |
-| "Review the code" / "Is this ready?" | Review | `wannabuild-review` |
-| "Ship it" / "Create a PR" / "Let's merge" | Ship | `wannabuild-ship` |
-| "Update the docs" / "Write documentation" | Document | `wannabuild-document` |
+| User Says | Public Step | Internal Execution |
+|-----------|-------------|--------------------|
+| "I wanna build..." / "I have an idea..." / "build..." | Discover | Requirements |
+| "guided mode" / "autonomous mode" | Control mode gate | Guided or autonomous preference |
+| "Research this first" / "Investigate options" | Research gate | Optional research burst |
+| "Let's define what we're building" / "What should we build?" | Discover | Requirements |
+| "Let's plan this" / "How should we architect..." / "Break this into tasks" | Plan | Design + Tasks |
+| "Let's build it" / "Start coding" / "Implement" | Implement | Implement |
+| "Review the code" / "Is this ready?" | Review | Review |
+| "QA this" / "Did we actually cover the requirements?" | QA | Review hard gate + final verification |
+| "Summarize what happened" / "What is left?" | Summary | Ship/Document/handoff synthesis |
 
-**Detection algorithm:**
-1. Resolve mode — see Mode Selection section. Mode is determined and persisted before any phase routing.
-2. Check for explicit phase commands (`/wannabuild-requirements`, etc.)
-3. Check `.wannabuild/state.json` for current phase context
-4. Infer from conversational cues
-5. If ambiguous, ask the user
+**Routing algorithm:**
+1. Check for explicit internal phase commands (`/wannabuild-requirements`, etc.) when a host adapter exposes them.
+2. Check `.wannabuild/state.json` for current internal context.
+3. Infer the user's public step from conversational cues.
+4. Map the public step to the appropriate internal execution surface.
+5. If ambiguous, ask the user.
 
-Users can skip phases, revisit phases, or run phases in any order. The orchestrator tracks state but doesn't enforce sequence.
+Users can still skip around. The orchestrator tracks internal state but should preserve a compact public experience.
 
-## Agent Spawning Model
+## Execution Model
 
-The orchestrator spawns agents via Claude Code's native **Task tool**. Each agent is an `agents/wb-*.md` file with YAML frontmatter and a focused system prompt.
+The orchestrator uses the host-native task or delegation surface. Each agent is an `agents/wb-*.md` file with YAML frontmatter and a focused system prompt.
 
 ### File-First Output Pattern
 
@@ -234,9 +300,18 @@ All agents write their full analysis to `.wannabuild/outputs/` (or `.wannabuild/
 - Reviewer agents: `VERDICT: PASS — no issues found. Details at .wannabuild/review/[agent]-iter-{N}.json`
                 or `VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/[agent]-iter-{N}.json`
 
-### Parallel Background Pattern (Requirements, Design, Review, Document)
+### Parallel Background Pattern
 
-**Requirements (both modes — identical):**
+**Research burst:**
+```
+Task(subagent_type="wb-tech-advisor", run_in_background=true)
+Task(subagent_type="wb-architect", run_in_background=true)
+Task(subagent_type="wb-risk-assessor", run_in_background=true)
+// Optionally add wb-scope-analyst and wb-ux-perspective when scope or UX uncertainty remains high
+// Synthesize into .wannabuild/outputs/research-summary.md, then proceed to planning
+```
+
+**Requirements:**
 ```
 Task(subagent_type="wb-scope-analyst", run_in_background=true)
   prompt: "Analyze scope for: {description}. Read: {codebase_path}.
@@ -251,7 +326,7 @@ Task(subagent_type="wb-ux-perspective", run_in_background=true)
 // Wait for both to complete, then read .wannabuild/outputs/ files and synthesize
 ```
 
-**Full mode — Design:**
+**Design:**
 ```
 Task(subagent_type="wb-architect", run_in_background=true)
   // Write to .wannabuild/outputs/architect.md. Return one-liner.
@@ -262,11 +337,7 @@ Task(subagent_type="wb-risk-assessor", run_in_background=true)
 // Wait for all three, read output files, then synthesize
 ```
 
-**Light mode — Design: skipped.** Proceed directly from requirements to tasks. No design.md is written.
-
 ### Sequential-Then-Parallel Pattern (Tasks)
-
-**Full mode:**
 ```
 // Step 1: decompose first (writes to .wannabuild/outputs/task-decomposer.md)
 Task(subagent_type="wb-task-decomposer")
@@ -284,30 +355,16 @@ Task(subagent_type="wb-scope-validator", run_in_background=true)
            Write to .wannabuild/outputs/scope-validator.md. Return one-liner."
 ```
 
-**Light mode:**
-```
-// Step 1: decompose from requirements only (no design.md — work within existing codebase patterns)
-Task(subagent_type="wb-task-decomposer")
-  prompt: "Decompose. Requirements: {path}. No design spec — infer from existing codebase: {codebase_path}.
-           Write full task list to .wannabuild/outputs/task-decomposer.md.
-           Return ONLY: 'COMPLETE — [N] tasks decomposed. Report at .wannabuild/outputs/task-decomposer.md'"
-
-// Step 2: validate scope (no dependency-mapper; single agent runs in background)
-Task(subagent_type="wb-scope-validator", run_in_background=true)
-  prompt: "Validate coverage. Requirements: {path}. Tasks at .wannabuild/outputs/task-decomposer.md.
-           Write to .wannabuild/outputs/scope-validator.md. Return one-liner."
-```
-
 ### Foreground Pattern (Implement)
 ```
 # Default path
 Task(subagent_type="wb-implementer")
-  prompt: "Implement tasks in micro-steps. Full spec chain at .wannabuild/spec/.
+  prompt: "Implement tasks in micro-steps. Spec chain at .wannabuild/spec/.
            Write checkpoint files under .wannabuild/checkpoints/"
 
 # Escalated path (high-complexity upfront or any remediation after first failed review)
 Task(subagent_type="wb-implementer-escalated")
-  prompt: "Implement tasks/fixes in micro-steps. Full spec chain at .wannabuild/spec/.
+  prompt: "Implement tasks/fixes in micro-steps. Spec chain at .wannabuild/spec/.
            Write checkpoint files under .wannabuild/checkpoints/"
 ```
 
@@ -338,8 +395,7 @@ The most critical section. Reviews validate code against the specs, not just gen
 │      │            │                    │                     │
 │      └────────────┘◄────────────────────┘                    │
 │                                                              │
-│  Full mode base set: 6 reviewers                             │
-│  Light mode base set: 3 reviewers                            │
+│  Base reviewer set: 6 reviewers                              │
 │  Max iterations: 3 (then escalate to human)                  │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -400,9 +456,7 @@ Each reviewer returns:
 ```
 iteration = 1
 max_iterations = config.max_review_iterations ?? 3
-base_reviewers = (mode == "full")
-  ? [security, performance, architecture, testing, integration-tester, code-simplifier]
-  : [security, architecture, integration-tester]
+base_reviewers = [security, performance, architecture, testing, integration-tester, code-simplifier]
 
 LOOP:
   enforce_guardrails_or_pause(
@@ -464,7 +518,7 @@ The `wb-integration-tester` agent has special status:
 
 ```json
 {
-  "mode": "full",                    // "full" (base=6) or "light" (base=3)
+  "mode": "standard",
   "current_iteration": 2,
   "max_iterations": 3,
   "base_reviewer_count": 6,
@@ -565,7 +619,7 @@ After max iterations:
 ```json
 {
   "project": "project-name",
-  "mode": "full",
+  "mode": "standard",
   "current_phase": "implement",
   "phase_status": "in_progress",
   "started_at": "2026-02-19T09:00:00Z",
@@ -582,7 +636,7 @@ After max iterations:
 }
 ```
 
-The `mode` field is `"full"`, `"light"`, or `"spark"`. It is written immediately after the user answers the mode question — not at initialization. If absent or unrecognized (legacy or corrupt state), default to `"full"`.
+The `mode` field is `"standard"` when present.
 
 ### State Update Rule
 
@@ -596,11 +650,16 @@ echo '{"current_phase":"requirements","phase_status":"pending","artifacts":{}}' 
 # mode is written immediately after the user answers the mode question, before any phase agent is spawned
 ```
 
-## Phase Transitions
+## Internal Phase Transitions
 
-### Normal Flow
+### Internal Normal Flow
 ```
 requirements → design → tasks → implement → review (loop until all pass) → ship → document
+```
+
+### Public Normal Flow
+```
+discover → plan → implement → review → qa → summary
 ```
 
 ### Skip-Phase Logic
@@ -611,98 +670,27 @@ Users can skip to any phase. Warn about missing artifacts:
 ### Resume Logic
 If `.wannabuild/state.json` exists, read the stored `mode` and skip the mode question. Resume must still emit a banner before continuing:
 
-> `[WB-RESUME] WannaBuild RESUME | mode=<full|light|spark> | phase=<current_phase> | progress=<done>/<total>`
+> `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
 
 When resuming mid-implementation, continue from the latest checkpoint instead of restarting the full task list.
 
 ## Trigger Conditions
 
 **Primary:** `/wannabuild-build`
-**Aliases:** `/wb`, "I wanna build", "spark build", "fast build", "quick build"
+**Aliases:** `/wb`, "I wanna build", "build", "plan and build"
 
-## Example: Full Session
+## Example
 
 ```
 User: I wanna build a Stripe payment integration for my SaaS
 
-Orchestrator: Which mode?
-  - Full — All agents, full quality loop. For new products or complex features.
-  - Light — Same phases, fewer agents, faster. For everyday features and fixes.
-
-User: Full
-
-Orchestrator: Let's define what you need.
-
-[Spawns wb-scope-analyst + wb-ux-perspective in parallel — each writes to .wannabuild/outputs/]
-[Agents return: "COMPLETE — ... Report at .wannabuild/outputs/scope-analyst.md"]
-[Orchestrator reads output files, synthesizes into requirements spec]
-
-Orchestrator: Here's your requirements spec:
-  - 4 user stories, 12 acceptance criteria
-  - Integration test scenarios for each story
-  - MVP: checkout + webhook handling
-  - Deferred: subscription management
-
-Ready for design, or want to adjust?
-
-User: Looks good, design it.
-
-[Spawns wb-tech-advisor + wb-architect + wb-risk-assessor in parallel — each writes to .wannabuild/outputs/]
-[Agents return one-liners. Orchestrator reads output files, synthesizes into design spec]
-
-Orchestrator: Technical design ready:
-  - Stripe SDK, webhook signature verification, idempotency keys
-  - Testing: Vitest + Stripe mock, integration tests for payment flows
-  - Top risk: Webhook reliability (mitigated by idempotent handlers)
-
-Break into tasks?
-
-User: Yes.
-
-[Spawns wb-task-decomposer (foreground) — writes to .wannabuild/outputs/task-decomposer.md]
-[Spawns wb-dependency-mapper + wb-scope-validator in parallel — each writes to .wannabuild/outputs/]
-[Orchestrator reads output files, synthesizes into tasks spec]
-
-Orchestrator: 8 tasks, critical path through tasks 1→3→5→7.
-  Every task has integration test requirements.
-
-Start implementing?
-
-User: Let's go.
-
-[Spawns wb-implementer with full spec chain]
-[Implementer works through tasks in micro-steps, writes tests, and records checkpoints]
-
-Orchestrator: Implementation complete. Running review from latest checkpoint window...
-
-[Spawns all 6 reviewers in parallel — each writes to .wannabuild/review/[agent]-iter-1.json]
-[Agents return one-line verdicts. Orchestrator reads review files for detail.]
-
-Orchestrator: Review — Iteration 1:
-  ✓ Security: PASS
-  ✓ Architecture: PASS
-  ✓ Code Simplifier: PASS
-  ✗ Performance: FAIL — N+1 query in payment history
-  ✗ Testing: FAIL — Missing error path tests
-  ✗ Integration Tester: FAIL — 2 criteria without tests
-
-Sending feedback to implementer...
-
-[Orchestrator reads failing agents' .wannabuild/review/ files, aggregates feedback]
-[Spawns wb-implementer-escalated with consolidated feedback]
-[Escalated implementer fixes, adds tests]
-[Spawns impacted reviewers + integration tester for iteration 2]
-
-Orchestrator: Review — Iteration 2 (adaptive rerun):
-  ✓ Performance: PASS
-  ✓ Integration Tester: PASS
-
-2/2 PASS — Ready to ship!
-
-[Spawns wb-pr-craftsman → wb-ci-guardian sequentially — each writes to .wannabuild/outputs/]
-[Spawns wb-readme-updater + wb-api-doc-generator + wb-changelog-writer in parallel — each writes to .wannabuild/outputs/]
-
-Orchestrator: Shipped! PR #42 merged. Docs updated.
+Orchestrator: Discover -> Plan -> Implement -> Review -> QA -> Summary
+  - Discover: captured goals and constraints
+  - Plan: plan and architecture verified
+  - Implement: checkpoints written
+  - Review: adaptive reviewer set passed
+  - QA: acceptance criteria covered
+  - Summary: concise handoff with remaining gaps
 ```
 
 ## Configuration
@@ -744,8 +732,8 @@ Use these references before spawning phase agents:
 
 Before entering any phase, the orchestrator must:
 
-- Parse `state.json` safely; if invalid or missing required keys, re-prompt for mode and bootstrap state.
-- Validate required artifacts for the requested phase and target mode.
+- Parse `state.json` safely; if invalid or missing required keys, bootstrap state.
+- Validate required artifacts for the requested phase.
 - Build checkpoint summary from the latest `.wannabuild/checkpoints/` window before review routing.
 - Abort gracefully if any required verdict JSON is malformed and ask for user resolution.
 - Run the transition shim check:

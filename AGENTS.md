@@ -1,189 +1,177 @@
 # AGENTS.md
 
-This document provides essential information for autonomous AI agents working with the WannaBuild framework.
+Primary operator contract for WannaBuild.
 
 ## Overview
 
-WannaBuild is a Spec-Driven Development framework packaged as a Claude Code plugin. It has 20 core specialist agents across 7 phases, plus an escalation implementer profile for remediation/high-complexity runs. The orchestrator is a skill (main conversation context) that spawns specialist agents via Claude Code's native Task tool. Each specialist is a standalone agent file in `agents/`.
+WannaBuild is a spec-driven development framework designed to be used repo-first in Codex, with Cursor as a secondary adapter and Claude Code as optional compatibility packaging.
 
-## Architecture
+The intended user-facing workflow is compact:
 
+1. Discover
+2. Control mode gate
+3. Research gate
+4. Plan
+5. Implement gate
+6. Review
+7. QA
+8. Summary
+
+Internally, the framework still uses structured artifacts, specialist prompts, checkpoints, and adaptive review routing. Those internals exist to improve execution quality, not to force the user through an overly ceremonial workflow.
+
+## Public Workflow
+
+```text
+Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary
 ```
-Orchestrator (skill: wannabuild-build) → spawns agents via Task tool
-├── Phase 1: Requirements  → wb-scope-analyst, wb-ux-perspective
-├── Phase 2: Design        → wb-tech-advisor, wb-architect, wb-risk-assessor
-├── Phase 3: Tasks         → wb-task-decomposer, wb-dependency-mapper, wb-scope-validator
-├── Phase 4: Implement     → wb-implementer (default), wb-implementer-escalated (retry/high-complexity)
-├── Phase 5: Review        → wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer,
-│                            wb-testing-reviewer, wb-integration-tester, wb-code-simplifier
-├── Phase 6: Ship          → wb-pr-craftsman, wb-ci-guardian
-└── Phase 7: Document      → wb-readme-updater, wb-api-doc-generator, wb-changelog-writer
+
+### Step Contract
+
+- `Discover`: clarify goals, constraints, scope, and flavor.
+- `Control mode gate`: ask once whether to continue in guided mode or switch to autonomous mode.
+- `Research gate`: if uncertainty remains high, ask whether to kick off research agents or move to planning.
+- `Plan`: generate the plan and verify architecture and direction.
+- `Implement`: offer solo-owner mode or parallel mode, with checkpoints and verification.
+- `Review`: run the reviewer hats that add real signal for the change.
+- `QA`: validate acceptance criteria and integration behavior.
+- `Summary`: report what changed, what passed, and what remains.
+
+If WannaBuild is invoked with no concrete task:
+
+- do not infer intent from git diff or uncommitted changes
+- do not start planning or implementation
+- do not browse externally
+- ask for the actual goal first
+
+If WannaBuild is invoked with a concrete task inside a git repo:
+
+- create an isolated workspace/worktree first
+- initialize `.wannabuild` state in that workspace
+- continue only inside the isolated workspace
+- do not continue in the original checkout
+
+## Parallelization Defaults
+
+- Keep Discover, Plan, QA, and Summary single-lane by default.
+- Default to guided mode until the user explicitly opts into autonomous mode after Discover.
+- Use bounded multi-agent research only when it materially improves planning quality.
+- Use parallelism mainly for disjoint implementation slices and reviewer hats that inspect the same finished work.
+- If the work does not split cleanly, stay single-owner.
+
+## Internal Execution Model
+
+WannaBuild still uses 7 internal phases:
+
+```text
+Requirements -> Design -> Tasks -> Implement -> Review -> Ship -> Document
 ```
+
+Public-to-internal mapping:
+
+| Public Step | Internal Execution |
+|---|---|
+| Discover | Requirements |
+| Research gate | Optional research burst using specialist agents |
+| Plan | Design + Tasks |
+| Implement | Implement after solo/parallel choice |
+| Review | Review |
+| QA | Integration hard gate + final verification |
+| Summary | Ship / Document / handoff synthesis |
 
 ## Project Structure
 
-```
+```text
 wannabuild/
-├── .claude-plugin/              # Plugin manifest
-│   ├── plugin.json
-│   └── marketplace.json
-├── scripts/                     # Validation and runtime helper scripts
-├── agents/                      # 21 agent profiles (20 specialists + 1 implementer escalation profile)
-├── skills/                      # Phase skills (SKILL.md per phase)
-│   ├── build/                   # Orchestrator skill
-│   │   ├── references/          # SDD principles, philosophy, contracts, routing, transitions
-│   │   ├── schemas/             # Contract schemas used by transition validator
-│   │   └── dry-runs/            # Edge-case fixture payloads
-│   ├── requirements/            # Phase 1: Requirements (2 agents)
-│   ├── design/                  # Phase 2: Design (3 agents)
-│   ├── tasks/                   # Phase 3: Tasks (3 agents)
-│   ├── implement/               # Phase 4: Implement (1 agent)
-│   ├── review/                  # Phase 5: Review (6 agents)
-│   │   └── references/          # Security checklist, architecture patterns
-│   ├── ship/                    # Phase 6: Ship (2 agents)
-│   └── document/                # Phase 7: Document (3 agents)
+├── AGENTS.md
+├── adapters/
+│   ├── codex/
+│   ├── cursor/
+│   └── claude-code/
+├── .claude-plugin/
+├── agents/
+├── skills/
+├── scripts/
 ├── docs/
-│   └── philosophy.md
-├── README.md
-└── CONTRIBUTING.md
+└── README.md
 ```
 
-When installed as a plugin, skill directories are prefixed with `wannabuild-`:
-- `skills/build/` → installed as `wannabuild-build`
-- `skills/requirements/` → installed as `wannabuild-requirements`
-- `skills/review/` → installed as `wannabuild-review`
+Key surfaces:
 
-## Spec Artifacts
+- `AGENTS.md`: primary Codex/operator contract
+- `skills/`: workflow and phase contracts
+- `agents/`: specialist prompt files
+- `scripts/`: validation and runtime helper scripts
+- `docs/`: onboarding, philosophy, and host capability docs
+- `adapters/`: host-specific packaging and install surfaces
 
-All phases read from and write to `.wannabuild/spec/` in the target project:
+## Artifact Contract
 
-```
+Target projects use `.wannabuild/` as the workflow state directory:
+
+```text
 .wannabuild/
-├── state.json            # Current phase, mode, timestamps
+├── state.json
 ├── spec/
-│   ├── requirements.md   # User stories, acceptance criteria, test scenarios
-│   ├── design.md         # Architecture, tech stack, data models, testing strategy
-│   └── tasks.md          # Ordered tasks with deps, acceptance criteria, required tests
-├── outputs/               # Agent file-first outputs
-├── checkpoints/           # Micro-step evidence
-├── review/                # Reviewer verdict JSON
-├── loop-state.json       # Review voting history
-└── decisions.md          # Architecture decision log
+│   ├── requirements.md
+│   ├── design.md
+│   └── tasks.md
+├── outputs/
+├── checkpoints/
+├── review/
+├── loop-state.json
+└── decisions.md
 ```
 
-## Development Workflow
+Artifact roles:
 
-### Starting a New Feature
+- `requirements.md`: goals, scope, acceptance criteria, test scenarios.
+- `design.md`: architecture, contracts, risks, and testing direction.
+- `tasks.md`: ordered implementation slices with verification expectations.
+- `checkpoints/`: implementation evidence and resume anchors.
+- `review/`: structured reviewer verdicts.
 
-1. **Requirements Phase** — Use `wannabuild-requirements` skill
-   - Spawns wb-scope-analyst + wb-ux-perspective in parallel
-   - Produces `spec/requirements.md` with user stories and test scenarios
+## Execution Defaults
 
-2. **Design Phase** — Use `wannabuild-design` skill
-   - Spawns wb-tech-advisor + wb-architect + wb-risk-assessor in parallel
-   - Produces `spec/design.md` with architecture and testing strategy
+- Implementation runs in micro-steps by default.
+- Checkpoints are the source of execution evidence for resume and review routing.
+- Review uses adaptive reruns rather than full fan-out every iteration.
+- The integration tester is the hard gate.
+- VCS commits are optional during implementation and expected before ship-oriented packaging.
+- Review and QA are distinct stages after implementation, not implementation-time self-checks.
 
-3. **Tasks Phase** — Use `wannabuild-tasks` skill
-   - Spawns wb-task-decomposer first, then wb-dependency-mapper + wb-scope-validator in parallel
-   - Produces `spec/tasks.md` with ordered, testable tasks
+## Quality Loop
 
-4. **Implement Phase** — Use `wannabuild-implement` skill
-   - Spawns wb-implementer in foreground by default
-   - Uses wb-implementer-escalated for high-complexity or review-loop remediation
-   - Writes code + integration tests through micro-step checkpoints + verification loops
+- Iteration 1 uses the base reviewer set for the selected mode.
+- Later iterations rerun only impacted reviewers plus the integration tester.
+- Fast-track review is allowed only for tiny, low-risk changes.
+- Integration tester failure blocks completion.
 
-5. **Review Phase** — Use `wannabuild-review` skill
-   - Iteration 1 spawns the base reviewer set for mode (Full=6, Light=3)
-   - Retry iterations use adaptive reruns (impacted reviewers + integration tester)
-   - Quality loop continues until unanimous PASS from the active reviewer set
-   - Integration tester is a hard gate (no override for missing tests)
+## Model Defaults
 
-6. **Ship Phase** — Use `wannabuild-ship` skill
-   - Spawns wb-pr-craftsman then wb-ci-guardian sequentially
-   - Creates PR referencing spec artifacts
+- Spec-quality specialists use stronger models.
+- Default implementation uses the standard implementer.
+- Escalated implementers handle high-complexity work and post-review remediation.
 
-7. **Document Phase** — Use `wannabuild-document` skill
-   - Spawns 3 doc agents in parallel
-   - Updates README, API docs, changelog
+## Host Positioning
 
-### Skill Activation
+- Codex is the primary experience.
+- Cursor is the secondary adapter.
+- Claude Code remains supported as compatibility packaging.
 
-| User Says | Phase | Skill |
-|-----------|-------|-------|
-| "I wanna build..." | Requirements | wannabuild-requirements |
-| "Let's design..." | Design | wannabuild-design |
-| "Break into tasks..." | Tasks | wannabuild-tasks |
-| "Let's build..." | Implement | wannabuild-implement |
-| "Review this..." | Review | wannabuild-review |
-| "Ship it..." | Ship | wannabuild-ship |
-| "Update docs..." | Document | wannabuild-document |
+For host-specific details, see:
 
-### Quality Loop
+- [README.md](README.md)
+- [docs/codex-getting-started.md](docs/codex-getting-started.md)
+- [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
 
-- Iteration 1 runs the full base reviewer set (Full=6, Light=3)
-- Iteration 2+ runs adaptive reviewer reruns (impacted reviewers + integration tester)
-- Each reviewer returns PASS or FAIL with structured JSON verdict
-- If ANY fails, aggregated feedback goes to `wb-implementer-escalated`
-- Loop continues until unanimous approval from the active reviewer set
-- Max 3 iterations before escalation
-- Guardrails should pause-and-ask when run/context limits are reached (no silent fan-out)
-- **Fast-Track Decision Matrix (optional):**
-- Eligible only when all conditions are true:
-  - `files_changed <= 2`
-  - `estimated_scope` is `tiny`
-  - `risk_label` is `low`
-  - no `db` migration, auth/session, secret-handling, or payment/financial changes
-- Reviewer set for Iteration 1: `wb-integration-tester` plus at most 2 high-confidence impacted reviewers
-- Integration hard gate is always included and unchanged
-- If **any** reviewer fails, impact confidence is uncertain, or gating signals conflict, next iteration switches to the full base reviewer set for that mode
-- **Integration tester FAIL blocks shipping — no override path**
-
-### Execution Defaults
-
-- Implementation runs in micro-steps by default (one tiny step, verify, checkpoint, continue).
-- `.wannabuild/checkpoints/` is the source of execution evidence for resume and review routing.
-- VCS commits are optional during implementation; they are packaging concerns handled in ship workflows.
-
-### Model Tiering Defaults
-
-- **Spec quality first:** Requirements, Design, and Tasks specialists are pinned to `opus`.
-- **Default implementation:** `wb-implementer` for Full/Light; `wb-implementer-spark` in Spark mode.
-- **Escalation path:** `wb-implementer-escalated` for Full/Light; `wb-implementer-escalated-spark` for Spark mode.
-- **Escalation trigger:** use escalated implementer after the first failed review iteration, or immediately for high-complexity work.
-
-## Agent File Format
-
-Each agent in `agents/` follows this format:
-
-```yaml
----
-name: wb-agent-name
-description: "What this agent does"
-tools: Read, Grep, Glob       # Tools the agent can use
-model: sonnet                  # Optional: omit to inherit parent model
----
-
-[System prompt markdown body]
-```
-
-## Adding New Agents
-
-1. Create `agents/wb-{name}.md` with YAML frontmatter
-2. Add the agent to the relevant phase skill's agent table
-3. Update the orchestrator's agent table in `skills/build/SKILL.md`
-4. Update this AGENTS.md file
-
-## Testing Framework Changes
+## Validation Notes
 
 Since this is a documentation/framework repository:
-- Unit tests are expected in target projects and are required where applicable by integration-gate checks.
-- No build commands are required inside this repository; skills and agents are validated by running them in Claude Code against real projects.
-- Skills and agents are validated by running them in Claude Code against real projects.
 
-## VCS Notes
-
-During implementation, checkpoint files are the required evidence. Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`) are optional during active implementation, but code must be committed before ship/PR creation.
+- unit and integration validation primarily happen in target projects
+- the long-term validation target is repo-native usage in Codex first, then Cursor
+- Claude plugin compatibility should be checked separately from the core repo-native path
 
 ## Dependencies
 
-No external dependencies — pure markdown documentation repository.
+No external runtime dependencies are required for the framework itself.

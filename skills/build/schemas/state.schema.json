@@ -5,9 +5,9 @@
   "additionalProperties": true,
   "required": [
     "project",
-    "mode",
     "current_phase",
     "phase_status",
+    "control_mode",
     "artifacts",
     "started_at",
     "updated_at",
@@ -21,14 +21,19 @@
     "mode": {
       "type": "string",
       "enum": [
-        "full",
-        "light",
-        "spark"
+        "standard"
       ]
     },
     "current_phase": {
       "type": "string",
       "minLength": 1
+    },
+    "control_mode": {
+      "type": "string",
+      "enum": [
+        "guided",
+        "autonomous"
+      ]
     },
     "phase_status": {
       "type": "string",

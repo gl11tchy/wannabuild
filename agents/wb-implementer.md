@@ -16,7 +16,7 @@ You will receive the full spec chain:
 - `spec/tasks.md` — your ordered work items
 
 Read all three specs before writing any code.
-If `design.md` is missing (Light mode), continue using:
+If `design.md` is missing, continue using:
 - `requirements.md`
 - target codebase conventions
 - explicit task-level acceptance criteria

@@ -1,0 +1,19 @@
+{
+  "name": "wannabuild",
+  "description": "Spec-driven workflow plugin for coding agents: discover, plan, implement, review, QA, summary.",
+  "version": "0.1.0",
+  "author": {
+    "name": "gl11tchy"
+  },
+  "homepage": "https://github.com/gl11tchy/wannabuild",
+  "repository": "https://github.com/gl11tchy/wannabuild",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "workflow",
+    "spec-driven",
+    "agents",
+    "codex",
+    "cursor"
+  ]
+}

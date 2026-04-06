@@ -1,286 +1,274 @@
 <div align="center">
 
-# ⚡ WannaBuild
+# WannaBuild
 
-Spec-Driven Development for indie builders. 20 specialist AI agents. 7 phases. Zero ceremony.
+Spec-driven development for indie builders.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-![Agents](https://img.shields.io/badge/specialists-20-blueviolet?style=flat-square)
-![Phases](https://img.shields.io/badge/phases-7-blue?style=flat-square)
-![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-orange?style=flat-square)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+![Specialists](https://img.shields.io/badge/specialists-20-blue?style=flat-square)
+![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
+![Codex](https://img.shields.io/badge/codex-first-111827?style=flat-square)
+![Cursor](https://img.shields.io/badge/cursor-supported-0f766e?style=flat-square)
+
+[Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts)
 
 </div>
 
+---
+
+## Overview
+
+WannaBuild is a repo-native framework for running a disciplined product-development loop with AI agents. The user experience stays compact:
+
+1. Discover the real goal
+2. Choose guided or autonomous progression
+3. Decide whether optional research will improve planning
+4. Produce a plan
+5. Verify the approach
+6. Implement in solo or parallel mode
+7. Review from the right specialist angles
+8. Run QA against acceptance criteria
+9. Return a concise summary with gaps and remaining work
+
+Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
+Every real run should start in an isolated workspace so parallel chats cannot collide in the same repo.
+
+## Why
+
+Most AI coding flows fail in predictable ways:
+
+- scope gets fuzzy
+- plans stay implicit
+- implementation drifts
+- reviews are shallow
+- QA is hand-wavy
+- final summaries are noisy or incomplete
+
+WannaBuild fixes that by making specs and verification first-class while keeping the visible workflow short.
+
+## Workflow
+
+```text
+DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> QA -> SUMMARY
 ```
+
+### Discover
+
+- Ask focused questions to clarify goals, constraints, scope, and flavor.
+- Produce a crisp problem brief instead of jumping straight into code.
+
+### Control Mode
+
+- After Discover, WannaBuild should ask whether to continue in guided mode or switch to autonomous mode.
+- Guided mode asks for preference at each later gate.
+- Autonomous mode continues adaptively after that point.
+
+### Plan
+
+- Generate a concrete plan.
+- Verify architecture and direction before implementation begins.
+
+### Optional Research
+
+- When uncertainty is still high, WannaBuild can ask whether to kick off research agents or move straight to planning.
+- Research is adaptive and user-approved, not a permanent required phase.
+
+### Implement
+
+- Offer solo owner mode or parallel mode.
+- Use checkpoints so progress, verification, and resume paths stay explicit.
+
+### Review
+
+- Run the right reviewer hats for the change.
+- Keep review adaptive; not every hat needs to run every time.
+
+### QA
+
+- Validate acceptance criteria and integration behavior.
+- Missing coverage or failing tests block completion.
+
+### Summary
+
+- Return what changed.
+- Report what passed.
+- Call out gaps, risks, and remaining work.
+
+Parallelism is selective. In practice, Discover, Plan, QA, and Summary are usually single-lane. Fan-out is most useful during implementation and review when the work splits cleanly.
+Research is the other place where bounded multi-agent fan-out can help.
+
+## Install
+
+### Codex / Repo-First
+
+This is the primary path.
+
+Use WannaBuild directly from the repo in Codex:
+
+- [AGENTS.md](AGENTS.md)
+- [.codex/INSTALL.md](.codex/INSTALL.md)
+- [docs/codex-getting-started.md](docs/codex-getting-started.md)
+- [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
+- [scripts/validate-wannabuild-artifacts.sh](scripts/validate-wannabuild-artifacts.sh)
+- [scripts/wannabuild-doctor.sh](scripts/wannabuild-doctor.sh)
+- [scripts/install-codex-skill.sh](scripts/install-codex-skill.sh)
+
+Install the Codex skills:
+
+```bash
+./scripts/install-codex-skill.sh
+```
+
+Then restart Codex and invoke:
+
+```text
+$wannabuild
+```
+
+### Cursor
+
+Cursor is the secondary adapter. It should reuse the same repo-native contracts and scripts.
+
+- [adapters/cursor/README.md](adapters/cursor/README.md)
+- [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
+- [.cursor/rules/wannabuild.mdc](.cursor/rules/wannabuild.mdc)
+- [.cursor-plugin/plugin.json](.cursor-plugin/plugin.json)
+
+### Claude Code Plugin
+
+Claude support remains available as compatibility packaging.
+
+```text
 /plugin marketplace add gl11tchy/wannabuild
 /plugin install wannabuild@gl11tchy
 ```
 
-<div align="center">
-
-[How it works](#how-it-works) · [The agents](#the-20-agents) · [Quality loop](#the-quality-loop) · [Usage](#usage)
-
-</div>
-
----
-
-## The problem with AI-assisted dev
-
-You describe a feature. The AI writes something. It works... kind of. Edge cases get missed. Tests are an afterthought. Docs never happen. You ship anyway.
-
-Two weeks later you're debugging something that should have been caught in design.
-
-**WannaBuild fixes this** by treating specs as the backbone of everything. Requirements drive design. Design drives tasks. Tasks drive implementation. Implementation is validated against the original requirements — by 6 specialist reviewers — before a single line ships.
-
-Talk like a human, build like a professional.
-
----
-
-## How It Works
-
-```
-  REQUIREMENTS          DESIGN            TASKS
-  ─────────────        ────────          ────────
-  2 agents run    →   3 agents run   →   3 agents run
-  in parallel         in parallel        (sequentially
-                                         + parallel)
-       │
-       ▼ .wannabuild/spec/requirements.md
-                  │
-                  ▼ .wannabuild/spec/design.md
-                             │
-                             ▼ .wannabuild/spec/tasks.md
-                                        │
-                                        ▼
-
-                           IMPLEMENT
-                           ─────────
-                           1 agent, full tool access
-                           writes code + integration tests
-                                        │
-                      ┌─────────────────┘
-                      ▼
-                   REVIEW ◄──────────────────────┐
-                   ──────                         │
-                   Iteration 1: base reviewer set │
-                   Retry: adaptive rerun + gate   │
-                        │                         │
-             Active set unanimous PASS? ─ NO ─────┘
-                        │                 (feedback → implement)
-                     YES
-                        │
-                        ▼
-              SHIP           DOCUMENT
-              ─────           ────────
-              PR + CI         3 agents run in parallel
-              2 agents        README · API docs · changelog
-```
-
-Every spec artifact lives in `.wannabuild/spec/` and is the source of truth for every phase that follows.
-
----
-
-## The 20 Agents
-
-Organized by phase. Every agent is a focused specialist — no generalists allowed.
-
-| Phase | Agent | Role |
-|-------|-------|------|
-| **Requirements** | `wb-scope-analyst` | MVP boundaries, scope risks, codebase analysis |
-| | `wb-ux-perspective` | User journeys, stories, integration test scenarios |
-| **Design** | `wb-tech-advisor` | Stack evaluation, tradeoff analysis |
-| | `wb-architect` | Architecture, data models, API contracts, test strategy |
-| | `wb-risk-assessor` | Risk register with mitigations |
-| **Tasks** | `wb-task-decomposer` | Atomic task decomposition from design spec |
-| | `wb-dependency-mapper` | Dependency graphs, critical path analysis |
-| | `wb-scope-validator` | Validates 100% of requirements have task coverage |
-| **Implement** | `wb-implementer` | Executes micro-steps, writes code + integration tests + checkpoints |
-| **Review** | `wb-security-reviewer` | OWASP top 10, secret detection, auth flows |
-| | `wb-performance-reviewer` | N+1 queries, memory leaks, scale issues |
-| | `wb-architecture-reviewer` | Design compliance, separation of concerns |
-| | `wb-testing-reviewer` | Test quality, coverage, edge case coverage |
-| | `wb-integration-tester` | **HARD GATE** — acceptance criteria → test mapping |
-| | `wb-code-simplifier` | DRY violations, complexity, dead code |
-| **Ship** | `wb-pr-craftsman` | PR creation with spec references |
-| | `wb-ci-guardian` | CI monitoring, integration test verification |
-| **Document** | `wb-readme-updater` | README updates from spec artifacts |
-| | `wb-api-doc-generator` | API documentation from code + design spec |
-| | `wb-changelog-writer` | Keep a Changelog format, accurate history |
-
-**Model tiering defaults:** spec specialists (requirements/design/tasks) run on Opus. Default implementer in Spark mode is `wb-implementer-spark` (pinned to `openai-codex/gpt-5.3-codex-spark`); Full/Light implementer inherits your active model. Review-loop remediation uses the matching escalated profile.
-
----
-
-## The Quality Loop
-
-The review phase isn't a checkbox. It's a loop.
-
-```
-Iteration 1: base reviewer set (mode-dependent)
-  Full: 6 reviewers
-  Light: 3 reviewers
-  Spark: 3 reviewers (security, architecture, integration tester)
-
-If FAIL:
-  → consolidated feedback to escalated implementer
-  → Iteration 2+: adaptive rerun = impacted reviewers + integration tester (always)
-  → fallback to full base set if impact is ambiguous
-
-Ship requires unanimous PASS from the active reviewer set.
-```
-
-**The hard gate:** `wb-integration-tester` checks that every acceptance criterion from the requirements spec has a corresponding, passing integration test. This is the only unoverridable gate in the system. No tests → no ship. Full stop.
-
-**Adaptive by default:** retry loops are selective (impacted reviewers + integration tester), and guardrails should pause-and-ask instead of silently fanning out agent runs.
-
-**Fast-track review option:** for tiny, low-risk changes, the first review iteration may use a reduced reviewer set (still including the integration hard gate), then automatically fallback to full base reviewers on any fail or routing uncertainty.
-
-**Micro-step by default:** implementation executes one small step at a time (verify + checkpoint each step), which reduces drift and speeds retry loops.
-
----
-
-## Installation
-
-### As a Claude Code Plugin *(recommended)*
-
-```
-/plugin marketplace add gl11tchy/wannabuild
-/plugin install         wannabuild@gl11tchy
-```
-
-All 8 skills, 20 specialist agents, and the escalation implementer profile are immediately available across every project.
-
-### Manual
-
-```bash
-git clone https://github.com/gl11tchy/wannabuild.git
-cp -r wannabuild/skills/* your-project/.claude/skills/
-cp -r wannabuild/agents/* your-project/agents/
-```
-
----
+- [adapters/claude-code/README.md](adapters/claude-code/README.md)
 
 ## Usage
 
 ### Start with natural language
 
-```
+```text
 I wanna build a user authentication system with OAuth and magic links
 ```
 
-WannaBuild must acknowledge start with an exact startup banner before any phase work:
+WannaBuild begins with the startup banner:
 
-- `[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`
-
-It then asks for mode selection, then starts at Requirements and walks through phases.
-
-### Or jump to any phase
-
-```
-Let's design the auth system — requirements are done
-```
-```
-Review the code in src/auth/
-```
-```
-Ship it — all tests are passing
+```text
+[WB-START] WannaBuild STARTED | intent=build | mode=standard
 ```
 
-### Spark fast-start phrases
+Then it starts discovery and drives the workflow for you.
 
-- `spark build ...`
-- `fast build ...`
-- `quick build ...`
+If the repo is under git, WannaBuild should first create an isolated workspace/worktree and continue there.
 
-These bypass ambiguity and go directly to Spark mode selection path.
+### Typical prompts
 
-### Slash commands
+```text
+I wanna build a Stripe billing flow for my SaaS
+```
 
-Once installed as a plugin, these are available everywhere:
+```text
+Research this first, then plan
+```
 
-| Command | Phase |
-|---------|-------|
-| `/wannabuild:build` | Start full pipeline |
-| `/wannabuild:requirements` | Phase 1 — requirements spec |
-| `/wannabuild:design` | Phase 2 — architecture spec |
-| `/wannabuild:tasks` | Phase 3 — task breakdown |
-| `/wannabuild:implement` | Phase 4 — write the code |
-| `/wannabuild:review` | Phase 5 — 6-specialist review |
-| `/wannabuild:ship` | Phase 6 — PR + CI |
-| `/wannabuild:document` | Phase 7 — README, API docs, changelog |
+```text
+Let's plan the architecture for a collaborative editor
+```
 
-### Skip phases freely
+```text
+Implement this in solo mode
+```
 
-Not every change needs all 7 phases. Quick bug fix? Jump to Implement. Docs-only? Skip Review. WannaBuild meets you where you are.
+```text
+Run review and QA, then summarize gaps
+```
 
----
+### Jump in midstream
 
-## Spec Artifacts
+You can still jump straight to a step:
 
-WannaBuild creates structured specs in `.wannabuild/spec/` — the source of truth for everything.
+- `Let's build it`
+- `Review the code in src/auth/`
+- `QA this against the requirements`
+- `Summarize what changed and what is left`
 
-| File | Created by | Contents |
-|------|-----------|----------|
-| `requirements.md` | Requirements | User stories, acceptance criteria, test scenarios, scope boundaries |
-| `design.md` | Design | Architecture, tech stack, data models, API contracts, test strategy |
-| `tasks.md` | Tasks | Ordered atomic tasks with deps, acceptance criteria, required integration tests |
+## Artifacts
 
-Plus state files: `state.json`, `loop-state.json`, `decisions.md`.
+WannaBuild writes structured state and evidence into `.wannabuild/`:
 
----
+```text
+.wannabuild/
+├── state.json
+├── spec/
+│   ├── requirements.md
+│   ├── design.md
+│   └── tasks.md
+├── outputs/
+├── checkpoints/
+├── review/
+├── loop-state.json
+└── decisions.md
+```
 
-## Philosophy
+Core artifact roles:
 
-**Specs are the backbone.** Every line of code traces back to a requirement. Reviewers validate against specs, not intuition. Nothing ships without spec coverage.
+- `requirements.md`: goals, scope, acceptance criteria, test scenarios
+- `design.md`: architecture, contracts, risks, testing direction
+- `tasks.md`: ordered implementation slices with verification expectations
+- `checkpoints/`: implementation evidence and resume anchors
+- `review/`: structured review verdicts
 
-**Conversation over commands.** No syntax to memorize. Talk like a human, get professional-grade output.
+## Review and QA
 
-**Specialists over generalists.** A security reviewer who only does security. An architect who only thinks about architecture. Deep expertise beats broad capability.
+WannaBuild treats review and QA as real gates, not decoration.
 
-**Integration tests are non-negotiable.** Tests flow through every phase — from user stories with test scenarios, through tasks with test requirements, to an integration tester that hard-gates shipping.
+- Review is adaptive.
+- Specialist hats run where they add signal.
+- The integration tester is the hard gate.
+- Acceptance criteria must map to real test coverage.
+- QA results feed the final summary, including remaining gaps.
 
-**Quality loops, not quality gates.** Code doesn't get checked once and shipped. It gets iterated with adaptive reruns until the active reviewer set (including integration tester) unanimously votes PASS.
+## Internal Specialists
 
-**Built for indie builders.** Not enterprise methodology shrunk down. Built ground-up for solo devs and small teams who need to ship fast *and* ship right.
+These specialists power the framework under the hood:
 
----
+| Area | Specialists |
+|---|---|
+| Discovery | `wb-scope-analyst`, `wb-ux-perspective` |
+| Planning | `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator` |
+| Implementation | `wb-implementer`, `wb-implementer-escalated` |
+| Review / QA | `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-integration-tester`, `wb-code-simplifier` |
+| Handoff | `wb-pr-craftsman`, `wb-ci-guardian`, `wb-readme-updater`, `wb-api-doc-generator`, `wb-changelog-writer` |
 
-## What Makes WannaBuild Different
+The specialist system exists to improve output quality, not to force the user through a committee-shaped workflow.
 
-| | Traditional AI Coding | WannaBuild |
-|--|----------------------|------------|
-| **Backbone** | Vibes | Spec-driven development |
-| **Entry point** | Commands & templates | Natural conversation |
-| **Review** | 1-2 passes, ship it | Base set + adaptive reruns, unanimous active-set PASS required |
-| **Testing** | Afterthought | Integration tests are a hard gate |
-| **Docs** | Never written | Auto-generated from spec artifacts |
-| **Install** | Manual setup | One command, works everywhere |
-| **Built for** | Enterprise teams | Indie builders & small teams |
+## Portability
 
----
+WannaBuild is being aligned as:
+
+- Codex-first
+- Cursor-supported
+- Claude-compatible
+
+The portability contract lives in [docs/host-capability-matrix.md](docs/host-capability-matrix.md).
 
 ## Contributing
 
-Issues, PRs, and new agent ideas are welcome.
+Issues, PRs, and framework improvements are welcome.
 
-1. Fork → branch (`git checkout -b feat/your-idea`)
-2. Edit agents in `agents/`, skills in `skills/`
-3. Validate by running against a real project in Claude Code
-4. PR with conventional commit message (`feat:`, `fix:`, `docs:`)
+1. Fork and branch.
+2. Update prompts, skills, scripts, or docs.
+3. Validate against a real target project.
+4. Open a focused PR with a clear rationale.
 
 ---
 
 <div align="center">
 
 **What do you wanna build?**
-
-(Workflow banner: `[WB-START] WannaBuild STARTED | intent=build | mode=unresolved`)
-
-```bash
-claude plugin install gh:gl11tchy/wannabuild
-```
-
-[Issues](https://github.com/gl11tchy/wannabuild/issues) · [Discussions](https://github.com/gl11tchy/wannabuild/discussions) · [MIT License](LICENSE)
 
 </div>

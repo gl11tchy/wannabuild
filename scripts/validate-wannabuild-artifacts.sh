@@ -88,9 +88,9 @@ def validate_state(state):
         return
     required = [
         "project",
-        "mode",
         "current_phase",
         "phase_status",
+        "control_mode",
         "artifacts",
         "started_at",
         "updated_at",
@@ -101,11 +101,13 @@ def validate_state(state):
             record_error(f"state.json missing required key: {key}")
     if not isinstance(state.get("project"), str) or not state.get("project"):
         record_error("state.json.project must be a non-empty string")
-    if state.get("mode") not in {"full", "light"}:
+    if state.get("mode") not in {None, "standard"}:
         record_error(f"state.json.mode invalid: {state.get('mode')!r}")
     if state.get("current_phase") not in {None, ""}:
         if not isinstance(state.get("current_phase"), str) or not state.get("current_phase"):
             record_error("state.json.current_phase must be a non-empty string")
+    if state.get("control_mode") not in {"guided", "autonomous"}:
+        record_error(f"state.json.control_mode invalid: {state.get('control_mode')!r}")
     if state.get("phase_status") not in {"pending", "in_progress", "complete"}:
         record_error(f"state.json.phase_status invalid: {state.get('phase_status')!r}")
     artifacts = state.get("artifacts")
@@ -150,7 +152,6 @@ def validate_loop_state(loop_state):
         record_error(f"loop-state.json must be an object: got {type(loop_state).__name__}")
         return
     required = [
-        "mode",
         "current_iteration",
         "max_iterations",
         "base_reviewer_count",
@@ -160,7 +161,7 @@ def validate_loop_state(loop_state):
     for key in required:
         if key not in loop_state:
             record_error(f"loop-state.json missing required key: {key}")
-    if loop_state.get("mode") not in {"full", "light"}:
+    if loop_state.get("mode") not in {None, "standard"}:
         record_error(f"loop-state.json.mode invalid: {loop_state.get('mode')!r}")
     for int_key in ["current_iteration", "max_iterations", "base_reviewer_count"]:
         value = loop_state.get(int_key)
@@ -251,9 +252,9 @@ def validate_verdict_file(verdict, source):
                 record_error(f"{source}.issues[{idx}].issue must be a non-empty string")
             if not isinstance(issue.get("recommendation"), str) or not issue.get("recommendation"):
                 record_error(f"{source}.issues[{idx}].recommendation must be a non-empty string")
-    if verdict.get("agent") == "wb-integration-tester":
+    if verdict.get("agent") in {"wb-integration-tester", "wb-integration-tester-spark"}:
         if verdict.get("hard_gate") is not True:
-            record_error(f"{source}.hard_gate must be true for wb-integration-tester")
+            record_error(f"{source}.hard_gate must be true for integration tester verdicts")
         test_execution = verdict.get("test_execution")
         if not isinstance(test_execution, dict):
             record_error(f"{source}.test_execution must be an object")
@@ -358,10 +359,8 @@ def validate_transition(state):
         "ship": ["requirements.md", "tasks.md"],
         "document": ["requirements.md", "tasks.md"],
     }
-    mode = state.get("mode", "full")
+    mode = state.get("mode", "standard")
     specs = phase_required_specs.get(target_phase, [])
-    if mode == "light":
-        specs = [s for s in specs if s != "design.md"]
     for spec in specs:
         must_exist(str(spec_dir / spec), f"{spec}")
     if target_phase in {"implement", "review"}:
@@ -381,10 +380,6 @@ def validate_transition(state):
                 record_error(
                     f"loop-state.json status is {status!r}; ship/document transition should only run after approved review"
                 )
-    if target_phase == "design" and mode == "light":
-        record_warning("light mode transition to design is unusual; design is optional and treated as allowed skip")
-
-
 state = load_json(state_path, "state.json")
 validate_state(state)
 loop_state = load_json(loop_path, "loop-state.json", optional=True)

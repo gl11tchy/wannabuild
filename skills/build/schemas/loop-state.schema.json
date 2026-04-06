@@ -4,7 +4,6 @@
   "type": "object",
   "additionalProperties": true,
   "required": [
-    "mode",
     "current_iteration",
     "max_iterations",
     "base_reviewer_count",
@@ -15,9 +14,7 @@
     "mode": {
       "type": "string",
       "enum": [
-        "full",
-        "light",
-        "spark"
+        "standard"
       ]
     },
     "current_iteration": {

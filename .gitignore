@@ -42,6 +42,9 @@ logs/
 .wannabuild/
 .wannabuild-*/
 
+# Local Codex/OMX workspace state
+.omx/
+
 # Test coverage
 coverage/
 .coverage

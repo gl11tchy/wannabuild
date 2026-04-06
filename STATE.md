@@ -1,80 +1,60 @@
 # WannaBuild — Project State
 
-## Overview
-WannaBuild is a **Spec-Driven Development framework** packaged as a Claude Code plugin for indie builders. It orchestrates a 7-phase AI workflow through 20 specialist markdown-defined agents and 8 phase-specific skills (build + requirements + design + tasks + implement + review + ship + document).
+## Current Shape
 
-## Architecture
-- **Stack:** Documentation-first framework repository (Markdown + JSON), orchestrated by Claude Code skill system.
-- **Frontend:** N/A (no user-facing web app in this repo)
-- **Backend/API:** N/A (no server/service code in this repo)
-- **Database:** N/A
-- **Auth:** N/A
-- **Hosting/Distribution:** GitHub repo + Claude plugin marketplace metadata (`.claude-plugin/`)
-- **Repo:** `https://github.com/gl11tchy/wannabuild`
-- **Package Manager:** N/A (no `package.json` / dependency graph)
+WannaBuild is a repo-native framework for spec-driven AI development. The repo is being aligned around a condensed public workflow:
 
-## Data Model
-No runtime database model in this repo. Runtime state is generated in target projects under:
-- `.wannabuild/state.json`
-- `.wannabuild/spec/requirements.md`
-- `.wannabuild/spec/design.md`
-- `.wannabuild/spec/tasks.md`
-- `.wannabuild/loop-state.json`
-- `.wannabuild/decisions.md`
-- review output files under `.wannabuild/review/` and implementation outputs under `.wannabuild/outputs/`
+1. Discover
+2. Plan
+3. Implement
+4. Review
+5. QA
+6. Summary
 
-## Key Files
-- `README.md` — Public project overview, usage philosophy, and slash command references.
-- `.claude-plugin/plugin.json` — Plugin manifest (name/version/metadata for Claude plugin system).
-- `.claude-plugin/marketplace.json` — Marketplace metadata and plugin registration info.
-- `CLAUDE.md` — Agent-facing guidance and project conventions.
-- `AGENTS.md` — High-level framework rules, phase flow, and structure.
-- `skills/build/SKILL.md` — Core orchestrator skill (7-phase control loop + quality loop mechanics).
-- `skills/requirements/SKILL.md` — Requirements phase behavior and outputs.
-- `skills/design/SKILL.md` — Design phase orchestration and outputs.
-- `skills/tasks/SKILL.md` — Task decomposition phase behavior.
-- `skills/implement/SKILL.md` — Implement phase behavior.
-- `skills/review/SKILL.md` — 6-specialist review loop / hard-gate logic.
-- `skills/ship/SKILL.md` — PR + CI phase orchestration.
-- `skills/document/SKILL.md` — Documentation phase orchestration.
-- `agents/wb-*.md` (20 files) — Specialist agent prompts and behavior.
-- `docs/philosophy.md` — Core framework philosophy and quality principles.
-- `CONTRIBUTING.md` — Contribution norms.
-- `LICENSE` — MIT license.
+Internally, the framework still uses 7 execution phases, structured prompts, and `.wannabuild/` artifacts.
 
-## Routes / Pages / Commands
-No web routes in this repository. Primary usage is via conversational phrases / slash commands:
-- `/wannabuild:build`
-- `/wannabuild:requirements`
-- `/wannabuild:design`
-- `/wannabuild:tasks`
-- `/wannabuild:implement`
-- `/wannabuild:review`
-- `/wannabuild:ship`
-- `/wannabuild:document`
+## Positioning
 
-## Scripts
-No build/runtime scripts defined in repo metadata.
-- `npm test` → fails because repository has no `package.json`.
-- `npm run build` → fails because repository has no `package.json`.
+- Primary: Codex repo-first usage
+- Secondary: Cursor adapter usage
+- Compatibility: Claude Code plugin packaging
 
-## Environment
-No application env vars in repo (documentation-only). `.env*` values are intentionally absent.
+## Core Files
 
-## Tests
-- **Framework:** none (no test harness included)
-- **Count:** not applicable
-- **Last run attempt:** `npm test` and `npm run build` were executed; both fail due to missing `package.json`.
+- `AGENTS.md` — primary operator contract
+- `README.md` — public overview and usage
+- `skills/build/SKILL.md` — orchestrator contract
+- `scripts/validate-wannabuild-artifacts.sh` — artifact validation
+- `scripts/wannabuild-doctor.sh` — repo readiness check
+- `.cursor/rules/wannabuild.mdc` — Cursor-ready rule surface
 
-## Deploy
-- Local/CI deploy is not applicable as this is a plugin/documentation repo.
-- Distribution is via GitHub repo + Claude plugin system/marketplace metadata.
-- Install path in docs: `plugin add gl11tchy/wannabuild` / `plugin install wannabuild@gl11tchy`.
+## Artifact Model
 
-## Known Issues / TODOs
-- No TODO/FIXME/HACK markers found during scan.
-- No `.github` workflows or CI config checked in this project.
-- No test/build pipeline is defined in-repo.
+Target project state is stored under `.wannabuild/`:
 
-## Last Scanned
-2026-02-21
+- `state.json`
+- `spec/requirements.md`
+- `spec/design.md`
+- `spec/tasks.md`
+- `loop-state.json`
+- `checkpoints/`
+- `review/`
+- `outputs/`
+- `decisions.md`
+
+## Readiness Notes
+
+- Top-level docs have been tightened around the condensed workflow.
+- Codex-first onboarding and host capability docs exist.
+- Cursor now has a repo-local rules surface.
+- Claude packaging remains present but is no longer the architectural center.
+
+## Remaining Structural Work
+
+- `skills/build/SKILL.md` is still larger than ideal for a thin orchestrator spec.
+- Several phase skill files still reflect older, heavier wording.
+- The next simplification step is structural extraction, not more copy cleanup.
+
+## Last Updated
+
+2026-04-05

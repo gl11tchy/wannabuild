@@ -4,22 +4,13 @@
 
 ## Agents
 
-The agent set depends on the session mode (stored in `.wannabuild/state.json`). Both modes use the sequential-then-parallel pattern.
-
-### Full Mode (3 agents)
+Tasks use a sequential-then-parallel pattern with three agents:
 
 | Agent | File | Role | Execution |
 |-------|------|------|-----------|
 | Task Decomposer | `wb-task-decomposer` | Breaks design into atomic tasks | **First** (needs design spec) |
 | Dependency Mapper | `wb-dependency-mapper` | Maps task dependencies and critical path | **Then parallel** |
 | Scope Validator | `wb-scope-validator` | Validates task coverage against requirements | **Then parallel** |
-
-### Light Mode (2 agents)
-
-| Agent | File | Role | Execution |
-|-------|------|------|-----------|
-| Task Decomposer | `wb-task-decomposer` | Breaks design into atomic tasks | **First** (needs design spec) |
-| Scope Validator | `wb-scope-validator` | Validates task coverage against requirements | **Then** (background) |
 
 ## Trigger Conditions
 
@@ -29,12 +20,11 @@ The agent set depends on the session mode (stored in `.wannabuild/state.json`). 
 - "What do we need to do?"
 
 **Implicit (from orchestrator):**
-- Design phase completes → auto-transition to Tasks (Full mode)
-- Requirements phase completes → auto-transition to Tasks (Light mode — design skipped)
+- Design phase completes → auto-transition to Tasks
 
 ## Input
 
-**Handoff from Design (Full mode):**
+**Handoff from Design:**
 ```json
 {
   "phase": "tasks",
@@ -47,21 +37,8 @@ The agent set depends on the session mode (stored in `.wannabuild/state.json`). 
 }
 ```
 
-**Handoff from Requirements (Light mode — no design.md):**
-```json
-{
-  "phase": "tasks",
-  "from": "requirements",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md"
-  },
-  "codebase_path": "/path/to/project"
-}
-```
-
 ## Execution Flow
 
-**Full mode (decomposer → dependency-mapper + scope-validator in parallel):**
 ```
 spec/requirements.md + spec/design.md (input)
         │
@@ -97,41 +74,9 @@ spec/requirements.md + spec/design.md (input)
      Write .wannabuild/spec/tasks.md
 ```
 
-**Light mode (decomposer → scope-validator, no dependency-mapper, no design.md):**
-```
-spec/requirements.md (input — no design.md in Light mode)
-        │
-        ▼
-┌──────────────────────────┐
-│  Task Decomposer (first) │
-│  Reads requirements      │
-│  Infers from codebase    │
-│  Produces task list      │
-└────────────┬─────────────┘
-             │
-             ▼
-     ┌───────────────┐
-     │    Scope      │
-     │  Validator    │
-     │  (coverage)   │
-     └──────┬────────┘
-            │
-            ▼
-     ┌──────────────────────────────┐
-     │  Orchestrator                │
-     │  Merge: tasks + gaps         │
-     └─────────────┬────────────────┘
-                   │
-                   ▼
-     Present to user for review
-                   │
-                   ▼
-     Write .wannabuild/spec/tasks.md
-```
-
 ## Agent Spawning
 
-**Step 1 — Full mode: Task Decomposer (foreground, must complete first)**
+**Step 1 — Task Decomposer (foreground, must complete first)**
 ```
 Task(subagent_type="wb-task-decomposer")
   prompt: "Decompose into tasks. Requirements: {requirements_path}. Design: {design_path}. Codebase: {codebase_path}.
@@ -139,17 +84,9 @@ Task(subagent_type="wb-task-decomposer")
            Return ONLY: 'COMPLETE — [N] tasks decomposed. Report at .wannabuild/outputs/task-decomposer.md'"
 ```
 
-**Step 1 — Light mode: Task Decomposer (foreground, must complete first — no design.md)**
-```
-Task(subagent_type="wb-task-decomposer")
-  prompt: "Decompose into tasks. Requirements: {requirements_path}. No design spec — infer architecture from existing codebase at {codebase_path}.
-           Write your full task list to .wannabuild/outputs/task-decomposer.md.
-           Return ONLY: 'COMPLETE — [N] tasks decomposed. Report at .wannabuild/outputs/task-decomposer.md'"
-```
-
 After Step 1 completes, read `.wannabuild/outputs/task-decomposer.md` to get the task list for passing to Step 2 agents.
 
-**Step 2 — Full mode: Dependency Mapper + Scope Validator (parallel background)**
+**Step 2 — Dependency Mapper + Scope Validator (parallel background)**
 ```
 Task(subagent_type="wb-dependency-mapper", run_in_background=true)
   prompt: "Map dependencies for tasks at .wannabuild/outputs/task-decomposer.md. Design: {design_path}.
@@ -162,17 +99,9 @@ Task(subagent_type="wb-scope-validator", run_in_background=true)
            Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/scope-validator.md'"
 ```
 
-**Step 2 — Light mode: Scope Validator only (no dependency-mapper, no design.md)**
-```
-Task(subagent_type="wb-scope-validator", run_in_background=true)
-  prompt: "Validate coverage. Requirements: {requirements_path}. No design spec. Tasks: .wannabuild/outputs/task-decomposer.md.
-           Write your full validation report to .wannabuild/outputs/scope-validator.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/scope-validator.md'"
-```
-
 ## Synthesis
 
-After all agents complete (3 in Full mode, 2 in Light mode), the orchestrator reads `.wannabuild/outputs/task-decomposer.md`, `.wannabuild/outputs/dependency-mapper.md` (Full mode only), and `.wannabuild/outputs/scope-validator.md`. Note: steps referencing design.md apply to Full mode only — Light mode has no design.md:
+After all agents complete, the orchestrator reads `.wannabuild/outputs/task-decomposer.md`, `.wannabuild/outputs/dependency-mapper.md`, and `.wannabuild/outputs/scope-validator.md`:
 
 1. **Start with the task list** from Task Decomposer
 2. **Overlay dependencies** from Dependency Mapper (update task Dependencies fields)
@@ -234,9 +163,7 @@ Task [X] → Task [Y] → Task [Z]
 
 ## State Update
 
-Merge into existing state.json (preserving `mode` and all other existing keys). In Light mode, omit `design` from artifacts (it was never written):
-
-**Full mode:**
+Merge into existing state.json:
 ```json
 {
   "current_phase": "tasks",
@@ -244,19 +171,6 @@ Merge into existing state.json (preserving `mode` and all other existing keys). 
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "design": ".wannabuild/spec/design.md",
-    "tasks": ".wannabuild/spec/tasks.md"
-  },
-  "next_phase": "implement"
-}
-```
-
-**Light mode:**
-```json
-{
-  "current_phase": "tasks",
-  "phase_status": "complete",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md",
     "tasks": ".wannabuild/spec/tasks.md"
   },
   "next_phase": "implement"
@@ -265,7 +179,7 @@ Merge into existing state.json (preserving `mode` and all other existing keys). 
 
 ## Handoff to Implement Phase
 
-**Full mode:**
+Standard handoff:
 ```json
 {
   "phase": "implement",
@@ -273,19 +187,6 @@ Merge into existing state.json (preserving `mode` and all other existing keys). 
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "design": ".wannabuild/spec/design.md",
-    "tasks": ".wannabuild/spec/tasks.md"
-  },
-  "codebase_path": "/path/to/project"
-}
-```
-
-**Light mode:**
-```json
-{
-  "phase": "implement",
-  "from": "tasks",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md",
     "tasks": ".wannabuild/spec/tasks.md"
   },
   "codebase_path": "/path/to/project"

@@ -12,10 +12,8 @@ Phase 4 of 7 in the WannaBuild SDD pipeline. The implementer works through the t
 | Implementer (escalated) | `wb-implementer-escalated` | Same implementation role, but inherits parent model for high-complexity work and review-loop remediation |
 
 This phase runs one implementer at a time in the foreground with full tool access.
-- Default: `wb-implementer` (default mode)
-- Spark mode default: `wb-implementer-spark`
+- Default: `wb-implementer`
 - Escalated: `wb-implementer-escalated` (high-complexity upfront or after first failed review iteration)
-- Spark mode escalated: `wb-implementer-escalated-spark`
 
 ## Trigger Conditions
 
@@ -89,24 +87,10 @@ Task(subagent_type="wb-implementer")
            Read the full spec chain at .wannabuild/spec/ first.
            Codebase at: {codebase_path}"
 
-# Spark mode implementation path
-Task(subagent_type="wb-implementer-spark")
-  prompt: "Implement all tasks from .wannabuild/spec/tasks.md.
-           Read the full spec chain at .wannabuild/spec/ first.
-           Use Codex 5.3 Spark for execution.
-           Codebase at: {codebase_path}"
-
 # Escalated path (high-complexity upfront or post-review remediation)
 Task(subagent_type="wb-implementer-escalated")
   prompt: "Implement/fix tasks from .wannabuild/spec/tasks.md or aggregated review feedback.
            Read the full spec chain at .wannabuild/spec/ first.
-           Codebase at: {codebase_path}"
-
-# Spark mode escalated path
-Task(subagent_type="wb-implementer-escalated-spark")
-  prompt: "Implement/fix tasks from .wannabuild/spec/tasks.md or aggregated review feedback.
-           Read the full spec chain at .wannabuild/spec/ first.
-           Use Codex 5.3 Spark for execution.
            Codebase at: {codebase_path}"
 ```
 
@@ -269,7 +253,7 @@ Only launch review agents when this passes.
 
 ## Contract Validation
 
-- If `design.md` is missing and mode is `light` or `spark`, proceed with `requirements + existing code patterns` and fail fast with explicit note before implementation begins.
+- If `design.md` is missing, proceed with `requirements + existing code patterns` and fail fast with explicit note before implementation begins.
 - Each completed micro-step must produce one checkpoint with:
   - changed files
   - command + expected output

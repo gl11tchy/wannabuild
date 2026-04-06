@@ -4,14 +4,14 @@
 
 Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. The active reviewer set for each iteration must unanimously PASS for code to ship. The integration tester is a hard gate — no override for missing tests.
 
-The reviewer set depends on the session mode (stored in `.wannabuild/state.json`) and iteration:
-- **Iteration 1:** run the full base set for the mode (Full=6, Light=3, Spark=3)
-- **Iteration 2+:** run only impacted reviewers + the mode baseline integration tester (`wb-integration-tester` or `wb-integration-tester-spark`) always
-- **Fallback:** if impact is ambiguous, run the full base set
+The reviewer set depends on iteration:
+- **Iteration 1:** run the base review set
+- **Iteration 2+:** run only impacted reviewers + `wb-integration-tester` always
+- **Fallback:** if impact is ambiguous, run the base set
 
 ## Agents
 
-### Full Mode (all 6)
+### Base Review Set
 
 | Agent | File | Role | Hard Gate? |
 |-------|------|------|------------|
@@ -22,27 +22,10 @@ The reviewer set depends on the session mode (stored in `.wannabuild/state.json`
 | Integration Tester | `wb-integration-tester` | Acceptance criteria → test mapping, runs tests | **YES** |
 | Code Simplifier | `wb-code-simplifier` | Over-engineering, dead code, DRY | No |
 
-### Light Mode (3 reviewers)
-
-| Agent | File | Role | Hard Gate? |
-|-------|------|------|------------|
-| Security Reviewer | `wb-security-reviewer` | OWASP, secrets, auth vulnerabilities | No |
-| Architecture Reviewer | `wb-architecture-reviewer` | Design compliance, separation of concerns | No |
-| Integration Tester | `wb-integration-tester` | Acceptance criteria → test mapping, runs tests | **YES** |
-
-### Spark Mode (3 reviewers)
-
-| Agent | File | Role | Hard Gate? |
-|-------|------|------|------------|
-| Security Reviewer | `wb-security-reviewer-spark` | OWASP, secrets, auth vulnerabilities | No |
-| Architecture Reviewer | `wb-architecture-reviewer-spark` | Design compliance, separation of concerns | No |
-| Integration Tester | `wb-integration-tester-spark` | Acceptance criteria → test mapping, runs tests | **YES** |
-
-
 ## Fast-Track Review Contract (Mode-agnostic)
 
 - Iteration 1 may start with the reduced reviewer set only if matrix criteria in `AGENTS.md` are met.
-- Set must always include the mode baseline integration tester (`wb-integration-tester` or `wb-integration-tester-spark`).
+- Set must always include `wb-integration-tester`.
 - Any FAIL in fast-track triggers the next iteration to run the full base reviewer set.
 - If impact routing confidence is unclear, route to the full base reviewer set immediately.
 - Do not reduce hard-gate logic in any scenario.
@@ -94,10 +77,9 @@ Code changes + spec artifacts (input)
         │
         ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Iteration 1: Full base reviewer set for mode                │
-│   - Full mode: security, performance, architecture, testing, │
-│                integration, code-simplifier                 │
-│   - Light mode: security, architecture, integration         │
+│ Iteration 1: Base reviewer set                              │
+│   - security, performance, architecture, testing,          │
+│     integration, code-simplifier                           │
 └──────────────────────────────────────────────────────────────┘
         │
         ▼
@@ -123,18 +105,16 @@ Collect verdicts → update loop-state → all active reviewers PASS?
 Build the reviewer list per iteration before spawning:
 
 ```
-base_reviewers_full  = [wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier]
-base_reviewers_light  = [wb-security-reviewer, wb-architecture-reviewer, wb-integration-tester]
-base_reviewers_spark  = [wb-security-reviewer-spark, wb-architecture-reviewer-spark, wb-integration-tester-spark]
+base_reviewers = [wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier]
 
 IF iteration == 1:   # first pass
-  active_reviewers = base_reviewers_{mode}
+  active_reviewers = base_reviewers
 ELSE:
   impacted = infer_impacted_reviewers(changed_files_since_last_iteration, prior_failures)
   active_reviewers = union(impacted, [wb-integration-tester])
 
   IF active_reviewers empty OR impact uncertain:
-    active_reviewers = base_reviewers_{mode}
+    active_reviewers = base_reviewers
 ```
 
 Spawn only `active_reviewers` in parallel (background):
@@ -157,7 +137,6 @@ Use changed files from last checkpoint window + prior failures to choose impacte
 - `wb-testing-reviewer`: test harness, fixtures, assertions, coverage strategy changes.
 - `wb-code-simplifier`: large refactors, abstraction churn, dead-code risk areas.
 - `wb-integration-tester`: **always included** (hard gate).
-  (Spark mode uses `wb-integration-tester-spark`.)
 
 If routing confidence is low, run the full base reviewer set for the selected mode.
 
@@ -313,14 +292,14 @@ Orchestrator: I'll review the recent changes with my specialist team...
 [Reports verdicts]
 ```
 
-When running standalone without spec artifacts, reviewers use general best practices instead of spec validation. The integration tester checks for test existence rather than spec coverage mapping. Standalone runs always use Full mode (all 6 reviewers) unless a `.wannabuild/state.json` with a stored mode is present.
+When running standalone without spec artifacts, reviewers use general best practices instead of spec validation. The integration tester checks for test existence rather than spec coverage mapping. Standalone runs use the same base review set.
 
 ## Quality Checklist
 
 - [ ] Active reviewer set selected correctly for the iteration (base on iter-1, adaptive on retries)
 - [ ] Integration tester included in every iteration
 - [ ] Verdicts are valid JSON with required fields
-- [ ] Loop state updated in `loop-state.json` (includes `mode`, `active_reviewers`, and counts)
+- [ ] Loop state updated in `loop-state.json` (includes `active_reviewers` and counts)
 - [ ] Feedback aggregated by file (not by agent) for `wb-implementer-escalated`
 - [ ] Integration tester ran the actual test suite
 - [ ] Unanimous approval from active reviewer set before proceeding to Ship
@@ -328,7 +307,7 @@ When running standalone without spec artifacts, reviewers use general best pract
 ## Contract Validation
 
 - If any review artifact is malformed (`state.json`, checkpoint window, verdict JSON), route to `blocked` status and request user clarification.
-- Iteration 1 uses full mode base set; iterations 2+ use:
+- Iteration 1 uses the base review set; iterations 2+ use:
   - impacted reviewers from change surface
   - plus `wb-integration-tester` always
   - fallback to base set if routing confidence is low

@@ -6,20 +6,12 @@ Phase 7 of 7 in the WannaBuild SDD pipeline. Updates documentation to reflect wh
 
 ## Agents
 
-The agent set depends on the session mode (stored in `.wannabuild/state.json`):
-
-### Full Mode (all 3)
+The document phase uses all 3 documentation agents:
 
 | Agent | File | Role |
 |-------|------|------|
 | README Updater | `wb-readme-updater` | Updates README with new features, setup, usage |
 | API Doc Generator | `wb-api-doc-generator` | Generates/updates API documentation from code and design spec |
-| Changelog Writer | `wb-changelog-writer` | Writes changelog entry following Keep a Changelog format |
-
-### Light Mode (1 agent)
-
-| Agent | File | Role |
-|-------|------|------|
 | Changelog Writer | `wb-changelog-writer` | Writes changelog entry following Keep a Changelog format |
 
 ## Trigger Conditions
@@ -54,7 +46,7 @@ The agent set depends on the session mode (stored in `.wannabuild/state.json`):
 
 ## Execution Flow
 
-**Full mode (all 3 agents in parallel):**
+**All 3 agents in parallel:**
 ```
 Spec artifacts + merged code (input)
         │
@@ -76,26 +68,9 @@ Spec artifacts + merged code (input)
   └──────────────────────────────────────┘
 ```
 
-**Light mode (changelog only):**
-```
-Spec artifacts + merged code (input)
-        │
-        ▼
-  ┌───────────────┐
-  │  Changelog    │
-  │   Writer      │
-  └──────┬────────┘
-         │
-         ▼
-  ┌──────────────────────────────────────┐
-  │  Orchestrator: Verify and commit     │
-  │  documentation updates               │
-  └──────────────────────────────────────┘
-```
-
 ## Agent Spawning
 
-**Full mode — all 3 agents as parallel background tasks:**
+All 3 agents run as parallel background tasks:
 
 ```
 Task(subagent_type="wb-readme-updater", run_in_background=true)
@@ -108,15 +83,6 @@ Task(subagent_type="wb-api-doc-generator", run_in_background=true)
            Write your full output to .wannabuild/outputs/api-doc-generator.md.
            Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/api-doc-generator.md'"
 
-Task(subagent_type="wb-changelog-writer", run_in_background=true)
-  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Change evidence: {recent_commits_or_checkpoints}.
-           Write your full output to .wannabuild/outputs/changelog-writer.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/changelog-writer.md'"
-```
-
-**Light mode — changelog writer only:**
-
-```
 Task(subagent_type="wb-changelog-writer", run_in_background=true)
   prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Change evidence: {recent_commits_or_checkpoints}.
            Write your full output to .wannabuild/outputs/changelog-writer.md.
@@ -159,7 +125,7 @@ This ensures documentation matches what was specified and built, not what someon
 
 ## Commit Strategy
 
-After all agents complete (3 in Full mode, 1 in Light mode), commit documentation updates:
+After all agents complete, commit documentation updates:
 
 ```
 docs: update documentation for [feature name]
@@ -181,8 +147,8 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
     "tasks": ".wannabuild/spec/tasks.md"
   },
   "documentation": {
-    "readme_updated": true,    // false in Light mode
-    "api_docs_updated": true,  // false in Light mode
+    "readme_updated": true,
+    "api_docs_updated": true,
     "changelog_updated": true,
     "commit": "xyz7890"
   }
@@ -200,7 +166,7 @@ After all documentation is updated:
 > **Implementation:** [N] tasks completed, [N] integration tests
 > **Review:** Active-set unanimous PASS in [N] iterations (adaptive reruns)
 > **Shipped:** PR #[N] merged
-> **Documentation:** README, API docs, and changelog updated *(Full mode)* / Changelog updated *(Light mode)*
+> **Documentation:** README, API docs, and changelog updated
 >
 > All spec artifacts are in `.wannabuild/spec/` for future reference.
 
@@ -228,6 +194,6 @@ After all documentation is updated:
 
 ## Contract Validation
 
-- Light mode should at minimum update changelog; full mode updates README, API docs, and changelog.
+- The document phase updates README, API docs, and changelog.
 - Changelog entry should reference the implemented acceptance criteria in user-facing language.
 - Documentation updates must be internally consistent with `requirements.md` and `tasks.md`; conflicts require user sign-off before commit.

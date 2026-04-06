@@ -4,7 +4,7 @@
 
 ## Agents
 
-Both modes run the same two agents (requirements are equally important regardless of mode):
+Requirements always use the same two agents:
 
 | Agent | File | Role |
 |-------|------|------|
@@ -68,7 +68,7 @@ User describes project
 
 ## Agent Spawning
 
-Both agents run as parallel background tasks (same in Full and Light modes):
+Both agents run as parallel background tasks:
 
 ```
 Task(subagent_type="wb-scope-analyst", run_in_background=true)
@@ -140,9 +140,7 @@ The phase produces `.wannabuild/spec/requirements.md`:
 
 ## State Update
 
-Merge into existing state.json (preserving `mode` and all other existing keys):
-
-**Full mode** (next phase: design):
+Merge into existing state.json:
 ```json
 {
   "current_phase": "requirements",
@@ -154,36 +152,12 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 }
 ```
 
-**Light mode** (next phase: tasks — design is skipped):
-```json
-{
-  "current_phase": "requirements",
-  "phase_status": "complete",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md"
-  },
-  "next_phase": "tasks"
-}
-```
-
 ## Handoff
 
-**Full mode → Design Phase:**
+Requirements hand off to Design:
 ```json
 {
   "phase": "design",
-  "from": "requirements",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md"
-  },
-  "codebase_path": "/path/to/project"
-}
-```
-
-**Light mode → Tasks Phase (design skipped):**
-```json
-{
-  "phase": "tasks",
   "from": "requirements",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md"
@@ -199,7 +173,7 @@ After synthesis, present the requirements to the user:
 > Here's what I've captured for your project. Review the requirements below — especially the scope boundaries and integration test scenarios. Let me know if anything needs adjustment before we move to design.
 
 The user can:
-- **Approve:** Move to Design phase
+- **Approve:** Move to Design
 - **Modify:** Adjust specific sections, re-run affected agent
 - **Restart:** Scrap and start over with a different description
 - **Skip:** Jump directly to a later phase if they already have requirements
