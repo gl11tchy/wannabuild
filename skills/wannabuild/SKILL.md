@@ -1,6 +1,6 @@
 ---
 name: wannabuild
-description: Repo-native WannaBuild workflow for discover -> plan -> implement -> review -> qa -> summary
+description: Repo-native WannaBuild workflow for discover -> control mode -> research? -> plan -> implement -> review -> qa -> summary
 ---
 
 # WannaBuild

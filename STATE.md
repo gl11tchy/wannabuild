@@ -5,11 +5,13 @@
 WannaBuild is a repo-native framework for spec-driven AI development. The repo is being aligned around a condensed public workflow:
 
 1. Discover
-2. Plan
-3. Implement
-4. Review
-5. QA
-6. Summary
+2. Control mode gate
+3. Optional research gate
+4. Plan
+5. Implement
+6. Review
+7. QA
+8. Summary
 
 Internally, the framework still uses 7 execution phases, structured prompts, and `.wannabuild/` artifacts.
 
@@ -52,9 +54,9 @@ Target project state is stored under `.wannabuild/`:
 ## Remaining Structural Work
 
 - `skills/build/SKILL.md` is still larger than ideal for a thin orchestrator spec.
-- Several phase skill files still reflect older, heavier wording.
+- Several reference/dry-run files still require periodic alignment when contracts evolve.
 - The next simplification step is structural extraction, not more copy cleanup.
 
 ## Last Updated
 
-2026-04-05
+2026-04-07

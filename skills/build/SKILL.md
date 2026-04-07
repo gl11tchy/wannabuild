@@ -684,8 +684,10 @@ When resuming mid-implementation, continue from the latest checkpoint instead of
 ```
 User: I wanna build a Stripe payment integration for my SaaS
 
-Orchestrator: Discover -> Plan -> Implement -> Review -> QA -> Summary
+Orchestrator: Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary
   - Discover: captured goals and constraints
+  - Control mode: guided vs autonomous decision recorded
+  - Research gate: optional investigation chosen (or skipped)
   - Plan: plan and architecture verified
   - Implement: checkpoints written
   - Review: adaptive reviewer set passed
