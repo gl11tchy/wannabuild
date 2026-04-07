@@ -2,10 +2,9 @@
 
 WannaBuild is repo-native first.
 
-Priority order:
-- Codex
-- Claude Code
-- Cursor
+Host priority:
+- Co-primary: Codex, Claude Code
+- Secondary: Cursor
 
 ## Shared Core
 
@@ -30,7 +29,7 @@ If it only exists in adapter packaging, it is not core.
 
 ### Codex
 
-Primary adapter.
+Co-primary adapter.
 
 Provides:
 - `AGENTS.md` guidance
@@ -48,7 +47,7 @@ Provides:
 
 ### Claude Code
 
-Primary adapter.
+Co-primary adapter.
 
 Provides:
 - Marketplace install: `/plugin install wannabuild@gl11tchy`
@@ -61,7 +60,7 @@ Provides:
 
 | Capability | Core | Codex | Cursor | Claude Code |
 |---|---|---|---|---|
-| Workflow contract | Yes | Primary | Reference | Primary |
+| Workflow contract | Yes | Co-primary | Reference | Co-primary |
 | `.wannabuild/` artifacts | Yes | Yes | Yes | Yes |
 | Validator script | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |

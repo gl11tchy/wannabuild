@@ -7,9 +7,9 @@ Spec-driven development for indie builders.
 Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-![Specialists](https://img.shields.io/badge/specialists-20-blue?style=flat-square)
+![Specialists](https://img.shields.io/badge/specialists-21-blue?style=flat-square)
 ![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
-![Codex](https://img.shields.io/badge/codex-first-111827?style=flat-square)
+![Codex](https://img.shields.io/badge/codex-supported-111827?style=flat-square)
 ![Claude Code](https://img.shields.io/badge/claude--code-supported-5B21B6?style=flat-square)
 ![Cursor](https://img.shields.io/badge/cursor-supported-0f766e?style=flat-square)
 
@@ -104,7 +104,7 @@ Research is the other place where bounded multi-agent fan-out can help.
 
 ### Claude Code
 
-Primary path for Claude Code users.
+Co-primary path (alongside Codex).
 
 **Marketplace:**
 

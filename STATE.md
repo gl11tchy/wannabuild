@@ -17,9 +17,9 @@ Internally, the framework still uses 7 execution phases, structured prompts, and
 
 ## Positioning
 
-- Primary: Codex repo-first usage
+- Co-primary: Codex repo-first usage
+- Co-primary: Claude Code usage
 - Secondary: Cursor adapter usage
-- Compatibility: Claude Code plugin packaging
 
 ## Core Files
 
@@ -47,9 +47,9 @@ Target project state is stored under `.wannabuild/`:
 ## Readiness Notes
 
 - Top-level docs have been tightened around the condensed workflow.
-- Codex-first onboarding and host capability docs exist.
+- Codex + Claude Code onboarding and host capability docs exist.
 - Cursor now has a repo-local rules surface.
-- Claude packaging remains present but is no longer the architectural center.
+- Claude packaging remains present and aligned with the co-primary contract.
 
 ## Remaining Structural Work
 

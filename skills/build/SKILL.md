@@ -66,7 +66,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
                                   SHIP → DOCUMENT
 ```
 
-**20 specialist agents** across **7 internal phases**, used behind the condensed workflow model.
+**21 core specialist agents** across **7 internal phases**, used behind the condensed workflow model.
 
 ## Public-to-Internal Mapping
 
@@ -656,7 +656,7 @@ All phase state updates **merge into existing state.json** — they never replac
 ```bash
 mkdir -p .wannabuild/spec .wannabuild/outputs .wannabuild/checkpoints .wannabuild/review
 echo '{"current_phase":"requirements","phase_status":"pending","artifacts":{}}' > .wannabuild/state.json
-# mode is written immediately after the user answers the mode question, before any phase agent is spawned
+# mode is initialized to "standard" during bootstrap; no mode question is asked
 ```
 
 ## Internal Phase Transitions
@@ -668,7 +668,7 @@ requirements → design → tasks → implement → review (loop until all pass)
 
 ### Public Normal Flow
 ```
-discover → plan → implement → review → qa → summary
+discover → control_mode_decision → research_decision (optional research) → plan → implementation_decision → implement → review → qa → summary
 ```
 
 ### Skip-Phase Logic
@@ -677,7 +677,7 @@ Users can skip to any phase. Warn about missing artifacts:
 > You're jumping to Implementation, but there's no requirements or design spec yet. The implementer will work from verbal instructions, but you'll miss spec-driven review validation. Continue or go back?
 
 ### Resume Logic
-If `.wannabuild/state.json` exists, read the stored `mode` and skip the mode question. Resume must still emit a banner before continuing:
+If `.wannabuild/state.json` exists, read the stored state and resume directly in standard mode. Resume must still emit a banner before continuing:
 
 > `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
 
@@ -685,7 +685,7 @@ When resuming mid-implementation, continue from the latest checkpoint instead of
 
 ## Trigger Conditions
 
-**Primary:** `/wannabuild-build`
+**Primary:** `/wannabuild` (Claude Code), `$wannabuild` (Codex)
 **Aliases:** `/wb`, "I wanna build", "build", "plan and build"
 
 ## Example
