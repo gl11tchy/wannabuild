@@ -265,9 +265,8 @@ The specialist system exists to improve output quality, not to force the user th
 
 WannaBuild is being aligned as:
 
-- Codex-first
+- Codex + Claude Code co-primary
 - Cursor-supported
-- Claude-compatible
 
 The portability contract lives in [docs/host-capability-matrix.md](docs/host-capability-matrix.md).
 

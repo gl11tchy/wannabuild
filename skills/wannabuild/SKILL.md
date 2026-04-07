@@ -1,6 +1,6 @@
 ---
 name: wannabuild
-description: Codex-first WannaBuild workflow for discover -> plan -> implement -> review -> qa -> summary
+description: Repo-native WannaBuild workflow for discover -> plan -> implement -> review -> qa -> summary
 ---
 
 # WannaBuild
@@ -9,7 +9,7 @@ Use this skill when the user wants WannaBuild itself, not generic coding help.
 
 ## Invocation Guard
 
-If the user invokes `$wannabuild` with no concrete task or only asks what the workflow is:
+If the user invokes `/wannabuild` or `$wannabuild` with no concrete task or only asks what the workflow is:
 
 - do **not** inspect the repo deeply
 - do **not** infer the task from git diff, branch state, or uncommitted changes
@@ -73,12 +73,24 @@ Then write `.wannabuild/state.json`:
 
 ```json
 {
-  "current_stage": "discover",
-  "stage_status": "in_progress",
+  "project": "<project folder name>",
   "mode": "standard",
+  "current_phase": "requirements",
+  "phase_status": "pending",
+  "public_stage": "discover",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
   "started_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
   "updated_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
-  "artifacts": {}
+  "artifacts": {},
+  "phase_history": [],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "in_progress",
+      "timestamp": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>"
+    }
+  ]
 }
 ```
 
@@ -162,7 +174,7 @@ Persist the choice in `.wannabuild/state.json`:
 - `control_mode: "guided"`
 - `control_mode: "autonomous"`
 
-Update `.wannabuild/state.json` — set `current_stage: "control_mode_decision"`, `stage_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
+Update `.wannabuild/state.json` — set `public_stage: "control_mode_decision"`, `workflow_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Then, once the user chooses:
 
@@ -231,7 +243,7 @@ Run these agents as a separate post-implementation gate:
 
 Write verdicts into `.wannabuild/review/`.
 
-Update `.wannabuild/state.json` — set `current_stage: "review"`, `stage_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
+Update `.wannabuild/state.json` — set `public_stage: "review"`, `workflow_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Do not treat implementation-time checks as the Review stage.
 
@@ -252,7 +264,7 @@ QA must:
 - confirm integration behavior
 - write `.wannabuild/outputs/qa-summary.md`
 
-Update `.wannabuild/state.json` — set `current_stage: "qa"`, `stage_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
+Update `.wannabuild/state.json` — set `public_stage: "qa"`, `workflow_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Do not collapse QA into implementation verification.
 
@@ -274,7 +286,7 @@ Before summarizing, verify:
 
 If any check fails, block the summary and report what is missing.
 
-Then update `.wannabuild/state.json` — set `current_stage: "summary"`, `stage_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
+Then update `.wannabuild/state.json` — set `public_stage: "summary"`, `workflow_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 If `control_mode` is `guided`, ask before final summary:
 
@@ -318,6 +330,6 @@ Persist and update these public stages in `.wannabuild/state.json`:
 9. `qa`
 10. `summary`
 
-When entering or completing a stage, update `.wannabuild/state.json` — set `current_stage: "<stage>"`, `stage_status: "in_progress"` or `stage_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
+When entering or completing a stage, update `.wannabuild/state.json` — set `public_stage: "<stage>"`, `workflow_status: "in_progress"` or `workflow_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
 Do not skip stages silently.

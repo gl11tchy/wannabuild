@@ -8,10 +8,13 @@ INSTALLED="${HOME}/.claude/plugins/installed_plugins.json"
 
 # Create plugin directory pointing to this repo
 mkdir -p "$(dirname "$PLUGIN_CACHE")"
-if [[ -L "$PLUGIN_CACHE" ]]; then
+if [[ -e "$PLUGIN_CACHE" && ! -L "$PLUGIN_CACHE" ]]; then
+  rm -rf "$PLUGIN_CACHE"
+elif [[ -L "$PLUGIN_CACHE" ]]; then
   rm "$PLUGIN_CACHE"
 fi
-ln -s "$ROOT" "$PLUGIN_CACHE"
+ln -sfn "$ROOT" "$PLUGIN_CACHE"
+mkdir -p "$(dirname "$INSTALLED")" "$(dirname "$SETTINGS")"
 
 # Register in installed_plugins.json
 python3 - "$PLUGIN_CACHE" "$INSTALLED" <<'PY'

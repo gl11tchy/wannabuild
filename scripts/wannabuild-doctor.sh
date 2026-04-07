@@ -83,7 +83,7 @@ if [[ $status -eq 0 ]]; then
   echo "- Codex skill install surface exists"
   echo "- Mandatory workspace bootstrap surface exists"
   echo "- Cursor rule surface exists"
-  echo "- Claude compatibility docs exist"
+  echo "- Claude adapter docs and install surfaces exist"
   echo
   echo "Next:"
   echo "- Run ./scripts/install-codex-skill.sh"
