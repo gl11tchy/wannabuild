@@ -43,6 +43,15 @@ Examples:
 
 For fresh build intent (`I wanna build`, `build ...`), start discovery immediately.
 
+### Start/Gate De-duplication Rule
+
+To avoid repeated user-facing messages:
+
+- Emit `[WB-START]` or `[WB-RESUME]` once per turn, never twice back-to-back.
+- If the latest assistant message already equals the intended banner or gate question and the user has not answered yet, do not send it again.
+- For guided gates, ask once per unresolved stage; wait for user input before repeating.
+- If a reminder is needed, paraphrase rather than sending an identical line.
+
 ## Architecture
 
 Internal phase graph:
@@ -67,7 +76,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 | Control mode gate | Guided or autonomous preference |
 | Research gate | Optional research burst using specialist agents |
 | Plan | Design + Tasks |
-| Implement gate | Solo-owner or parallel implementation choice |
+| Implement gate | Single agent or parallel implementation choice |
 | Implement | Implement |
 | Review | Review |
 | QA | Integration gate + final verification |
@@ -152,10 +161,10 @@ If the user chooses planning:
 
 After planning is complete and the approach is verified, ask the user:
 
-1. Implement in solo-owner mode
+1. Implement in single agent mode
 2. Implement with parallel agents
 
-Default to solo-owner mode unless the work splits cleanly.
+Default to single agent mode unless the work splits cleanly.
 
 ## Model Tiering Defaults
 

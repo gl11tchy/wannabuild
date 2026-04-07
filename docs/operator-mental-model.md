@@ -31,7 +31,7 @@ Public steps stay compact for the user; internal phases provide rigor.
 2. **Control mode gate:** ask once: guided vs autonomous.
 3. **Research gate:** only if uncertainty is still materially high.
 4. **Plan:** produce requirements/design/tasks that are implementation-ready.
-5. **Implement gate:** choose solo-owner vs parallel slices.
+5. **Implement gate:** choose single agent mode vs parallel slices.
 6. **Implement:** execute in micro-steps with checkpoints.
 7. **Review:** run reviewer set (adaptive after iteration 1).
 8. **QA:** verify acceptance criteria and integration behavior.
@@ -96,4 +96,3 @@ Stop and resolve before continuing when any of these occur:
 - QA summary missing at summary time
 
 Fail closed, then ask for user direction.
-

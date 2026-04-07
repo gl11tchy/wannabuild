@@ -32,7 +32,7 @@ Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Su
 | Control mode gate | Ask once whether to stay guided or switch to autonomous. | Mode decision recorded. |
 | Research gate | If uncertainty is high, ask whether to run research agents first. | Research decision recorded. |
 | Plan | Produce a concrete plan and verify architecture/direction. | Plan is actionable and internally consistent. |
-| Implement | Offer solo-owner vs parallel mode; execute with checkpoints and verification. | Planned slices are implemented with evidence. |
+| Implement | Offer single agent mode vs parallel mode; execute with checkpoints and verification. | Planned slices are implemented with evidence. |
 | Review | Run reviewer hats that add real signal for this change. | Review verdicts captured with actionable findings. |
 | QA | Validate acceptance criteria and integration behavior. | Integration hard gate passes. |
 | Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
@@ -43,7 +43,7 @@ Use short, explicit questions at gates:
 
 - Control mode: "Continue in guided mode, or switch to autonomous mode?"
 - Research gate: "Uncertainty is still high. Run bounded research agents first, or proceed to planning?"
-- Implement mode: "Implement in solo-owner mode, or parallel mode for disjoint slices?"
+- Implement mode: "Implement in single agent mode, or parallel mode for disjoint slices?"
 
 Default to guided mode unless the user explicitly opts into autonomous mode.
 

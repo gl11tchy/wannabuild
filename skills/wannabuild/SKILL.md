@@ -117,7 +117,7 @@ Run this condensed workflow:
 - Default to guided mode until the user explicitly switches to autonomous mode after Discover.
 - Offer optional research before planning when uncertainty is still materially high.
 - Offer implementation in:
-  - solo-owner mode
+  - single agent mode
   - parallel mode when work splits cleanly
 - Keep review adaptive rather than maximal by default.
 - The integration tester is the hard gate.
@@ -151,6 +151,16 @@ If resuming from `.wannabuild/state.json`, use:
 Do not ask the user to choose between Full, Light, or Spark. Run one standard workflow.
 
 For compatibility with older internal phase files, hidden state may still persist `mode: "full"`. That is an internal implementation detail, not a user-facing choice.
+
+## Message De-duplication Guard
+
+To prevent duplicate user-visible outputs:
+
+- Never emit identical assistant messages back-to-back.
+- If `[WB-START]` or `[WB-RESUME]` was already emitted in the current turn by the command layer, do not emit the same banner again.
+- For guided gates, ask each gate question once per unresolved stage.
+- If the most recent assistant message already contains the exact gate question and the user has not answered yet, do not repeat it; wait for user input.
+- If repetition is necessary for clarity, restate with new wording instead of sending the exact same message text.
 
 ## Control Mode Gate
 
@@ -219,10 +229,10 @@ After planning is complete and the approach is verified:
 
 If `control_mode` is `guided`, offer exactly two paths:
 
-1. Implement in solo-owner mode
+1. Implement in single agent mode
 2. Implement with parallel agents
 
-Default to solo-owner mode unless the work splits cleanly.
+Default to single agent mode unless the work splits cleanly.
 
 Do not begin implementation in guided mode until the user has selected a path or clearly delegated the choice.
 

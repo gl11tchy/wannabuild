@@ -78,7 +78,7 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 
 ### Implement
 
-- Offer solo owner mode or parallel mode.
+- Offer single agent mode or parallel mode.
 - Use checkpoints so progress, verification, and resume paths stay explicit.
 
 ### Review
