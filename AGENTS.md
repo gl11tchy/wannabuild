@@ -4,7 +4,7 @@ Primary operator contract for WannaBuild.
 
 ## Overview
 
-WannaBuild is a spec-driven development framework designed to be used repo-first in Codex, with Cursor as a secondary adapter and Claude Code as optional compatibility packaging.
+WannaBuild is a spec-driven development framework designed to be used repo-first, with Codex and Claude Code as co-primary experiences and Cursor as a secondary adapter.
 
 The intended user-facing workflow is compact:
 
@@ -154,9 +154,11 @@ Artifact roles:
 
 ## Host Positioning
 
-- Codex is the primary experience.
+- Codex and Claude Code are co-primary experiences.
 - Cursor is the secondary adapter.
-- Claude Code remains supported as compatibility packaging.
+
+For Claude Code: marketplace install via `/plugin install wannabuild@gl11tchy` or repo install via `scripts/install-claude-skill.sh`.
+For Codex: install via `scripts/install-codex-skill.sh`.
 
 For host-specific details, see:
 

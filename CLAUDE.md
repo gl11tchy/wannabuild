@@ -6,9 +6,8 @@ This file provides Claude Code guidance for this repository.
 
 WannaBuild is now a repo-native framework first:
 
-- Codex is the primary experience
+- Codex and Claude Code are co-primary experiences
 - Cursor is the secondary adapter
-- Claude Code is supported as compatibility packaging
 
 Do not treat the Claude plugin surface as the architecture. Treat it as one adapter on top of the shared repo contracts.
 
@@ -82,5 +81,5 @@ Target projects use `.wannabuild/` as the workflow state directory:
 ## Editing Guidance
 
 - Prefer tightening contracts and docs over adding more layers.
-- Keep Codex-first positioning intact.
-- Do not re-center the repo on Claude-specific assumptions.
+- Keep co-primary positioning (Codex and Claude Code) intact.
+- Do not subordinate either Codex or Claude Code to the other.
