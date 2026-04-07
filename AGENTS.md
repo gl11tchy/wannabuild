@@ -2,65 +2,62 @@
 
 Primary operator contract for WannaBuild.
 
-## Overview
+## Purpose
 
-WannaBuild is a spec-driven development framework designed to be used repo-first, with Codex and Claude Code as co-primary experiences and Cursor as a secondary adapter.
+WannaBuild is a repo-first, spec-driven development framework with a compact user-facing loop and rigorous internal execution. Codex and Claude Code are co-primary experiences; Cursor is a secondary adapter.
 
-The intended user-facing workflow is compact:
+The framework should feel lightweight to the user while still enforcing real planning, verification, and QA gates.
 
-1. Discover
-2. Control mode gate
-3. Research gate
-4. Plan
-5. Implement gate
-6. Review
-7. QA
-8. Summary
-
-Internally, the framework still uses structured artifacts, specialist prompts, checkpoints, and adaptive review routing. Those internals exist to improve execution quality, not to force the user through an overly ceremonial workflow.
-
-## Public Workflow
+## Golden Path
 
 ```text
 Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary
 ```
 
-### Step Contract
+## Non-Negotiables
 
-- `Discover`: clarify goals, constraints, scope, and flavor.
-- `Control mode gate`: ask once whether to continue in guided mode or switch to autonomous mode.
-- `Research gate`: if uncertainty remains high, ask whether to kick off research agents or move to planning.
-- `Plan`: generate the plan and verify architecture and direction.
-- `Implement`: offer solo-owner mode or parallel mode, with checkpoints and verification.
-- `Review`: run the reviewer hats that add real signal for the change.
-- `QA`: validate acceptance criteria and integration behavior.
-- `Summary`: report what changed, what passed, and what remains.
+- If there is no concrete task, ask for the actual goal first.
+- Do not infer intent from git diff or uncommitted changes.
+- Do not start planning or implementation without a concrete task.
+- Do not browse externally when no concrete task exists.
+- For concrete tasks in a git repo, create an isolated workspace/worktree first.
+- Initialize `.wannabuild` state in that isolated workspace before continuing.
+- Continue only inside the isolated workspace, never the original checkout.
 
-If WannaBuild is invoked with no concrete task:
+## Step Contract
 
-- do not infer intent from git diff or uncommitted changes
-- do not start planning or implementation
-- do not browse externally
-- ask for the actual goal first
+| Step | Operator obligation | Completion signal |
+|---|---|---|
+| Discover | Clarify goals, constraints, scope, and flavor. | A crisp problem brief exists. |
+| Control mode gate | Ask once whether to stay guided or switch to autonomous. | Mode decision recorded. |
+| Research gate | If uncertainty is high, ask whether to run research agents first. | Research decision recorded. |
+| Plan | Produce a concrete plan and verify architecture/direction. | Plan is actionable and internally consistent. |
+| Implement | Offer solo-owner vs parallel mode; execute with checkpoints and verification. | Planned slices are implemented with evidence. |
+| Review | Run reviewer hats that add real signal for this change. | Review verdicts captured with actionable findings. |
+| QA | Validate acceptance criteria and integration behavior. | Integration hard gate passes. |
+| Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
 
-If WannaBuild is invoked with a concrete task inside a git repo:
+## Gate Prompts (Default Phrasing)
 
-- create an isolated workspace/worktree first
-- initialize `.wannabuild` state in that workspace
-- continue only inside the isolated workspace
-- do not continue in the original checkout
+Use short, explicit questions at gates:
+
+- Control mode: "Continue in guided mode, or switch to autonomous mode?"
+- Research gate: "Uncertainty is still high. Run bounded research agents first, or proceed to planning?"
+- Implement mode: "Implement in solo-owner mode, or parallel mode for disjoint slices?"
+
+Default to guided mode unless the user explicitly opts into autonomous mode.
 
 ## Parallelization Defaults
 
 - Keep Discover, Plan, QA, and Summary single-lane by default.
-- Default to guided mode until the user explicitly opts into autonomous mode after Discover.
 - Use bounded multi-agent research only when it materially improves planning quality.
-- Use parallelism mainly for disjoint implementation slices and reviewer hats that inspect the same finished work.
-- If the work does not split cleanly, stay single-owner.
+- Use parallelism mainly for disjoint implementation slices.
+- Use reviewer parallelism for concurrent inspection of the same finished work.
+- If work does not split cleanly, stay single-owner.
 
 ## Internal Execution Model
 
-WannaBuild still uses 7 internal phases:
+Internal phases remain:
 
 ```text
 Requirements -> Design -> Tasks -> Implement -> Review -> Ship -> Document
@@ -68,7 +65,7 @@ Requirements -> Design -> Tasks -> Implement -> Review -> Ship -> Document
 
 Public-to-internal mapping:
 
-| Public Step | Internal Execution |
+| Public step | Internal execution |
 |---|---|
 | Discover | Requirements |
 | Research gate | Optional research burst using specialist agents |
@@ -78,35 +75,9 @@ Public-to-internal mapping:
 | QA | Integration hard gate + final verification |
 | Summary | Ship / Document / handoff synthesis |
 
-## Project Structure
-
-```text
-wannabuild/
-├── AGENTS.md
-├── adapters/
-│   ├── codex/
-│   ├── cursor/
-│   └── claude-code/
-├── .claude-plugin/
-├── agents/
-├── skills/
-├── scripts/
-├── docs/
-└── README.md
-```
-
-Key surfaces:
-
-- `AGENTS.md`: primary Codex/operator contract
-- `skills/`: workflow and phase contracts
-- `agents/`: specialist prompt files
-- `scripts/`: validation and runtime helper scripts
-- `docs/`: onboarding, philosophy, and host capability docs
-- `adapters/`: host-specific packaging and install surfaces
-
 ## Artifact Contract
 
-Target projects use `.wannabuild/` as the workflow state directory:
+Target projects use `.wannabuild/` as workflow state:
 
 ```text
 .wannabuild/
@@ -124,43 +95,66 @@ Target projects use `.wannabuild/` as the workflow state directory:
 
 Artifact roles:
 
-- `requirements.md`: goals, scope, acceptance criteria, test scenarios.
+- `requirements.md`: goals, scope, acceptance criteria, and test scenarios.
 - `design.md`: architecture, contracts, risks, and testing direction.
 - `tasks.md`: ordered implementation slices with verification expectations.
-- `checkpoints/`: implementation evidence and resume anchors.
+- `checkpoints/`: execution evidence and resume anchors.
 - `review/`: structured reviewer verdicts.
 
-## Execution Defaults
+## Execution and Quality Defaults
 
-- Implementation runs in micro-steps by default.
-- Checkpoints are the source of execution evidence for resume and review routing.
-- Review uses adaptive reruns rather than full fan-out every iteration.
-- The integration tester is the hard gate.
-- VCS commits are optional during implementation and expected before ship-oriented packaging.
-- Review and QA are distinct stages after implementation, not implementation-time self-checks.
-
-## Quality Loop
-
-- Iteration 1 uses the base reviewer set for the selected mode.
-- Later iterations rerun only impacted reviewers plus the integration tester.
-- Fast-track review is allowed only for tiny, low-risk changes.
-- Integration tester failure blocks completion.
+- Implement in micro-steps by default.
+- Treat checkpoints as canonical execution evidence.
+- Keep review adaptive: rerun impacted reviewers rather than full fan-out every iteration.
+- Treat the integration tester as the hard completion gate.
+- Keep Review and QA as distinct post-implementation stages.
+- Allow fast-track review only for tiny, low-risk changes.
+- Block completion on integration tester failure.
+- Expect commits before ship-oriented packaging; during implementation, commit cadence is optional.
 
 ## Model Defaults
 
 - Spec-quality specialists use stronger models.
-- Default implementation uses the standard implementer.
-- Escalated implementers handle high-complexity work and post-review remediation.
+- Standard implementation uses the default implementer.
+- High-complexity or post-review remediation can escalate to stronger implementers.
+
+## Repo Surfaces
+
+```text
+wannabuild/
+├── AGENTS.md
+├── adapters/
+│   ├── codex/
+│   ├── cursor/
+│   └── claude-code/
+├── .claude-plugin/
+├── agents/
+├── skills/
+├── scripts/
+├── docs/
+└── README.md
+```
+
+Primary surfaces:
+
+- `AGENTS.md`: operator contract
+- `skills/`: workflow and phase contracts
+- `agents/`: specialist prompts
+- `scripts/`: validation and runtime helpers
+- `docs/`: onboarding, philosophy, host capability docs
+- `adapters/`: host-specific packaging/install surfaces
 
 ## Host Positioning
 
 - Codex and Claude Code are co-primary experiences.
 - Cursor is the secondary adapter.
 
-For Claude Code: marketplace install via `/plugin install wannabuild@gl11tchy` or repo install via `scripts/install-claude-skill.sh`.
-For Codex: install via `scripts/install-codex-skill.sh`.
+Install paths:
 
-For host-specific details, see:
+- Claude Code: `/plugin install wannabuild@gl11tchy` or `scripts/install-claude-skill.sh`
+- Codex: `scripts/install-codex-skill.sh`
+
+For host-specific details:
 
 - [README.md](README.md)
 - [docs/codex-getting-started.md](docs/codex-getting-started.md)
@@ -168,11 +162,11 @@ For host-specific details, see:
 
 ## Validation Notes
 
-Since this is a documentation/framework repository:
+Because this is a framework/documentation repository:
 
-- unit and integration validation primarily happen in target projects
-- the long-term validation target is repo-native usage in Codex first, then Cursor
-- Claude plugin compatibility should be checked separately from the core repo-native path
+- Unit/integration validation mainly occurs in target projects.
+- Long-term validation target is repo-native Codex usage first, then Cursor.
+- Claude plugin compatibility should be validated separately from core repo-native flow.
 
 ## Dependencies
 
