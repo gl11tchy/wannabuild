@@ -40,7 +40,7 @@ You shouldn't need documentation to start a conversation.
 
 One AI trying to do security review AND architecture review AND code simplification will do all three poorly.
 
-WannaBuild deploys **20 specialists**, each with focused expertise:
+WannaBuild deploys **21 core specialists**, each with focused expertise:
 - Scope analyst who only thinks about boundaries and risks
 - Architect who only thinks about system design
 - Integration tester who only thinks about test coverage
