@@ -4,8 +4,8 @@ WannaBuild is repo-native first.
 
 Priority order:
 - Codex
-- Cursor
 - Claude Code
+- Cursor
 
 ## Shared Core
 
@@ -48,27 +48,29 @@ Provides:
 
 ### Claude Code
 
-Compatibility adapter.
+Primary adapter.
 
 Provides:
-- `.claude-plugin/`
-- plugin install docs
-- Claude-oriented skill entry points
+- Marketplace install: `/plugin install wannabuild@gl11tchy`
+- Repo install: `scripts/install-claude-skill.sh`
+- Slash command: `/wannabuild`
+- Getting-started: `.claude/INSTALL.md`
+- Full adapter guide: `adapters/claude-code/README.md`
 
 ## Capability Table
 
-| Capability | Core | Codex | Cursor | Claude |
+| Capability | Core | Codex | Cursor | Claude Code |
 |---|---|---|---|---|
-| Workflow contract | Yes | Primary | Reference | Reference |
+| Workflow contract | Yes | Primary | Reference | Primary |
 | `.wannabuild/` artifacts | Yes | Yes | Yes | Yes |
 | Validator script | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |
 | Rules files | No | Optional | Yes | Optional |
-| Custom modes | No | Optional | Yes | No |
-| Slash commands | No | No | No | Yes |
-| Plugin install path | No | No | No | Yes |
-| Repo-only usage | Yes | Yes | Yes | Partial |
+| Slash commands / invocation | No | `$wannabuild` | No | `/wannabuild` |
+| Plugin install path | No | Script symlink | No | Marketplace or script |
+| Repo-only usage | Yes | Yes | Yes | Yes |
+| Getting-started doc | No | Yes | No | Yes |
 
 ## Rule
 
-If it does not work from a raw repo checkout in Codex, it does not define the core architecture.
+If it does not work from a raw repo checkout in either Codex or Claude Code, it does not define the core architecture.
