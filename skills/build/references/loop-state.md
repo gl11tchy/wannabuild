@@ -6,7 +6,7 @@ The loop state is persisted in `.wannabuild/loop-state.json`.
 
 ```json
 {
-  "mode": "full",
+  "mode": "standard",
   "current_iteration": 2,
   "max_iterations": 3,
   "base_reviewer_count": 6,

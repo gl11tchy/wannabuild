@@ -1,5 +1,5 @@
 {
-  "mode": "full",
+  "mode": "standard",
   "current_iteration": 2,
   "max_iterations": 3,
   "base_reviewer_count": 6,

@@ -9,8 +9,7 @@ This file defines how WannaBuild selects reviewers for retry iterations.
 - Any explicit risk tag from previous feedback
 
 ## Base reviewer sets
-- Full mode: `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-integration-tester`, `wb-code-simplifier`
-- Light mode: `wb-security-reviewer`, `wb-architecture-reviewer`, `wb-integration-tester`
+- Standard mode: `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-integration-tester`, `wb-code-simplifier`
 
 ## Impact mapping
 - `wb-security-reviewer`: auth/session/session-id/state/authz/crypto/secret/input-validation changes

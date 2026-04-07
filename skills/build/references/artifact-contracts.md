@@ -15,7 +15,7 @@ Use these with `scripts/validate-wannabuild-artifacts.sh`.
 
 ### Required core keys
 - `project` (string): Friendly project label
-- `mode` (`full` | `light`): Workflow mode
+- `mode` (`standard`): Workflow mode
 - `current_phase` (string): Current phase name
 - `phase_status` (`pending` | `in_progress` | `complete`)
 - `artifacts` (object): Paths to generated artifacts
@@ -31,7 +31,7 @@ Example:
 ```json
 {
   "project": "my-app",
-  "mode": "full",
+  "mode": "standard",
   "current_phase": "review",
   "phase_status": "in_progress",
   "artifacts": {
@@ -51,7 +51,7 @@ Example:
 ## `.wannabuild/loop-state.json`
 
 ### Required core keys
-- `mode` (`full` | `light`)
+- `mode` (`standard`)
 - `current_iteration` (integer)
 - `max_iterations` (integer)
 - `base_reviewer_count` (integer)

@@ -1,8 +1,9 @@
 {
-  "project": "wannabuild-dryrun-light-mode",
-  "mode": "light",
-  "current_phase": "tasks",
+  "project": "wannabuild-dryrun-standard-missing-design",
+  "mode": "standard",
+  "current_phase": "implement",
   "phase_status": "in_progress",
+  "control_mode": "guided",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "tasks": ".wannabuild/spec/tasks.md"
@@ -17,6 +18,11 @@
     },
     {
       "phase": "tasks",
+      "status": "complete",
+      "timestamp": "2026-02-20T11:12:00Z"
+    },
+    {
+      "phase": "implement",
       "status": "in_progress",
       "timestamp": "2026-02-20T11:14:00Z"
     }

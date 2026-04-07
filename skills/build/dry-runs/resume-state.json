@@ -1,8 +1,9 @@
 {
   "project": "wannabuild-dryrun-resume",
-  "mode": "full",
+  "mode": "standard",
   "current_phase": "implement",
   "phase_status": "in_progress",
+  "control_mode": "guided",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "design": ".wannabuild/spec/design.md",

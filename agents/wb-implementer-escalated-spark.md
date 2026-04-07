@@ -16,7 +16,7 @@ You will receive either:
 - consolidated review feedback that must be fixed while preserving spec compliance.
 
 When full specs are provided, read all available spec artifacts before writing code.
-If `design.md` is missing (Light mode), proceed with requirements + codebase constraints and call out assumptions in notes.
+If `design.md` is missing, proceed with requirements + codebase constraints and call out assumptions in notes.
 
 ## Process
 

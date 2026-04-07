@@ -15,7 +15,7 @@ This shim defines what the orchestrator must enforce at each phase transition be
 For each requested transition (`current_phase -> target_phase`):
 
 1. Load `.wannabuild/state.json`.
-2. Read `mode` from state and validate its value (`full` | `light`).
+2. Read `mode` from state and validate its value (`standard`).
 3. Validate the target phase contract before spawning any agents:
    - required spec artifacts
    - required checkpoints/output/review windows for review-facing transitions
@@ -29,12 +29,11 @@ For each requested transition (`current_phase -> target_phase`):
    - failure: pause, summarize exact missing/malformed contract failures, and ask for explicit user direction
 7. Only after successful validation, update `state.json` (merge) and continue.
 
-## 3) Light-mode exception handling
+## 3) Missing design handling
 
-- If mode is `light`, the shim allows skipping design.
-- The shim must explicitly record an assumption:
-  - `"design.md": missing (light mode)`.
-- If `design.md` is also required for an explicit user request, the transition remains blocked with an explicit ask.
+- For `tasks` transitions, `design.md` is required.
+- For `implement` and `review` transitions, missing `design.md` may be allowed by phase contract, but the shim must record an explicit assumption note.
+- If the user explicitly asks for architecture-sensitive validation while `design.md` is missing, block and request direction.
 
 ## 4) Fail-closed behavior
 

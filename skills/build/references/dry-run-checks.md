@@ -27,28 +27,28 @@ scripts/validate-wannabuild-artifacts.sh . implement
    - a resume continuation message is emitted
    - `current_phase` is interpreted from state, not guessed
 
-## 2) Light mode with missing `design.md`
+## 2) Standard mode with missing `design.md` before implement
 
-Fixture: `skills/build/dry-runs/light-missing-design-state.json`
+Fixture: `skills/build/dry-runs/standard-missing-design-state.json`
 
 Expected behavior:
-- transition from requirements to tasks should pass
-- transition to tasks/review in Light mode must not require `design.md`
+- transition to implement should pass when requirements + tasks artifacts exist
+- transition to tasks should still require `design.md`
 - orchestrator writes an explicit note:
-  - missing design is accepted because mode is light
+  - missing design is accepted for implement/review per contract
   - implementation should proceed with requirements + existing code patterns
 
 Use case:
-1. Stage the fixture and a `.wannabuild/state.json` with `"mode": "light"`.
+1. Stage the fixture as `.wannabuild/state.json`.
 2. Run:
 
 ```bash
-scripts/validate-wannabuild-artifacts.sh . tasks
+scripts/validate-wannabuild-artifacts.sh . implement
 ```
 
 3. Verify:
-   - validation passes even without design spec
-   - no hard fail for missing design
+   - validation passes for implement without design spec
+   - no schema errors for `mode`/`control_mode`
 
 ## 3) Reviewer routing ambiguity fallback
 
@@ -83,5 +83,5 @@ scripts/validate-wannabuild-artifacts.sh . review
 Pause workflow and use one of:
 
 1. Repair fixture/state/loop file structure
-2. Run with corrected `mode` and explicit phase choice
+2. Run with corrected state fields and explicit phase choice
 3. Continue in normal mode and manually accept the fallback behavior
