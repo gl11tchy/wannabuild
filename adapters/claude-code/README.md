@@ -1,11 +1,58 @@
 # Claude Code Adapter
 
-Compatibility adapter.
+WannaBuild for Claude Code. Supports marketplace install and repo-based local install.
 
-Keep it thin:
-- `.claude-plugin/`
-- slash commands
-- packaged skills and subagents
+## Install
 
-See:
-- [docs/host-capability-matrix.md](../../docs/host-capability-matrix.md)
+### Marketplace (recommended)
+
+```
+/plugin marketplace add gl11tchy/wannabuild
+/plugin install wannabuild@gl11tchy
+```
+
+Restart Claude Code, then:
+
+```
+/wannabuild
+```
+
+### From Repo
+
+```bash
+./scripts/install-claude-skill.sh
+```
+
+Run `/reload-plugins`, then:
+
+```
+/wannabuild
+```
+
+## Usage
+
+Start with a natural description:
+
+```
+I wanna build a Stripe billing flow for my SaaS
+```
+
+WannaBuild responds with the start banner and enters Discover.
+
+For a full getting-started walkthrough, see [.claude/INSTALL.md](../../.claude/INSTALL.md).
+
+## What's Installed
+
+| Surface | Path |
+|---|---|
+| Slash command | `commands/wannabuild.md` → `/wannabuild` |
+| Orchestrator skill | `skills/wannabuild/` |
+| Phase skills | `skills/build/`, `skills/requirements/`, etc. |
+| Specialist agents | `agents/wb-*.md` |
+| Utility scripts | `scripts/` (optional, for repo installs) |
+
+## Verification
+
+```bash
+./scripts/wannabuild-doctor.sh
+```
