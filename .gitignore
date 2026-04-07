@@ -37,6 +37,7 @@ logs/
 *.tmp
 *.temp
 .cache/
+.worktrees/
 
 # WannaBuild state (if generated locally)
 .wannabuild/
