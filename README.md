@@ -10,6 +10,7 @@ Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Imp
 ![Specialists](https://img.shields.io/badge/specialists-20-blue?style=flat-square)
 ![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
 ![Codex](https://img.shields.io/badge/codex-first-111827?style=flat-square)
+![Claude Code](https://img.shields.io/badge/claude--code-supported-5B21B6?style=flat-square)
 ![Cursor](https://img.shields.io/badge/cursor-supported-0f766e?style=flat-square)
 
 [Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts)
@@ -101,9 +102,34 @@ Research is the other place where bounded multi-agent fan-out can help.
 
 ## Install
 
-### Codex / Repo-First
+### Claude Code
 
-This is the primary path.
+Primary path for Claude Code users.
+
+**Marketplace:**
+
+```
+/plugin marketplace add gl11tchy/wannabuild
+/plugin install wannabuild@gl11tchy
+```
+
+Restart Claude Code, then:
+
+```
+/wannabuild
+```
+
+**From repo:**
+
+```bash
+./scripts/install-claude-skill.sh
+```
+
+Then run `/reload-plugins` and invoke `/wannabuild`.
+
+See [adapters/claude-code/README.md](adapters/claude-code/README.md) and [.claude/INSTALL.md](.claude/INSTALL.md).
+
+### Codex / Repo-First
 
 Use WannaBuild directly from the repo in Codex:
 
@@ -129,23 +155,12 @@ $wannabuild
 
 ### Cursor
 
-Cursor is the secondary adapter. It should reuse the same repo-native contracts and scripts.
+Cursor is supported via the same repo-native contracts and scripts.
 
 - [adapters/cursor/README.md](adapters/cursor/README.md)
 - [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
 - [.cursor/rules/wannabuild.mdc](.cursor/rules/wannabuild.mdc)
 - [.cursor-plugin/plugin.json](.cursor-plugin/plugin.json)
-
-### Claude Code Plugin
-
-Claude support remains available as compatibility packaging.
-
-```text
-/plugin marketplace add gl11tchy/wannabuild
-/plugin install wannabuild@gl11tchy
-```
-
-- [adapters/claude-code/README.md](adapters/claude-code/README.md)
 
 ## Usage
 
