@@ -1,6 +1,6 @@
 # Claude Code Getting Started
 
-Claude Code is a supported path for WannaBuild workflows.
+Claude Code is a co-primary WannaBuild path (alongside Codex).
 
 Use the repo directly:
 - `AGENTS.md`

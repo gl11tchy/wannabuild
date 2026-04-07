@@ -1,6 +1,6 @@
 # Codex Getting Started
 
-Codex is the primary WannaBuild path.
+Codex is a co-primary WannaBuild path (alongside Claude Code).
 
 Use the repo directly:
 - `AGENTS.md`

@@ -56,6 +56,7 @@ check_file "commands/using-wannabuild.md" || status=1
 check_file "scripts/validate-wannabuild-artifacts.sh" || status=1
 check_file "scripts/wannabuild-doctor.sh" || status=1
 check_file "scripts/install-codex-skill.sh" || status=1
+check_file "scripts/install-claude-skill.sh" || status=1
 check_file "scripts/wannabuild-workspace.sh" || status=1
 check_file "scripts/wannabuild-session.sh" || status=1
 check_file "scripts/wannabuild-gate-check.sh" || status=1
@@ -69,25 +70,43 @@ check_file ".cursor-plugin/plugin.json" || status=1
 echo
 echo "Host docs"
 check_file "docs/codex-getting-started.md" || status=1
+check_file "docs/claude-code-getting-started.md" || status=1
 check_file "docs/host-capability-matrix.md" || status=1
 check_file ".cursor/rules/wannabuild.mdc" || status=1
 check_file ".codex/INSTALL.md" || status=1
+check_file ".claude/INSTALL.md" || status=1
 echo
 echo "Codex install"
 check_link_target "${HOME}/.codex/skills/wannabuild" "$ROOT/skills/wannabuild"
 check_link_target "${HOME}/.codex/skills/using-wannabuild" "$ROOT/skills/using-wannabuild"
 echo
+echo "Claude install"
+check_link_target "${HOME}/.claude/plugins/cache/gl11tchy/wannabuild/local" "$ROOT"
+if [[ -f "${HOME}/.claude/plugins/installed_plugins.json" ]]; then
+  printf 'PASS  %s\n' "${HOME}/.claude/plugins/installed_plugins.json"
+else
+  printf 'WARN  %s (not found)\n' "${HOME}/.claude/plugins/installed_plugins.json"
+fi
+if [[ -f "${HOME}/.claude/settings.json" ]]; then
+  printf 'PASS  %s\n' "${HOME}/.claude/settings.json"
+else
+  printf 'WARN  %s (not found)\n' "${HOME}/.claude/settings.json"
+fi
+echo
 if [[ $status -eq 0 ]]; then
   echo "Repo surfaces ready:"
-  echo "- Codex-first repo usage is documented"
+  echo "- Codex + Claude co-primary repo usage is documented"
   echo "- Codex skill install surface exists"
+  echo "- Claude install surface exists"
   echo "- Mandatory workspace bootstrap surface exists"
   echo "- Cursor rule surface exists"
   echo "- Claude adapter docs and install surfaces exist"
   echo
   echo "Next:"
   echo "- Run ./scripts/install-codex-skill.sh"
+  echo "- Run ./scripts/install-claude-skill.sh"
   echo "- Restart Codex and invoke \$wannabuild"
+  echo "- Reload Claude plugins and invoke /wannabuild"
   echo "- In Cursor, load .cursor/rules/wannabuild.mdc"
   exit 0
 fi
