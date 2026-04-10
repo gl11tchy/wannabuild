@@ -15,6 +15,8 @@ This phase runs one implementer at a time in the foreground with full tool acces
 - Default: `wb-implementer`
 - Escalated: `wb-implementer-escalated` (high-complexity upfront or after first failed review iteration)
 
+Advisor escalation may assist the implementer when the path is materially uncertain, but it does not replace the implementer. The implementer remains the foreground executor with full tool ownership; the advisor only provides bounded guidance, correction, risk assessment, or a stop signal.
+
 ## Trigger Conditions
 
 **Explicit:**
@@ -144,6 +146,8 @@ When the quality loop sends feedback (after a FAIL verdict), the implementer rec
 ```
 
 The escalated implementer (`wb-implementer-escalated`) addresses each issue, runs tests again, and records checkpoint evidence per micro-step. Remediation should stay scoped to failing areas so adaptive review reruns remain fast. It does NOT skip integration test requirements — those are non-negotiable regardless of which iteration.
+
+Use advisor escalation during remediation only when the fix path is unclear, reviewer findings conflict, the likely fix changes architecture or validation strategy, or continuing could worsen risk. The advisor must not call tools, edit files, run commands, or produce user-facing output. If the guidance changes implementation strategy, architecture, scope, or validation, record the decision in `.wannabuild/decisions.md` and, when useful, save a compact report under `.wannabuild/outputs/advisor/`.
 
 ## Coding Standards
 

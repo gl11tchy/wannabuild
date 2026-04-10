@@ -22,6 +22,12 @@ Use these with `scripts/validate-wannabuild-artifacts.sh`.
 - `started_at`, `updated_at` (ISO timestamps)
 - `phase_history` (array): Chronological phase status records
 
+### Optional advisor keys
+- `advisor.enabled` (boolean): Whether advisor escalation is available.
+- `advisor.max_uses_per_phase` (integer): Phase-level advisor budget.
+- `advisor.uses_by_phase` (object): Counts by phase.
+- `advisor.escalations` (array): Advisor report records with `phase`, `trigger`, `report`, `decision_impact`, and `recorded_in_decisions`.
+
 ### Update rule
 - Use merge updates, never full replacement.
 - Preserve unknown keys and nested metadata.
@@ -44,7 +50,25 @@ Example:
   "phase_history": [
     {"phase": "requirements", "status": "complete", "timestamp": "2026-02-21T02:05:00Z"},
     {"phase": "design", "status": "complete", "timestamp": "2026-02-21T02:12:00Z"}
-  ]
+  ],
+  "advisor": {
+    "enabled": true,
+    "max_uses_per_phase": 3,
+    "uses_by_phase": {
+      "design": 0,
+      "implement": 1,
+      "review": 0
+    },
+    "escalations": [
+      {
+        "phase": "implement",
+        "trigger": "uncertain remediation",
+        "report": ".wannabuild/outputs/advisor/implement-escalation-1.md",
+        "decision_impact": "implementation",
+        "recorded_in_decisions": true
+      }
+    ]
+  }
 }
 ```
 
@@ -102,3 +126,29 @@ Recommended metadata lines at top:
 
 Agents always write full output to files and return one-line status to the orchestrator.
 Only synthesis logic consumes these files for deterministic state transitions.
+
+## `.wannabuild/outputs/advisor/*.md`
+
+Advisor escalation reports are optional compact guidance artifacts. They are used when an executor consults a higher-capability advisor for a bounded decision.
+
+Recommended path:
+`.wannabuild/outputs/advisor/<phase>-escalation-<N>.md`
+
+Recommended structure:
+
+```md
+# Advisor Escalation — <phase>-<N>
+
+Phase: <phase>
+Trigger: <why escalation was needed>
+Question: <bounded question asked>
+Context Provided:
+- <spec or repo summary excerpt>
+Recommendation:
+- <advisor guidance>
+Stop Signal: yes|no
+Decision Impact: none|scope|architecture|implementation|validation
+Record In Decisions: yes|no
+```
+
+Advisor reports are not user-facing output. If `Record In Decisions` is `yes`, append a concise decision to `.wannabuild/decisions.md`.

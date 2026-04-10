@@ -8,6 +8,8 @@ Use the repo directly:
 - `agents/`
 - `scripts/`
 
+Advisor escalation is model-agnostic in core. In Codex, use a higher-reasoning read-only advisor equivalent when available; otherwise rely on the `.wannabuild/outputs/advisor/` report and `state.json.advisor` contract.
+
 Install:
 
 ```bash

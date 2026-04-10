@@ -71,7 +71,13 @@ WannaBuild's review phase: 6 parallel specialists, each obsessed with their doma
 
 This isn't a gimmick. Specialists catch what generalists miss. And the integration tester ensures every acceptance criterion has a passing test — no hand-waving.
 
-### 5. Phases, Not Stages
+### 5. Executor-Led, Advisor-Assisted When It Matters
+
+WannaBuild should not spend frontier-level reasoning on every routine step. The active executor should drive the work end-to-end, using tools, writing code, running validation, and handing off results.
+
+When a decision is genuinely high-impact or uncertain, the executor can consult an advisor for bounded guidance: a plan, correction, risk assessment, or stop signal. The advisor does not call tools, edit files, or speak for the final result. More intelligence should appear only when it reduces risk without adding ceremony.
+
+### 6. Phases, Not Stages
 
 Traditional: Linear stages with gates. Can't proceed until approved.
 
@@ -90,7 +96,7 @@ WannaBuild: Fluid phases you can enter, exit, and skip.
 
 Phases are tools, not rules.
 
-### 6. State Without Ceremony
+### 7. State Without Ceremony
 
 WannaBuild remembers where you are without you managing it:
 - Picked up mid-project? We know the context

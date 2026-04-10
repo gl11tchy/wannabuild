@@ -86,6 +86,67 @@
         },
         "additionalProperties": true
       }
+    },
+    "advisor": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "max_uses_per_phase": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uses_by_phase": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "escalations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "phase",
+              "trigger",
+              "report",
+              "decision_impact",
+              "recorded_in_decisions"
+            ],
+            "properties": {
+              "phase": {
+                "type": "string",
+                "minLength": 1
+              },
+              "trigger": {
+                "type": "string",
+                "minLength": 1
+              },
+              "report": {
+                "type": "string",
+                "minLength": 1
+              },
+              "decision_impact": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "scope",
+                  "architecture",
+                  "implementation",
+                  "validation"
+                ]
+              },
+              "recorded_in_decisions": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
     }
   }
 }

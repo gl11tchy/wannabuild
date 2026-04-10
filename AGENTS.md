@@ -117,6 +117,7 @@ Artifact roles:
 - Spec-quality specialists use stronger models.
 - Standard implementation uses the default implementer.
 - High-complexity or post-review remediation can escalate to stronger implementers.
+- Use advisor escalation selectively for high-impact uncertainty: architecture choices, material ambiguity, high-risk integrations, uncertain remediation, conflicting specialist outputs, or test strategy risk. The executor remains the single tool-using owner; the advisor provides bounded guidance only and must not call tools, edit files, run commands, or produce user-facing output.
 
 ## Repo Surfaces
 

@@ -14,6 +14,7 @@ Host-agnostic:
 - `.wannabuild/` artifact contract
 - schemas, validation, checkpoints, and review routing
 - phase prompts and specialist prompt contracts
+- advisor escalation state contract and report validation
 - repo-native scripts and examples
 
 ## Canonical Entry Point
@@ -35,6 +36,7 @@ Provides:
 - `AGENTS.md` guidance
 - script-first workflows
 - local and web/cloud repo usage docs
+- model-agnostic advisor escalation via read-only advisor equivalent when available
 
 ### Cursor
 
@@ -44,6 +46,7 @@ Provides:
 - `.cursor/rules`
 - optional custom modes
 - repo-native usage docs
+- prompt/report fallback for advisor escalation
 
 ### Claude Code
 
@@ -55,6 +58,7 @@ Provides:
 - Slash command: `/wannabuild`
 - Getting-started: `.claude/INSTALL.md`
 - Full adapter guide: `adapters/claude-code/README.md`
+- read-only advisor subagent fallback; Claude API adapters may map to native `advisor_20260301`
 
 ## Capability Table
 
@@ -69,6 +73,7 @@ Provides:
 | Plugin install path | No | Script symlink | No | Marketplace or script |
 | Repo-only usage | Yes | Yes | Yes | Yes |
 | Getting-started doc | No | Yes | No | Yes |
+| Advisor escalation | State/report contract | Read-only advisor equivalent | Prompt/report fallback | Read-only subagent or native Claude API advisor |
 
 ## Rule
 

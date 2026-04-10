@@ -70,6 +70,8 @@ Target projects use `.wannabuild/` as the workflow state directory:
 3. Parallelism is selective, not default.
 4. Discover, Plan, QA, and Summary are usually single-lane.
 5. Implementation and Review are the main places where fan-out helps.
+6. Advisor escalation is executor-led and model-agnostic: the active executor may consult a higher-capability advisor for bounded guidance, but the advisor does not call tools, edit files, run commands, or produce user-facing output.
+7. Claude Platform advisor tooling may implement this in Claude-specific adapters, but the core WannaBuild contract must not depend on Claude-only surfaces.
 
 ## Repository Notes
 

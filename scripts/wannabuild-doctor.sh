@@ -48,6 +48,7 @@ echo "Core surfaces"
 check_file "README.md" || status=1
 check_file "AGENTS.md" || status=1
 check_file "skills/build/SKILL.md" || status=1
+check_file "skills/build/references/advisor-escalation.md" || status=1
 check_file "skills/wannabuild/SKILL.md" || status=1
 check_file "skills/using-wannabuild/SKILL.md" || status=1
 check_file "skills/research/SKILL.md" || status=1
@@ -67,6 +68,7 @@ check_file "adapters/codex/README.md" || status=1
 check_file "adapters/cursor/README.md" || status=1
 check_file "adapters/claude-code/README.md" || status=1
 check_file ".cursor-plugin/plugin.json" || status=1
+check_file ".factory/droids/wb-advisor.md" || status=1
 echo
 echo "Host docs"
 check_file "docs/codex-getting-started.md" || status=1

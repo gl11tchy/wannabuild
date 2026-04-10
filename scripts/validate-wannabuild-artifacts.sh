@@ -80,6 +80,91 @@ def ensure_iso8601(value, label):
         record_error(f"{label} must be ISO-8601 string: got {value!r}")
 
 
+def validate_advisor_report(path, source):
+    report_path = Path(path)
+    if not report_path.is_file():
+        record_error(f"{source}.report missing advisor report file: {path}")
+        return
+    try:
+        text = report_path.read_text(encoding="utf-8")
+    except Exception as exc:
+        record_error(f"{source}.report unreadable advisor report file {path}: {exc}")
+        return
+    required = [
+        "# Advisor Escalation",
+        "Phase:",
+        "Trigger:",
+        "Question:",
+        "Context Provided:",
+        "Recommendation:",
+        "Stop Signal:",
+        "Decision Impact:",
+        "Record In Decisions:",
+    ]
+    for field in required:
+        if field not in text:
+            record_error(f"{path} missing advisor report field: {field}")
+
+
+def validate_advisor_state(state):
+    advisor = state.get("advisor")
+    if advisor is None:
+        return
+    if not isinstance(advisor, dict):
+        record_error("state.json.advisor must be an object if set")
+        return
+    enabled = advisor.get("enabled")
+    if enabled is not None and not isinstance(enabled, bool):
+        record_error("state.json.advisor.enabled must be boolean if set")
+    max_uses = advisor.get("max_uses_per_phase", 3)
+    if not isinstance(max_uses, int) or max_uses < 0:
+        record_error("state.json.advisor.max_uses_per_phase must be an integer >= 0")
+        max_uses = 0
+    uses = advisor.get("uses_by_phase", {})
+    if not isinstance(uses, dict):
+        record_error("state.json.advisor.uses_by_phase must be an object if set")
+    else:
+        for phase, count in uses.items():
+            if not isinstance(phase, str) or not phase:
+                record_error("state.json.advisor.uses_by_phase keys must be non-empty strings")
+            if not isinstance(count, int) or count < 0:
+                record_error(f"state.json.advisor.uses_by_phase[{phase!r}] must be an integer >= 0")
+            elif count > max_uses:
+                record_error(
+                    f"state.json.advisor.uses_by_phase[{phase!r}] exceeds max_uses_per_phase ({count} > {max_uses})"
+                )
+    escalations = advisor.get("escalations", [])
+    if not isinstance(escalations, list):
+        record_error("state.json.advisor.escalations must be an array if set")
+        return
+    project_root = Path(state_path).resolve().parent.parent
+    for i, item in enumerate(escalations):
+        source = f"state.json.advisor.escalations[{i}]"
+        if not isinstance(item, dict):
+            record_error(f"{source} must be an object")
+            continue
+        for key in ["phase", "trigger", "report", "decision_impact", "recorded_in_decisions"]:
+            if key not in item:
+                record_error(f"{source} missing key: {key}")
+        for key in ["phase", "trigger", "report"]:
+            if key in item and (not isinstance(item.get(key), str) or not item.get(key)):
+                record_error(f"{source}.{key} must be a non-empty string")
+        impact = item.get("decision_impact")
+        if impact not in {"none", "scope", "architecture", "implementation", "validation"}:
+            record_error(f"{source}.decision_impact invalid: {impact!r}")
+        recorded = item.get("recorded_in_decisions")
+        if not isinstance(recorded, bool):
+            record_error(f"{source}.recorded_in_decisions must be boolean")
+        if impact != "none" and recorded is not True:
+            record_error(f"{source}.recorded_in_decisions must be true when decision_impact is {impact!r}")
+        report = item.get("report")
+        if isinstance(report, str) and report:
+            report_path = Path(report)
+            if not report_path.is_absolute():
+                report_path = project_root / report
+            validate_advisor_report(report_path, source)
+
+
 def validate_state(state):
     if state is None:
         return
@@ -143,6 +228,7 @@ def validate_state(state):
                     f"state.json.phase_history[{i}].status invalid: {item.get('status')!r}"
                 )
             ensure_iso8601(item.get("timestamp"), f"state.json.phase_history[{i}].timestamp")
+    validate_advisor_state(state)
 
 
 def validate_loop_state(loop_state):

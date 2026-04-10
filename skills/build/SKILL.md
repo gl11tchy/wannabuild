@@ -179,6 +179,25 @@ Escalation rules:
 1. If complexity is flagged high up front, use `wb-implementer-escalated` immediately.
 2. If review iteration 1 fails, all remediation iterations use `wb-implementer-escalated`.
 
+## Advisor Escalation
+
+WannaBuild supports executor-led, advisor-assisted execution. The active executor owns the task end-to-end, including tool use, implementation, validation, and handoff. For high-impact or uncertain decisions, the executor may consult a higher-capability advisor for bounded guidance.
+
+The advisor may provide a plan, correction, risk assessment, or stop signal, but must not call tools, edit files, run commands, or produce user-facing output. Advisor use must be selective, capped, and grounded in the current spec and repository context.
+
+Use advisor escalation for architecture decisions, material ambiguity, high-risk integrations, uncertain review remediation, conflicting specialist outputs, suspected wrong execution paths, or test strategy uncertainty. Do not use it for routine implementation details, one-line fixes, style-only questions, or generic double checks.
+
+Default guardrails:
+- `advisor_escalation`: enabled unless explicitly disabled
+- `advisor_max_uses_per_phase`: 3
+- `advisor_context_scope`: `spec_plus_targeted_repo_summary`
+- `advisor_record_decisions`: true
+- `advisor_on_limit`: `pause-and-ask`
+
+If advisor use exceeds the configured phase limit, pause and ask the user before continuing. Record advisor-influenced decisions in `.wannabuild/decisions.md` when they affect scope, architecture, implementation strategy, or validation. Host adapters may implement this with native model/tool support, but the core contract remains model-agnostic.
+
+Advisor escalation is a stateful workflow primitive, not only a prompt suggestion. When escalation criteria match before high-risk design, high-risk implementation, uncertain review remediation, or max-iteration-adjacent review decisions, the orchestrator must check the phase budget, invoke the best available host advisor mechanism, save `.wannabuild/outputs/advisor/<phase>-escalation-<N>.md`, merge-update `state.json.advisor`, and then resume the executor. In Factory/Droid, prefer the project droid `wb-advisor`; in Claude Platform API contexts, a host adapter may use `advisor_20260301`.
+
 ## Adaptive Review Defaults
 
 Quality gates stay strict, but retry behavior is adaptive by default:
@@ -641,7 +660,17 @@ After max iterations:
   "phase_history": [
     {"phase": "requirements", "status": "complete", "timestamp": "..."},
     {"phase": "design", "status": "complete", "timestamp": "..."}
-  ]
+  ],
+  "advisor": {
+    "enabled": true,
+    "max_uses_per_phase": 3,
+    "uses_by_phase": {
+      "design": 0,
+      "implement": 0,
+      "review": 0
+    },
+    "escalations": []
+  }
 }
 ```
 
@@ -719,7 +748,12 @@ Optional `.wannabuild/config.json`:
   "max_agent_runs_per_phase": 18,
   "max_total_review_runs": 12,
   "max_prompt_chars_per_reviewer": 12000,
-  "on_limit": "pause-and-ask"
+  "on_limit": "pause-and-ask",
+  "advisor_escalation": true,
+  "advisor_max_uses_per_phase": 3,
+  "advisor_context_scope": "spec_plus_targeted_repo_summary",
+  "advisor_record_decisions": true,
+  "advisor_on_limit": "pause-and-ask"
 }
 ```
 
@@ -728,6 +762,7 @@ Optional `.wannabuild/config.json`:
 Use these references before spawning phase agents:
 
 - `skills/build/references/artifact-contracts.md`
+- `skills/build/references/advisor-escalation.md`
 - `skills/build/references/review-routing.md`
 - `skills/build/references/loop-state.md`
 - `skills/build/references/exit-conditions.md`

@@ -39,6 +39,8 @@ I wanna build a Stripe billing flow for my SaaS
 
 WannaBuild responds with the start banner and enters Discover.
 
+Advisor escalation is repo-native and model-agnostic in core. Claude Code should use a read-only advisor subagent when available; Claude Platform API adapters may map the same contract to the native `advisor_20260301` tool.
+
 For a full getting-started walkthrough, see [.claude/INSTALL.md](../../.claude/INSTALL.md).
 
 ## What's Installed
