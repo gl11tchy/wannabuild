@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild config.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "max_review_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 3
+    },
+    "auto_advance": {
+      "type": "boolean",
+      "default": false
+    },
+    "skip_phases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "requirements",
+          "design",
+          "tasks",
+          "implement",
+          "review",
+          "ship",
+          "document"
+        ]
+      },
+      "default": []
+    },
+    "adaptive_review_reruns": {
+      "type": "boolean",
+      "default": true
+    },
+    "review_rerun_policy": {
+      "type": "string",
+      "enum": [
+        "impacted_plus_integration",
+        "full_set"
+      ],
+      "default": "impacted_plus_integration"
+    },
+    "review_context_scope": {
+      "type": "string",
+      "enum": [
+        "diff_plus_targeted_spec",
+        "full_spec",
+        "diff_only"
+      ],
+      "default": "diff_plus_targeted_spec"
+    },
+    "max_agent_runs_per_phase": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 18
+    },
+    "max_total_review_runs": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 12
+    },
+    "max_prompt_chars_per_reviewer": {
+      "type": "integer",
+      "minimum": 1000,
+      "default": 12000
+    },
+    "on_limit": {
+      "type": "string",
+      "enum": [
+        "pause-and-ask",
+        "error",
+        "strict-block"
+      ],
+      "default": "pause-and-ask"
+    },
+    "advisor_escalation": {
+      "type": "boolean",
+      "default": true
+    },
+    "advisor_max_uses_per_phase": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 3
+    },
+    "advisor_context_scope": {
+      "type": "string",
+      "enum": [
+        "spec_plus_targeted_repo_summary",
+        "spec_only",
+        "full_repo"
+      ],
+      "default": "spec_plus_targeted_repo_summary"
+    },
+    "advisor_record_decisions": {
+      "type": "boolean",
+      "default": true
+    },
+    "advisor_on_limit": {
+      "type": "string",
+      "enum": [
+        "pause-and-ask",
+        "error",
+        "strict-block"
+      ],
+      "default": "pause-and-ask"
+    }
+  }
+}

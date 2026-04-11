@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild workspace.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "workspace_id",
+    "source_repo",
+    "source_branch",
+    "workspace_path",
+    "branch_name",
+    "dirty_snapshot"
+  ],
+  "properties": {
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique workspace identifier, format: <timestamp>-build-<random6>"
+    },
+    "source_repo": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute path to the original git repository root"
+    },
+    "source_branch": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Branch name at time of workspace creation"
+    },
+    "workspace_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute path to the isolated git worktree"
+    },
+    "branch_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Git branch name for the worktree, format: wannabuild/<workspace_id>"
+    },
+    "dirty_snapshot": {
+      "type": "boolean",
+      "description": "Whether uncommitted changes were present when workspace was created"
+    }
+  }
+}
