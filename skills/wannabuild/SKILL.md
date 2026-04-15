@@ -150,8 +150,6 @@ If resuming from `.wannabuild/state.json`, use:
 
 Do not ask the user to choose between Full, Light, or Spark. Run one standard workflow.
 
-For compatibility with older internal phase files, hidden state may still persist `mode: "full"`. That is an internal implementation detail, not a user-facing choice.
-
 ## Message De-duplication Guard
 
 To prevent duplicate user-visible outputs:

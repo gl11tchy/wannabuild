@@ -186,6 +186,31 @@ Schema: `skills/build/schemas/workspace.schema.json`
 Agents always write full output to files and return one-line status to the orchestrator.
 Only synthesis logic consumes these files for deterministic state transitions.
 
+## `.wannabuild/outputs/qa-summary.md`
+
+Written by the orchestrator during the QA stage. Required before the Summary stage may emit.
+
+The Summary Guard (defined in `skills/wannabuild/SKILL.md`) checks for this file's existence. If it is missing, the summary is blocked.
+
+Recommended content:
+
+```md
+# QA Summary
+
+## Acceptance Criteria Coverage
+- [ ] Criterion 1 — covered by <test_file>
+- [ ] Criterion 2 — covered by <test_file>
+
+## Integration Behavior
+<summary of integration test results>
+
+## Gaps
+<any acceptance criteria without passing test coverage>
+
+## Result
+PASS | FAIL
+```
+
 ## `.wannabuild/outputs/advisor/*.md`
 
 Advisor escalation reports are optional compact guidance artifacts. They are used when an executor consults a higher-capability advisor for a bounded decision.

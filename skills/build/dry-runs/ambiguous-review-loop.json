@@ -14,6 +14,7 @@
     {
       "iteration": 1,
       "timestamp": "2026-02-20T12:00:00Z",
+      "routing_reason": "base_set",
       "active_reviewers": [
         "wb-security-reviewer",
         "wb-performance-reviewer",
@@ -26,7 +27,7 @@
         "wb-security-reviewer": {
           "agent": "wb-security-reviewer",
           "status": "FAIL",
-          "summary": "Ambiguous file impact classification",
+          "summary": "Security-relevant and non-security changes in same diff chunk — impact classification ambiguous",
           "issues": [
             {
               "severity": "medium",
@@ -36,6 +37,24 @@
               "recommendation": "Split change into smaller touchpoints before retry"
             }
           ]
+        },
+        "wb-performance-reviewer": {
+          "agent": "wb-performance-reviewer",
+          "status": "PASS",
+          "summary": "No performance issues found",
+          "issues": []
+        },
+        "wb-architecture-reviewer": {
+          "agent": "wb-architecture-reviewer",
+          "status": "PASS",
+          "summary": "Architecture matches design spec",
+          "issues": []
+        },
+        "wb-testing-reviewer": {
+          "agent": "wb-testing-reviewer",
+          "status": "PASS",
+          "summary": "Test coverage is adequate",
+          "issues": []
         },
         "wb-integration-tester": {
           "agent": "wb-integration-tester",
@@ -58,23 +77,51 @@
               "status": "covered"
             }
           ]
+        },
+        "wb-code-simplifier": {
+          "agent": "wb-code-simplifier",
+          "status": "PASS",
+          "summary": "No simplification issues found",
+          "issues": []
         }
       },
-      "pass_count": 1,
+      "pass_count": 5,
       "fail_count": 1,
-      "feedback_sent": "impact ambiguity detected",
-      "routing_reason": "ambiguous_impact"
+      "feedback_sent": "Security: mixed diff chunk contains security and non-security changes — ambiguous impact classification"
     },
     {
       "iteration": 2,
       "timestamp": "2026-02-20T12:18:00Z",
+      "routing_reason": "ambiguous_impact",
       "active_reviewers": [
         "wb-security-reviewer",
-        "wb-integration-tester"
+        "wb-performance-reviewer",
+        "wb-architecture-reviewer",
+        "wb-testing-reviewer",
+        "wb-integration-tester",
+        "wb-code-simplifier"
       ],
       "verdicts": {
         "wb-security-reviewer": {
           "agent": "wb-security-reviewer",
+          "status": "PASS",
+          "summary": "No blockers",
+          "issues": []
+        },
+        "wb-performance-reviewer": {
+          "agent": "wb-performance-reviewer",
+          "status": "PASS",
+          "summary": "No blockers",
+          "issues": []
+        },
+        "wb-architecture-reviewer": {
+          "agent": "wb-architecture-reviewer",
+          "status": "PASS",
+          "summary": "No blockers",
+          "issues": []
+        },
+        "wb-testing-reviewer": {
+          "agent": "wb-testing-reviewer",
           "status": "PASS",
           "summary": "No blockers",
           "issues": []
@@ -84,14 +131,14 @@
           "status": "PASS",
           "hard_gate": true,
           "summary": "No blockers",
+          "issues": [],
           "test_execution": {
-            "total": 12,
-            "passed": 12,
+            "total": 14,
+            "passed": 14,
             "failed": 0,
             "errored": 0,
             "duration_ms": 14300
           },
-          "issues": [],
           "coverage_map": [
             {
               "criterion": "C1 - auth session continuity",
@@ -100,11 +147,16 @@
               "status": "covered"
             }
           ]
+        },
+        "wb-code-simplifier": {
+          "agent": "wb-code-simplifier",
+          "status": "PASS",
+          "summary": "No blockers",
+          "issues": []
         }
       },
-      "pass_count": 2,
-      "fail_count": 0,
-      "routing_reason": "fast_track_fallback"
+      "pass_count": 6,
+      "fail_count": 0
     }
   ]
 }

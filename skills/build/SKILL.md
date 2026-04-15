@@ -102,8 +102,6 @@ WannaBuild now runs one standard workflow mode at the top level.
 - start with the standard start banner
 - proceed into Discover immediately
 
-For compatibility with older internal phase files, hidden state may still persist `mode: "full"`. That compatibility field is not a user-facing concept anymore.
-
 ## Control Mode Gate
 
 After Discover, ask exactly once:
@@ -181,22 +179,7 @@ Escalation rules:
 
 ## Advisor Escalation
 
-WannaBuild supports executor-led, advisor-assisted execution. The active executor owns the task end-to-end, including tool use, implementation, validation, and handoff. For high-impact or uncertain decisions, the executor may consult a higher-capability advisor for bounded guidance.
-
-The advisor may provide a plan, correction, risk assessment, or stop signal, but must not call tools, edit files, run commands, or produce user-facing output. Advisor use must be selective, capped, and grounded in the current spec and repository context.
-
-Use advisor escalation for architecture decisions, material ambiguity, high-risk integrations, uncertain review remediation, conflicting specialist outputs, suspected wrong execution paths, or test strategy uncertainty. Do not use it for routine implementation details, one-line fixes, style-only questions, or generic double checks.
-
-Default guardrails:
-- `advisor_escalation`: enabled unless explicitly disabled
-- `advisor_max_uses_per_phase`: 3
-- `advisor_context_scope`: `spec_plus_targeted_repo_summary`
-- `advisor_record_decisions`: true
-- `advisor_on_limit`: `pause-and-ask`
-
-If advisor use exceeds the configured phase limit, pause and ask the user before continuing. Record advisor-influenced decisions in `.wannabuild/decisions.md` when they affect scope, architecture, implementation strategy, or validation. Host adapters may implement this with native model/tool support, but the core contract remains model-agnostic.
-
-Advisor escalation is a stateful workflow primitive, not only a prompt suggestion. When escalation criteria match before high-risk design, high-risk implementation, uncertain review remediation, or max-iteration-adjacent review decisions, the orchestrator must check the phase budget, invoke the best available host advisor mechanism, save `.wannabuild/outputs/advisor/<phase>-escalation-<N>.md`, merge-update `state.json.advisor`, and then resume the executor. In Factory/Droid, prefer the project droid `wb-advisor`; in Claude Platform API contexts, a host adapter may use `advisor_20260301`.
+Advisor escalation is a stateful workflow primitive — see `skills/build/references/advisor-escalation.md` for trigger matrix, invocation contract, report schema, and runtime mapping. Default: enabled, max 3 uses/phase, pause-and-ask on limit.
 
 ## Adaptive Review Defaults
 
@@ -222,43 +205,7 @@ Parallelism is selective, not a default aesthetic.
 
 ## Artifact Backbone
 
-Internal phases read from and write to `.wannabuild/spec/`. Specs remain the source of truth:
-
-```
-.wannabuild/
-├── state.json                    # Current phase, timestamps, context
-├── spec/
-│   ├── requirements.md           # Phase 1: What — user stories, acceptance criteria, scope
-│   ├── design.md                 # Phase 2: How — architecture, tech stack, data models, risks
-│   └── tasks.md                  # Phase 3: Do — ordered atomic tasks with deps and file targets
-├── outputs/                      # Agent outputs (file-first pattern — keeps main context lean)
-│   ├── scope-analyst.md          # Requirements agents
-│   ├── ux-perspective.md
-│   ├── architect.md              # Design agents
-│   ├── tech-advisor.md
-│   ├── risk-assessor.md
-│   ├── task-decomposer.md        # Tasks agents
-│   ├── dependency-mapper.md
-│   ├── scope-validator.md
-│   ├── pr-craftsman.md           # Ship agents
-│   ├── ci-guardian.md
-│   ├── readme-updater.md         # Document agents
-│   ├── api-doc-generator.md
-│   └── changelog-writer.md
-├── checkpoints/                  # Micro-step evidence for implement/resume/review routing
-│   ├── task-1-step-1.md
-│   └── ...
-├── review/                       # Reviewer verdicts — one file per agent per iteration
-│   ├── security-iter-1.json
-│   ├── performance-iter-1.json
-│   └── ...
-├── loop-state.json               # Quality loop: voting, iterations, feedback history
-└── decisions.md                  # Architecture decision log (appended by any phase)
-```
-
-**Core contract:** implementation is validated against `spec/requirements.md`; reviews check code against acceptance criteria; integration tests prove those criteria are met.
-
-Reference: `skills/build/references/sdd-principles.md`
+Artifact contract at `skills/build/references/artifact-contracts.md`. Core rule: specs are the source of truth; agents write full output to files and return one-liners. Reference: `skills/build/references/sdd-principles.md`.
 
 ### Fast-Track Review Decision Matrix (Execution Defaults)
 
@@ -428,70 +375,17 @@ The most critical section. Reviews validate code against the specs, not just gen
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Review Agent Spawning
-
-Build an active reviewer set before spawning review tasks:
+### Review Loop Algorithm
 
 ```
-base_reviewers_full  = [security, performance, architecture, testing, integration-tester, code-simplifier]
-base_reviewers_light = [security, architecture, integration-tester]
-
-IF iteration == 1:
-  active_reviewers = base_reviewers_{mode}
-ELSE:
-  impacted = infer_impacted_reviewers(changed_files_since_last_iteration, previous_failures)
-  active_reviewers = union(impacted, [integration-tester])
-
-  IF active_reviewers is empty OR impact inference uncertain:
-    active_reviewers = base_reviewers_{mode}
-```
-
-Then spawn only `active_reviewers` in parallel background tasks (same file-first verdict contract):
-
-```
-for reviewer in active_reviewers:
-  Task(subagent_type=reviewer, run_in_background=true)
-    // Write to .wannabuild/review/[reviewer]-iter-{N}.json
-    // Return one-line VERDICT summary
-```
-
-Context policy for reviewer prompts:
-- **Security/Architecture/Performance/Testing/Code-simplifier:** diff summary + touched files + relevant spec excerpts.
-- **Integration tester:** full acceptance criteria + test files + command output summaries.
-
-### Verdict Schema
-
-Each reviewer returns:
-
-```json
-{
-  "agent": "wb-[agent-name]",
-  "status": "PASS|FAIL",
-  "issues": [
-    {
-      "severity": "critical|high|medium|low",
-      "file": "path/to/file",
-      "issue": "Description",
-      "recommendation": "Fix"
-    }
-  ],
-  "summary": "Brief assessment"
-}
-```
-
-### Loop Logic
-
-```
+base_reviewers = [security, performance, architecture, testing, integration-tester, code-simplifier]
 iteration = 1
 max_iterations = config.max_review_iterations ?? 3
-base_reviewers = [security, performance, architecture, testing, integration-tester, code-simplifier]
 
 LOOP:
   enforce_guardrails_or_pause(
-    max_agent_runs_per_phase,
-    max_total_review_runs,
-    max_prompt_chars_per_reviewer,
-    policy="pause-and-ask"
+    max_agent_runs_per_phase, max_total_review_runs,
+    max_prompt_chars_per_reviewer, policy="pause-and-ask"
   )
 
   IF iteration == 1:
@@ -502,18 +396,20 @@ LOOP:
     IF active_reviewers is empty OR impact inference uncertain:
       active_reviewers = base_reviewers
 
-  spawn_reviewers(active_reviewers, background=true)
-  wait_for_all_one_liners()
+  for reviewer in active_reviewers:
+    Task(subagent_type=reviewer, run_in_background=true)
+      // Write to .wannabuild/review/[reviewer]-iter-{N}.json. Return one-line VERDICT.
 
+  wait_for_all_one_liners()
   verdicts = read_all_verdict_files(iteration)
   passes = count(v.status == "PASS")
-  fails = count(v.status == "FAIL")
+  fails  = count(v.status == "FAIL")
 
   update_loop_state(iteration, active_reviewers, verdicts)
   display_verdict_summary(passes, fails, active_reviewers)
 
   IF passes == len(active_reviewers):
-    → SHIP phase (unanimous approval from active reviewers)
+    → SHIP phase
   ELSE:
     iteration += 1
     IF iteration > max_iterations:
@@ -521,12 +417,16 @@ LOOP:
     ELSE:
       feedback = aggregate_feedback_from_files(verdicts, iteration)
       display_feedback(feedback)
-
       Task(subagent_type="wb-implementer-escalated")
         prompt: "Fix review feedback: {feedback}. Specs at .wannabuild/spec/"
-
       → LOOP
 ```
+
+Verdict schema at `skills/build/schemas/review-verdict.schema.json`. Required fields: agent, status (PASS|FAIL), issues[], summary. Integration tester additionally requires hard_gate:true, test_execution{}, coverage_map[].
+
+Context policy for reviewer prompts:
+- **Security/Architecture/Performance/Testing/Code-simplifier:** diff summary + touched files + relevant spec excerpts.
+- **Integration tester:** full acceptance criteria + test files + command output summaries.
 
 ### Integration Tester: The Hard Gate
 
@@ -542,62 +442,7 @@ The `wb-integration-tester` agent has special status:
 
 ### Loop State Schema
 
-`.wannabuild/loop-state.json`:
-
-```json
-{
-  "mode": "standard",
-  "current_iteration": 2,
-  "max_iterations": 3,
-  "base_reviewer_count": 6,
-  "status": "in_progress|approved|escalated",
-  "guardrails": {
-    "max_agent_runs_per_phase": 18,
-    "max_total_review_runs": 12,
-    "max_prompt_chars_per_reviewer": 12000,
-    "on_limit": "pause-and-ask"
-  },
-  "iterations": [
-    {
-      "iteration": 1,
-      "timestamp": "2026-02-19T10:00:00Z",
-      "active_reviewers": [
-        "wb-security-reviewer",
-        "wb-performance-reviewer",
-        "wb-architecture-reviewer",
-        "wb-testing-reviewer",
-        "wb-integration-tester",
-        "wb-code-simplifier"
-      ],
-      "verdicts": {
-        "wb-security-reviewer": {"status": "PASS", "issues": []},
-        "wb-performance-reviewer": {"status": "FAIL", "issues": [{"severity": "high", "issue": "..."}]},
-        "wb-architecture-reviewer": {"status": "PASS", "issues": []},
-        "wb-testing-reviewer": {"status": "PASS", "issues": []},
-        "wb-integration-tester": {"status": "FAIL", "issues": [{"severity": "critical", "issue": "..."}]},
-        "wb-code-simplifier": {"status": "PASS", "issues": []}
-      },
-      "pass_count": 4,
-      "fail_count": 2,
-      "feedback_sent": "Consolidated feedback..."
-    },
-    {
-      "iteration": 2,
-      "timestamp": "2026-02-19T10:07:00Z",
-      "active_reviewers": [
-        "wb-performance-reviewer",
-        "wb-integration-tester"
-      ],
-      "verdicts": {
-        "wb-performance-reviewer": {"status": "PASS", "issues": []},
-        "wb-integration-tester": {"status": "PASS", "issues": []}
-      },
-      "pass_count": 2,
-      "fail_count": 0
-    }
-  ]
-}
-```
+Loop state schema at `skills/build/schemas/loop-state.schema.json` and `skills/build/references/loop-state.md`.
 
 ### Feedback Aggregation
 
@@ -644,37 +489,7 @@ After max iterations:
 
 ### state.json Schema
 
-```json
-{
-  "project": "project-name",
-  "mode": "standard",
-  "current_phase": "implement",
-  "phase_status": "in_progress",
-  "started_at": "2026-02-19T09:00:00Z",
-  "updated_at": "2026-02-19T10:30:00Z",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md",
-    "design": ".wannabuild/spec/design.md",
-    "tasks": ".wannabuild/spec/tasks.md"
-  },
-  "phase_history": [
-    {"phase": "requirements", "status": "complete", "timestamp": "..."},
-    {"phase": "design", "status": "complete", "timestamp": "..."}
-  ],
-  "advisor": {
-    "enabled": true,
-    "max_uses_per_phase": 3,
-    "uses_by_phase": {
-      "design": 0,
-      "implement": 0,
-      "review": 0
-    },
-    "escalations": []
-  }
-}
-```
-
-The `mode` field is `"standard"` when present.
+Full schema at `skills/build/schemas/state.schema.json` and `skills/build/references/artifact-contracts.md`. The `mode` field is `"standard"` when present.
 
 ### State Update Rule
 
@@ -684,8 +499,31 @@ All phase state updates **merge into existing state.json** — they never replac
 
 ```bash
 mkdir -p .wannabuild/spec .wannabuild/outputs .wannabuild/checkpoints .wannabuild/review
-echo '{"current_phase":"requirements","phase_status":"pending","artifacts":{}}' > .wannabuild/state.json
-# mode is initialized to "standard" during bootstrap; no mode question is asked
+```
+
+Then write `.wannabuild/state.json` with all required fields:
+
+```json
+{
+  "project": "<project folder name>",
+  "mode": "standard",
+  "current_phase": "requirements",
+  "phase_status": "pending",
+  "public_stage": "discover",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "started_at": "<RFC3339 timestamp>",
+  "updated_at": "<RFC3339 timestamp>",
+  "artifacts": {},
+  "phase_history": [],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "in_progress",
+      "timestamp": "<RFC3339 timestamp>"
+    }
+  ]
+}
 ```
 
 ## Internal Phase Transitions
@@ -735,27 +573,7 @@ Orchestrator: Discover -> Control mode -> Research? -> Plan -> Implement -> Revi
 
 ## Configuration
 
-Optional `.wannabuild/config.json`:
-
-```json
-{
-  "max_review_iterations": 3,
-  "auto_advance": false,
-  "skip_phases": [],
-  "adaptive_review_reruns": true,
-  "review_rerun_policy": "impacted_plus_integration",
-  "review_context_scope": "diff_plus_targeted_spec",
-  "max_agent_runs_per_phase": 18,
-  "max_total_review_runs": 12,
-  "max_prompt_chars_per_reviewer": 12000,
-  "on_limit": "pause-and-ask",
-  "advisor_escalation": true,
-  "advisor_max_uses_per_phase": 3,
-  "advisor_context_scope": "spec_plus_targeted_repo_summary",
-  "advisor_record_decisions": true,
-  "advisor_on_limit": "pause-and-ask"
-}
-```
+Optional `.wannabuild/config.json` — see `skills/build/schemas/config.schema.json`. Key overrides: max_review_iterations (default 3), advisor_escalation (default true), on_limit (default pause-and-ask).
 
 ## Contract Documents
 
