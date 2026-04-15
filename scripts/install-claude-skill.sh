@@ -2,9 +2,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PLUGIN_CACHE="${HOME}/.claude/plugins/cache/gl11tchy/wannabuild/local"
+# claude-plugins-official is Claude Code's recognized marketplace namespace
+PLUGIN_CACHE="${HOME}/.claude/plugins/cache/claude-plugins-official/wannabuild/local"
 SETTINGS="${HOME}/.claude/settings.json"
 INSTALLED="${HOME}/.claude/plugins/installed_plugins.json"
+
+# Remove stale gl11tchy entry if present
+OLD_CACHE="${HOME}/.claude/plugins/cache/gl11tchy"
+[[ -e "$OLD_CACHE" ]] && rm -rf "$OLD_CACHE"
 
 # Create plugin directory pointing to this repo
 mkdir -p "$(dirname "$PLUGIN_CACHE")"
@@ -16,7 +21,7 @@ fi
 ln -sfn "$ROOT" "$PLUGIN_CACHE"
 mkdir -p "$(dirname "$INSTALLED")" "$(dirname "$SETTINGS")"
 
-# Register in installed_plugins.json
+# Register in installed_plugins.json (remove old gl11tchy key, add new)
 python3 - "$PLUGIN_CACHE" "$INSTALLED" <<'PY'
 import json, sys
 from pathlib import Path
@@ -32,7 +37,10 @@ if installed_path.exists():
     except Exception:
         pass
 
-key = "wannabuild@gl11tchy"
+# Remove stale entry
+data.get("plugins", {}).pop("wannabuild@gl11tchy", None)
+
+key = "wannabuild@claude-plugins-official"
 now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 data.setdefault("plugins", {})[key] = [
     {
@@ -40,15 +48,14 @@ data.setdefault("plugins", {})[key] = [
         "installPath": install_path,
         "version": "local",
         "installedAt": now,
-        "lastUpdated": now,
-        "gitCommitSha": "local"
+        "lastUpdated": now
     }
 ]
 installed_path.write_text(json.dumps(data, indent=4))
 print(f"Registered {key} in installed_plugins.json")
 PY
 
-# Enable in settings.json
+# Enable in settings.json (remove old gl11tchy key, add new)
 python3 - "$SETTINGS" <<'PY'
 import json, sys
 from pathlib import Path
@@ -61,9 +68,11 @@ if settings_path.exists():
     except Exception:
         pass
 
-settings.setdefault("enabledPlugins", {})["wannabuild@gl11tchy"] = True
+plugins = settings.setdefault("enabledPlugins", {})
+plugins.pop("wannabuild@gl11tchy", None)
+plugins["wannabuild@claude-plugins-official"] = True
 settings_path.write_text(json.dumps(settings, indent=4))
-print("Enabled wannabuild@gl11tchy in settings.json")
+print("Enabled wannabuild@claude-plugins-official in settings.json")
 PY
 
 echo ""
