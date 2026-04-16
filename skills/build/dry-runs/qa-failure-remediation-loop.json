@@ -1,0 +1,152 @@
+{
+  "mode": "standard",
+  "current_iteration": 2,
+  "max_iterations": 3,
+  "base_reviewer_count": 6,
+  "status": "in_progress",
+  "guardrails": {
+    "max_agent_runs_per_phase": 18,
+    "max_total_review_runs": 12,
+    "max_prompt_chars_per_reviewer": 12000,
+    "on_limit": "pause-and-ask"
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-03-14T14:00:00Z",
+      "routing_reason": "base_set",
+      "active_reviewers": [
+        "wb-security-reviewer",
+        "wb-performance-reviewer",
+        "wb-architecture-reviewer",
+        "wb-testing-reviewer",
+        "wb-integration-tester",
+        "wb-code-simplifier"
+      ],
+      "verdicts": {
+        "wb-security-reviewer": {
+          "agent": "wb-security-reviewer",
+          "status": "PASS",
+          "summary": "No security issues found",
+          "issues": []
+        },
+        "wb-performance-reviewer": {
+          "agent": "wb-performance-reviewer",
+          "status": "PASS",
+          "summary": "No performance issues found",
+          "issues": []
+        },
+        "wb-architecture-reviewer": {
+          "agent": "wb-architecture-reviewer",
+          "status": "PASS",
+          "summary": "Architecture matches design spec",
+          "issues": []
+        },
+        "wb-testing-reviewer": {
+          "agent": "wb-testing-reviewer",
+          "status": "PASS",
+          "summary": "Test structure is sound",
+          "issues": []
+        },
+        "wb-integration-tester": {
+          "agent": "wb-integration-tester",
+          "status": "FAIL",
+          "hard_gate": true,
+          "summary": "2 acceptance criteria have no test coverage",
+          "issues": [
+            {
+              "severity": "high",
+              "criterion": "AC-3 — rate limit enforcement",
+              "issue": "No test exercises rate limit rejection path",
+              "recommendation": "Add integration test asserting 429 response after threshold exceeded"
+            },
+            {
+              "severity": "high",
+              "criterion": "AC-5 — session expiry on logout",
+              "issue": "Session expiry is not tested end-to-end",
+              "recommendation": "Add test asserting session token is invalidated after logout"
+            }
+          ],
+          "test_execution": {
+            "total": 18,
+            "passed": 18,
+            "failed": 0,
+            "errored": 0,
+            "duration_ms": 9800
+          },
+          "coverage_map": [
+            {
+              "criterion": "AC-3 — rate limit enforcement",
+              "test_file": null,
+              "test_name": null,
+              "status": "missing"
+            },
+            {
+              "criterion": "AC-5 — session expiry on logout",
+              "test_file": null,
+              "test_name": null,
+              "status": "missing"
+            }
+          ]
+        },
+        "wb-code-simplifier": {
+          "agent": "wb-code-simplifier",
+          "status": "PASS",
+          "summary": "No simplification issues found",
+          "issues": []
+        }
+      },
+      "pass_count": 5,
+      "fail_count": 1,
+      "feedback_sent": "Integration tester: AC-3 and AC-5 have no test coverage — add tests before ship"
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2026-03-14T14:35:00Z",
+      "routing_reason": "impacted",
+      "active_reviewers": [
+        "wb-integration-tester"
+      ],
+      "verdicts": {
+        "wb-integration-tester": {
+          "agent": "wb-integration-tester",
+          "status": "FAIL",
+          "hard_gate": true,
+          "summary": "AC-3 now covered; AC-5 session expiry test still incomplete",
+          "issues": [
+            {
+              "severity": "high",
+              "criterion": "AC-5 — session expiry on logout",
+              "issue": "Session expiry test added but does not assert token invalidation on subsequent requests",
+              "recommendation": "Assert that the session token returns 401 on any request after logout"
+            }
+          ],
+          "test_execution": {
+            "total": 20,
+            "passed": 19,
+            "failed": 1,
+            "errored": 0,
+            "duration_ms": 10200
+          },
+          "coverage_map": [
+            {
+              "criterion": "AC-3 — rate limit enforcement",
+              "test_file": "tests/rate-limit.spec.ts",
+              "test_name": "rejects requests after threshold",
+              "status": "covered"
+            },
+            {
+              "criterion": "AC-5 — session expiry on logout",
+              "test_file": "tests/auth.spec.ts",
+              "test_name": "session expiry on logout",
+              "status": "incomplete"
+            }
+          ]
+        }
+      },
+      "pass_count": 0,
+      "fail_count": 1,
+      "feedback_sent": "Integration tester: AC-5 test exists but does not assert token invalidation — add 401 assertion after logout"
+    }
+  ]
+}

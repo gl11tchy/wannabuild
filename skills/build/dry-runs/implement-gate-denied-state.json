@@ -1,0 +1,64 @@
+{
+  "project": "wannabuild-dryrun-implement-gate-denied",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "implementation_decision",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "design": ".wannabuild/spec/design.md",
+    "tasks": ".wannabuild/spec/tasks.md"
+  },
+  "started_at": "2026-03-12T10:00:00Z",
+  "updated_at": "2026-03-12T11:20:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2026-03-12T10:15:00Z"
+    },
+    {
+      "phase": "design",
+      "status": "complete",
+      "timestamp": "2026-03-12T10:45:00Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "complete",
+      "timestamp": "2026-03-12T11:08:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "complete",
+      "timestamp": "2026-03-12T10:05:00Z"
+    },
+    {
+      "stage": "control_mode_decision",
+      "status": "complete",
+      "timestamp": "2026-03-12T10:08:00Z",
+      "decision": "guided"
+    },
+    {
+      "stage": "research_decision",
+      "status": "complete",
+      "timestamp": "2026-03-12T10:10:00Z",
+      "decision": "skipped"
+    },
+    {
+      "stage": "plan",
+      "status": "complete",
+      "timestamp": "2026-03-12T11:05:00Z"
+    },
+    {
+      "stage": "implementation_decision",
+      "status": "in_progress",
+      "timestamp": "2026-03-12T11:20:00Z",
+      "gate_response": "deferred",
+      "deferred_reason": "user_requested_plan_revision"
+    }
+  ]
+}

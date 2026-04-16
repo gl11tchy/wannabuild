@@ -1,0 +1,91 @@
+{
+  "project": "wannabuild-dryrun-advisor-escalation",
+  "mode": "standard",
+  "current_phase": "implement",
+  "phase_status": "in_progress",
+  "public_stage": "implement",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "design": ".wannabuild/spec/design.md",
+    "tasks": ".wannabuild/spec/tasks.md"
+  },
+  "started_at": "2026-03-13T11:00:00Z",
+  "updated_at": "2026-03-13T13:22:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:15:00Z"
+    },
+    {
+      "phase": "design",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:30:00Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:40:00Z"
+    },
+    {
+      "phase": "implement",
+      "status": "in_progress",
+      "timestamp": "2026-03-13T12:00:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:08:00Z"
+    },
+    {
+      "stage": "control_mode_decision",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:10:00Z",
+      "decision": "guided"
+    },
+    {
+      "stage": "research_decision",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:12:00Z",
+      "decision": "skipped"
+    },
+    {
+      "stage": "plan",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:38:00Z"
+    },
+    {
+      "stage": "implementation_decision",
+      "status": "complete",
+      "timestamp": "2026-03-13T11:58:00Z",
+      "decision": "single_agent"
+    },
+    {
+      "stage": "implement",
+      "status": "in_progress",
+      "timestamp": "2026-03-13T12:00:00Z"
+    }
+  ],
+  "advisor": {
+    "enabled": true,
+    "max_uses_per_phase": 3,
+    "uses_by_phase": {
+      "design": 0,
+      "implement": 1,
+      "review": 0
+    },
+    "escalations": [
+      {
+        "phase": "implement",
+        "trigger": "uncertain remediation",
+        "report": ".wannabuild/outputs/advisor/implement-escalation-1.md",
+        "decision_impact": "implementation",
+        "recorded_in_decisions": true
+      }
+    ]
+  }
+}

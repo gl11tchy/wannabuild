@@ -1,0 +1,53 @@
+{
+  "project": "wannabuild-dryrun-research-taken",
+  "mode": "standard",
+  "current_phase": "design",
+  "phase_status": "pending",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "research_summary": ".wannabuild/outputs/research-summary.md"
+  },
+  "started_at": "2026-03-11T09:00:00Z",
+  "updated_at": "2026-03-11T09:50:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2026-03-11T09:18:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "complete",
+      "timestamp": "2026-03-11T09:12:00Z"
+    },
+    {
+      "stage": "control_mode_decision",
+      "status": "complete",
+      "timestamp": "2026-03-11T09:14:00Z",
+      "decision": "guided"
+    },
+    {
+      "stage": "research_decision",
+      "status": "complete",
+      "timestamp": "2026-03-11T09:20:00Z",
+      "decision": "research"
+    },
+    {
+      "stage": "research",
+      "status": "complete",
+      "timestamp": "2026-03-11T09:48:00Z",
+      "agents_run": ["wb-tech-advisor", "wb-architect", "wb-risk-assessor"],
+      "output": ".wannabuild/outputs/research-summary.md"
+    },
+    {
+      "stage": "plan",
+      "status": "in_progress",
+      "timestamp": "2026-03-11T09:50:00Z"
+    }
+  ]
+}
