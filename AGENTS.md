@@ -59,11 +59,11 @@ Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Su
 
 | Step | Operator obligation | Completion signal |
 |---|---|---|
-| Discover | Clarify goals, constraints, scope, and flavor. | A crisp problem brief exists. |
+| Discover | Interview for vision, audience, desired feel, core flows, features, constraints, scope, and success signals. | A crisp problem brief and synthesized requirements direction exists. |
 | Control mode gate | Ask once whether to stay guided or switch to autonomous. | Mode decision recorded. |
 | Research gate | If uncertainty is high, ask whether to run research agents first. | Research decision recorded. |
 | Plan | Produce a concrete plan and verify architecture/direction. | Plan is actionable and internally consistent. |
-| Implement | Offer single agent mode vs parallel mode; execute with checkpoints and verification. | Planned slices are implemented with evidence. |
+| Implement | Offer or choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
 | Review | Run reviewer hats that add real signal for this change. | Review verdicts captured with actionable findings. |
 | QA | Validate acceptance criteria and integration behavior. | Integration hard gate passes. |
 | Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
@@ -74,17 +74,18 @@ Use short, explicit questions at gates:
 
 - Control mode: "Continue in guided mode, or switch to autonomous mode?"
 - Research gate: "Uncertainty is still high. Run bounded research agents first, or proceed to planning?"
-- Implement mode: "Implement in single agent mode, or parallel mode for disjoint slices?"
+- Implement mode: "Use single-owner implementation, or adaptive parallel implementation for disjoint slices?"
 
 Default to guided mode unless the user explicitly opts into autonomous mode.
 
 ## Parallelization Defaults
 
-- Keep Discover, Plan, QA, and Summary single-lane by default.
+- Keep work single-owner when coherence matters more than fan-out.
 - Use bounded multi-agent research only when it materially improves planning quality.
-- Use parallelism mainly for disjoint implementation slices.
-- Use reviewer parallelism for concurrent inspection of the same finished work.
-- If work does not split cleanly, stay single-owner.
+- Use parallelism for independent discovery perspectives, disjoint implementation slices, or concurrent review hats with distinct risk ownership.
+- Let the orchestrator choose the number of agents from task evidence: complexity, coupling, uncertainty, blast radius, and expertise required.
+- Do not hard-code agent counts. Stop adding agents when each one no longer has distinct ownership and expected evidence.
+- Record delegation rationale in `.wannabuild/decisions.md` or checkpoints.
 
 ## Internal Execution Model
 
@@ -126,7 +127,7 @@ Target projects use `.wannabuild/` as workflow state:
 
 Artifact roles:
 
-- `requirements.md`: goals, scope, acceptance criteria, and test scenarios.
+- `requirements.md`: vision brief, audience, desired feel, core flows, feature priorities, scope, assumptions, acceptance criteria, and test scenarios.
 - `design.md`: architecture, contracts, risks, and testing direction.
 - `tasks.md`: ordered implementation slices with verification expectations.
 - `checkpoints/`: execution evidence and resume anchors.
@@ -145,9 +146,11 @@ Artifact roles:
 
 ## Model Defaults
 
-- Spec-quality specialists use stronger models.
-- Standard implementation uses the default implementer.
-- High-complexity or post-review remediation can escalate to stronger implementers.
+- Choose capability tier and reasoning effort per task, not by hard-coded model name.
+- Lightweight/fast capability is appropriate for bounded lookup, formatting, simple validation, and low-risk documentation work.
+- Standard capability is appropriate for normal implementation and well-scoped remediation.
+- Strong/high-reasoning capability is appropriate for architecture choices, ambiguous requirements, high-risk integrations, complex debugging, and uncertain remediation.
+- Host adapters map capability tiers to available models and reasoning controls.
 - Use advisor escalation selectively for high-impact uncertainty: architecture choices, material ambiguity, high-risk integrations, uncertain remediation, conflicting specialist outputs, or test strategy risk. The executor remains the single tool-using owner; the advisor provides bounded guidance only and must not call tools, edit files, run commands, or produce user-facing output.
 
 ## Repo Surfaces

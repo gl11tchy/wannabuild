@@ -140,14 +140,11 @@ Use the research gate when one or more of these are true:
 
 If the user chooses research:
 
-- run a bounded research burst using existing specialists
-- default set:
-  - `wb-tech-advisor`
-  - `wb-architect`
-  - `wb-risk-assessor`
-- optional additions:
-  - `wb-scope-analyst`
-  - `wb-ux-perspective`
+- run a bounded research burst using the smallest useful specialist set
+- choose specialists by uncertainty type, independence, and expected evidence
+- choose capability tier and reasoning effort by risk and ambiguity
+- do not use fixed agent counts or concrete model IDs
+- record the delegation rationale in `.wannabuild/decisions.md`
 - synthesize findings into `.wannabuild/outputs/research-summary.md`
 - then proceed to planning
 
@@ -162,20 +159,27 @@ After planning is complete and the approach is verified, ask the user:
 1. Implement in single agent mode
 2. Implement with parallel agents
 
-Default to single agent mode unless the work splits cleanly.
+Default to the smallest execution shape that can do the work well. In guided mode, ask at this gate; in autonomous mode, decide adaptively and record why.
 
 ## Model Tiering Defaults
 
-Quality stays non-negotiable, but model spend is differentiated by role:
+Quality stays non-negotiable, but model and reasoning spend are selected by task evidence rather than by hard-coded model names.
 
-- **Spec phases run on Opus** (`wb-scope-analyst`, `wb-ux-perspective`, `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator`) to maximize spec quality.
-- **Default implementation:** `wb-implementer`
-- **Escalated implementation:** `wb-implementer-escalated`
-- **Hard gate remains unchanged:** integration testing still blocks ship on FAIL.
+Use capability tiers:
+
+- **Lightweight / fast:** bounded lookups, simple validation, formatting, documentation polish, or low-risk summaries.
+- **Standard implementer:** normal implementation, straightforward refactors, and well-scoped remediation.
+- **Strong / high-reasoning:** architecture choices, ambiguous requirements, cross-cutting design, high-risk integrations, complex debugging, or failed remediation.
+- **Hard gate:** integration testing still blocks ship on FAIL regardless of model tier.
+
+Host adapters map these tiers to the models, tools, and reasoning controls available in that host. Core WannaBuild contracts must describe tiers and effort, not vendor-specific model IDs.
 
 Escalation rules:
-1. If complexity is flagged high up front, use `wb-implementer-escalated` immediately.
-2. If review iteration 1 fails, all remediation iterations use `wb-implementer-escalated`.
+
+1. If complexity, uncertainty, or blast radius is high up front, use stronger capability and higher reasoning for the affected work.
+2. If review fails, escalate only the remediation slice that needs it.
+3. If a task becomes simple after investigation, de-escalate back to standard or lightweight.
+4. Record the reason for escalation or de-escalation in `.wannabuild/decisions.md` or the relevant checkpoint.
 
 ## Advisor Escalation
 
@@ -185,23 +189,24 @@ Advisor escalation is a stateful workflow primitive — see `skills/build/refere
 
 Quality gates stay strict, but retry behavior is adaptive by default:
 
-- **Iteration 1 review:** run the base reviewer set.
-- **Iteration 2+ review:** run only impacted reviewers **plus `wb-integration-tester` (always)**.
+- **Iteration 1 review:** choose reviewers based on changed surfaces, risk, and acceptance criteria.
+- **Iteration 2+ review:** run only impacted reviewers plus the integration hard gate.
 - **Fallback safety:** if impact scope is ambiguous, rerun the full reviewer set.
 - **Context slicing:** pass only changed-file summaries + relevant spec excerpts (not full artifacts) to non-integration reviewers.
 - **Guardrail behavior:** when configured limits are hit, pause and ask the user whether to continue instead of silently fanning out.
 
 ## Parallelization Policy
 
-Parallelism is selective, not a default aesthetic.
+Parallelism is a judgment call, not a ritual.
 
-- **Keep sequential by default** for Discover, Plan, QA, and Summary.
-- **Use parallelism** for:
-  - internal discovery analysis when multiple bounded perspectives materially help
-  - implementation only when workstreams are truly disjoint
-  - review hats that can inspect the same finished work independently
-- **Do not parallelize** merely because multiple agents exist. Coherence beats fan-out.
-- **If uncertain, stay single-owner** until the work naturally splits.
+- **Stay single-owner** when work is tightly coupled, tiny, or needs one coherent voice.
+- **Use one focused specialist** when there is one uncertainty dimension or one clear ownership area.
+- **Use multiple specialists in parallel** when tasks are independent, perspectives are meaningfully different, or concurrent review would catch different classes of risk.
+- **Scale the number of agents from the work**, not from a fixed recipe. Stop adding agents when each additional agent no longer has a distinct ownership area or expected evidence.
+- **Do not hard-code agent counts.** A single well-owned task may need no sub-agent; a complex effort may need several.
+- **Assign ownership explicitly:** each agent gets files, concerns, questions, or acceptance criteria it owns.
+- **Record the delegation rationale:** why this shape, why this tier/effort, what each agent owned, and what evidence each produced.
+- **Respect guided mode:** still pause at public gates unless the user chose autonomous mode.
 
 ## Artifact Backbone
 
@@ -217,8 +222,8 @@ Only apply when this session is clearly tiny + low risk:
 - no auth/session, secrets, crypto, DB schema migration, payment, or infra-policy risk flags
 - no reviewer confidence ambiguity from checkpoint/scope diff
 
-If eligible, Iteration 1 reviewer set is `wb-integration-tester` plus up to 2 high-confidence impacted reviewers.
-If **any** fast-track reviewer fails or confidence drops, rerun the full base reviewer set in the next review iteration.
+If eligible, Iteration 1 reviewer set is `wb-integration-tester` plus any high-confidence impacted reviewers with distinct risk ownership.
+If **any** fast-track reviewer fails or confidence drops, broaden the next review iteration until the changed surfaces and uncertainty are covered.
 The integration hard gate is never bypassed.
 
 ## Public Step Routing
@@ -277,70 +282,58 @@ All agents write their full analysis to `.wannabuild/outputs/` (or `.wannabuild/
 
 ### Parallel Background Pattern
 
-**Research burst:**
-```
-Task(subagent_type="wb-tech-advisor", run_in_background=true)
-Task(subagent_type="wb-architect", run_in_background=true)
-Task(subagent_type="wb-risk-assessor", run_in_background=true)
-// Optionally add wb-scope-analyst and wb-ux-perspective when scope or UX uncertainty remains high
-// Synthesize into .wannabuild/outputs/research-summary.md, then proceed to planning
+Use this pattern only after deciding parallel work is justified:
+
+```text
+for each selected specialist:
+  Task(subagent_type="<specialist>", run_in_background=<true when independent>)
+    capability_tier: <lightweight / standard / strong>
+    reasoning_effort: <low / medium / high>
+    ownership: <files, concern, question, acceptance criteria, or risk class>
+    prompt: "Investigate <bounded question>.
+             Write full findings to .wannabuild/outputs/<specialist>-<phase>.md.
+             Return ONLY: 'COMPLETE - [one sentence]. Report at <path>'"
+
+wait for the selected agents that are needed for the next decision
+read their output files
+synthesize into the phase artifact
+record delegation rationale in .wannabuild/decisions.md
 ```
 
-**Requirements:**
-```
-Task(subagent_type="wb-scope-analyst", run_in_background=true)
-  prompt: "Analyze scope for: {description}. Read: {codebase_path}.
-           Write full analysis to .wannabuild/outputs/scope-analyst.md.
-           Return ONLY: 'COMPLETE — [one sentence]. Report at .wannabuild/outputs/scope-analyst.md'"
-
-Task(subagent_type="wb-ux-perspective", run_in_background=true)
-  prompt: "Analyze UX for: {description}. Read: {codebase_path}.
-           Write full analysis to .wannabuild/outputs/ux-perspective.md.
-           Return ONLY: 'COMPLETE — [one sentence]. Report at .wannabuild/outputs/ux-perspective.md'"
-
-// Wait for both to complete, then read .wannabuild/outputs/ files and synthesize
-```
-
-**Design:**
-```
-Task(subagent_type="wb-architect", run_in_background=true)
-  // Write to .wannabuild/outputs/architect.md. Return one-liner.
-Task(subagent_type="wb-tech-advisor", run_in_background=true)
-  // Write to .wannabuild/outputs/tech-advisor.md. Return one-liner.
-Task(subagent_type="wb-risk-assessor", run_in_background=true)
-  // Write to .wannabuild/outputs/risk-assessor.md. Return one-liner.
-// Wait for all three, read output files, then synthesize
-```
+Never create parallel agents simply because a phase has multiple available specialists. Each selected agent needs distinct ownership and expected evidence.
 
 ### Sequential-Then-Parallel Pattern (Tasks)
 ```
-// Step 1: decompose first (writes to .wannabuild/outputs/task-decomposer.md)
-Task(subagent_type="wb-task-decomposer")
+// Step 1: decompose first when task structure is the blocker.
+Task(subagent_type="<task decomposition specialist>")
+  capability_tier: <standard or strong, based on ambiguity/risk>
+  reasoning_effort: <medium or high>
   prompt: "Decompose. Requirements: {path}. Design: {path}.
            Write full task list to .wannabuild/outputs/task-decomposer.md.
-           Return ONLY: 'COMPLETE — [N] tasks decomposed. Report at .wannabuild/outputs/task-decomposer.md'"
+           Return ONLY: 'COMPLETE - [N] tasks decomposed. Report at .wannabuild/outputs/task-decomposer.md'"
 
-// Step 2: read output file, pass path to validators in parallel
-Task(subagent_type="wb-dependency-mapper", run_in_background=true)
-  prompt: "Map dependencies for tasks at .wannabuild/outputs/task-decomposer.md.
-           Write to .wannabuild/outputs/dependency-mapper.md. Return one-liner."
-
-Task(subagent_type="wb-scope-validator", run_in_background=true)
-  prompt: "Validate coverage. Requirements: {path}. Tasks at .wannabuild/outputs/task-decomposer.md.
-           Write to .wannabuild/outputs/scope-validator.md. Return one-liner."
+// Step 2: read the output file, then choose validation/mapping agents only where useful.
+// Parallelize dependency mapping, scope validation, or test planning only when those concerns are independent.
 ```
 
 ### Foreground Pattern (Implement)
 ```
-# Default path
-Task(subagent_type="wb-implementer")
-  prompt: "Implement tasks in micro-steps. Spec chain at .wannabuild/spec/.
-           Write checkpoint files under .wannabuild/checkpoints/"
+# Single-owner path
+Task(subagent_type="<selected implementer>")
+  capability_tier: <standard or strong>
+  reasoning_effort: <medium or high>
+  prompt: "Implement owned tasks in micro-steps. Spec chain at .wannabuild/spec/.
+           Write checkpoint files under .wannabuild/checkpoints/.
+           Record delegation/execution rationale in decisions or checkpoints."
 
-# Escalated path (high-complexity upfront or any remediation after first failed review)
-Task(subagent_type="wb-implementer-escalated")
-  prompt: "Implement tasks/fixes in micro-steps. Spec chain at .wannabuild/spec/.
-           Write checkpoint files under .wannabuild/checkpoints/"
+# Parallel implementation path
+for each independent slice:
+  Task(subagent_type="<selected implementer>", run_in_background=true)
+    capability_tier: <standard or strong>
+    reasoning_effort: <medium or high>
+    ownership: <disjoint files/modules/acceptance criteria>
+    prompt: "Implement only your owned slice. Do not revert or overwrite others.
+             Write checkpoints and return a compact completion summary."
 ```
 
 ## Implement → Review Transition (Checkpoint-Aware)
@@ -370,7 +363,7 @@ The most critical section. Reviews validate code against the specs, not just gen
 │      │            │                    │                     │
 │      └────────────┘◄────────────────────┘                    │
 │                                                              │
-│  Base reviewer set: 6 reviewers                              │
+│  Reviewer pool: selected adaptively by risk and evidence      │
 │  Max iterations: 3 (then escalate to human)                  │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -378,7 +371,6 @@ The most critical section. Reviews validate code against the specs, not just gen
 ### Review Loop Algorithm
 
 ```
-base_reviewers = [security, performance, architecture, testing, integration-tester, code-simplifier]
 iteration = 1
 max_iterations = config.max_review_iterations ?? 3
 
@@ -388,13 +380,16 @@ LOOP:
     max_prompt_chars_per_reviewer, policy="pause-and-ask"
   )
 
-  IF iteration == 1:
-    active_reviewers = base_reviewers
-  ELSE:
-    impacted = infer_impacted_reviewers(changed_files_since_last_iteration, previous_failures)
-    active_reviewers = union(impacted, [integration-tester])
-    IF active_reviewers is empty OR impact inference uncertain:
-      active_reviewers = base_reviewers
+  active_reviewers = infer_reviewers(
+    changed_files_since_last_iteration,
+    acceptance_criteria,
+    checkpoint_evidence,
+    previous_failures,
+    risk_profile
+  )
+  active_reviewers = union(active_reviewers, [integration-tester])
+  IF impact inference uncertain OR blast radius high:
+    broaden active_reviewers until risk ownership is covered
 
   for reviewer in active_reviewers:
     Task(subagent_type=reviewer, run_in_background=true)

@@ -113,12 +113,14 @@ Run this condensed workflow:
 
 ## Defaults
 
-- Keep Discover, Plan, QA, and Summary single-lane by default.
+- Discover is a vision-first interview before it is a requirements document.
+- Keep Discover, Plan, QA, and Summary single-lane unless parallel specialists materially improve quality.
 - Default to guided mode until the user explicitly switches to autonomous mode after Discover.
 - Offer optional research before planning when uncertainty is still materially high.
-- Offer implementation in:
-  - single agent mode
-  - parallel mode when work splits cleanly
+- Offer implementation shape in guided mode; choose adaptively in autonomous mode.
+- Scale sub-agents from task evidence, not fixed counts.
+- Choose capability tier and reasoning effort from complexity, coupling, risk, uncertainty, and required expertise; do not name concrete model IDs in core workflow decisions.
+- Record delegation rationale in `.wannabuild/decisions.md` or checkpoints.
 - Keep review adaptive rather than maximal by default.
 - The integration tester is the hard gate.
 
@@ -208,7 +210,10 @@ Ask this only when at least one of these is true:
 
 If research is chosen:
 
-- run a bounded research burst using the existing specialist agents
+- run a bounded research burst using the smallest useful set of specialist agents
+- assign each agent a distinct question, ownership area, capability tier, and reasoning effort
+- avoid fixed agent counts and concrete model IDs
+- record why this research shape was chosen
 - synthesize findings into a concise research summary
 - then proceed to planning
 - update stage to `research`
@@ -227,27 +232,25 @@ After planning is complete and the approach is verified:
 
 If `control_mode` is `guided`, offer exactly two paths:
 
-1. Implement in single agent mode
-2. Implement with parallel agents
+1. Use single-owner implementation
+2. Use adaptive parallel implementation for disjoint slices
 
-Default to single agent mode unless the work splits cleanly.
+Default to the smallest shape that can implement the plan well. Use single-owner implementation when tasks are tightly coupled. Use parallel agents only when slices are genuinely independent or when separate expertise materially improves the outcome.
 
 Do not begin implementation in guided mode until the user has selected a path or clearly delegated the choice.
 
-If `control_mode` is `autonomous`, choose adaptively.
+If `control_mode` is `autonomous`, choose adaptively and record:
+
+- why this execution shape was chosen
+- what each agent owns
+- selected capability tier and reasoning effort
+- expected evidence and checkpoint paths
 
 ## Review Gate
 
 After implementation completes, move to a distinct Review stage.
 
-Run these agents as a separate post-implementation gate:
-
-- `wb-security-reviewer`
-- `wb-performance-reviewer`
-- `wb-architecture-reviewer`
-- `wb-testing-reviewer`
-- `wb-integration-tester`
-- `wb-code-simplifier`
+Choose reviewers as a separate post-implementation gate. The integration tester remains mandatory; other reviewers are selected from changed surfaces, risk, acceptance criteria, and prior failures.
 
 Write verdicts into `.wannabuild/review/`.
 

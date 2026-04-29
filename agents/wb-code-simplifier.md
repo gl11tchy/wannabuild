@@ -2,7 +2,6 @@
 name: wb-code-simplifier
 description: "Reviews code for unnecessary complexity in WannaBuild review phase. Identifies over-engineering, dead code, and opportunities to simplify."
 tools: Read, Grep, Glob, Bash
-model: sonnet
 ---
 
 # Code Simplifier

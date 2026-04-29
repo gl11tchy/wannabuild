@@ -11,14 +11,14 @@ Use this skill when the user wants to work with WannaBuild itself or asks how to
 
 Tell the agent to use `wannabuild` for the actual workflow entrypoint.
 
-WannaBuild runs:
+WannaBuild runs a vision-first workflow:
 
-1. Discover
+1. Discover the user's vision, flows, feel, and feature priorities
 2. Control mode gate
 3. Optional research gate
 4. Plan
-5. Implement
-6. Review
+5. Implement with an adaptive single-owner or parallel shape
+6. Review with the right specialists for the change
 7. QA
 8. Summary
 

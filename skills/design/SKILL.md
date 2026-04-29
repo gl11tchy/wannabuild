@@ -4,11 +4,15 @@
 
 ## Agents
 
+Design may use these specialist perspectives when they materially improve the technical blueprint:
+
 | Agent | File | Role |
 |-------|------|------|
 | Architect | `wb-architect` | System architecture, data models, API contracts, testing strategy |
 | Tech Advisor | `wb-tech-advisor` | Tech stack evaluation, build-vs-buy, dependencies |
 | Risk Assessor | `wb-risk-assessor` | Risk identification, probability/impact scoring, mitigations |
+
+Do not force all agents for every design. Choose the smallest useful set based on architecture uncertainty, external dependency decisions, blast radius, and risk.
 
 ## Trigger Conditions
 
@@ -34,68 +38,42 @@
 }
 ```
 
-All three agents read `spec/requirements.md` as their primary input and scan the codebase for existing patterns.
+Selected agents read `spec/requirements.md` as their primary input and scan the codebase for existing patterns.
 
 ## Execution Flow
 
-```
-spec/requirements.md (input)
-        │
-        ▼
-┌──────────────────────────────────────────────┐
-│  Parallel Agent Execution                    │
-│                                              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────────┐ │
-│  │ Architect│ │  Tech    │ │    Risk      │ │
-│  │          │ │ Advisor  │ │  Assessor    │ │
-│  └────┬─────┘ └────┬─────┘ └──────┬───────┘ │
-│       │             │              │         │
-└───────┼─────────────┼──────────────┼─────────┘
-        │             │              │
-        ▼             ▼              ▼
-  ┌──────────────────────────────────────┐
-  │  Orchestrator                        │
-  │  Synthesizes into design.md          │
-  │  Resolves conflicts between agents   │
-  └──────────────────┬───────────────────┘
-                     │
-                     ▼
-       Present to user for review
-                     │
-                     ▼
-       Write .wannabuild/spec/design.md
-```
+1. Read `spec/requirements.md`, including vision, desired feel, flows, assumptions, and acceptance criteria.
+2. Inspect existing codebase patterns and constraints.
+3. Decide whether design can stay single-owner or needs specialist input.
+4. Select agents, capability tier, and reasoning effort by uncertainty and risk.
+5. Synthesize selected outputs into `design.md`.
+6. Present the design to the user for review.
+7. Record delegation rationale in `.wannabuild/decisions.md`.
 
 ## Agent Spawning
 
-All 3 agents run as parallel background tasks:
+Use adaptive agent spawning:
 
 ```
-Task(subagent_type="wb-architect", run_in_background=true)
-  prompt: "Design architecture for project. Requirements: {requirements_path}. Codebase: {codebase_path}.
-           Write your full analysis to .wannabuild/outputs/architect.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/architect.md'"
-
-Task(subagent_type="wb-tech-advisor", run_in_background=true)
-  prompt: "Evaluate tech stack for project. Requirements: {requirements_path}. Codebase: {codebase_path}.
-           Write your full analysis to .wannabuild/outputs/tech-advisor.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/tech-advisor.md'"
-
-Task(subagent_type="wb-risk-assessor", run_in_background=true)
-  prompt: "Assess risks for project. Requirements: {requirements_path}. Codebase: {codebase_path}.
-           Write your full analysis to .wannabuild/outputs/risk-assessor.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/risk-assessor.md'"
+Task(subagent_type="<selected design specialist>", run_in_background=<true when independent>)
+  capability_tier: <lightweight / standard / strong>
+  reasoning_effort: <low / medium / high>
+  ownership: <architecture / tech choice / risk / testing strategy>
+  prompt: "Analyze the design for <specific ownership area>.
+           Requirements: {requirements_path}. Codebase: {codebase_path}.
+           Write your full analysis to .wannabuild/outputs/<agent>-design.md.
+           Return ONLY: 'COMPLETE - [one sentence]. Report at <path>'"
 ```
 
-All 3 agents write their full analysis to `.wannabuild/outputs/` and return a one-line status to the main conversation.
+Selected agents write their full analysis to `.wannabuild/outputs/` and return a one-line status to the main conversation.
 
 ## Synthesis
 
-After all 3 agents complete, the orchestrator reads `.wannabuild/outputs/architect.md`, `.wannabuild/outputs/tech-advisor.md`, and `.wannabuild/outputs/risk-assessor.md`, then:
+After selected agents complete, the orchestrator reads the relevant `.wannabuild/outputs/` files, then:
 
-1. **Merge tech stack decisions** from Tech Advisor with architecture from Architect
-2. **Resolve conflicts:** If Tech Advisor recommends X but Architect designed for Y, flag it for the user
-3. **Incorporate risks** into architecture decisions (risk-informed design)
+1. **Merge architecture and tech stack decisions** when those analyses were run
+2. **Resolve conflicts:** If specialist recommendations disagree, flag material product or architecture choices for the user
+3. **Incorporate risks** into architecture decisions when risk analysis was run
 4. **Ensure testing strategy** is present and complete (framework, boundaries, mock strategy, CI requirements)
 5. **Verify completeness:** Every section of the design spec template has content
 6. **Present to user** for review

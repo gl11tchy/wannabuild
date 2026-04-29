@@ -6,13 +6,15 @@ Phase 7 of 7 in the WannaBuild SDD pipeline. Updates documentation to reflect wh
 
 ## Agents
 
-The document phase uses all 3 documentation agents:
+The document phase can use documentation agents when they materially improve the handoff:
 
 | Agent | File | Role |
 |-------|------|------|
 | README Updater | `wb-readme-updater` | Updates README with new features, setup, usage |
 | API Doc Generator | `wb-api-doc-generator` | Generates/updates API documentation from code and design spec |
 | Changelog Writer | `wb-changelog-writer` | Writes changelog entry following Keep a Changelog format |
+
+Do not force all documentation agents. Choose the smallest useful set based on what changed, which docs exist, and what evidence the handoff needs.
 
 ## Trigger Conditions
 
@@ -46,47 +48,26 @@ The document phase uses all 3 documentation agents:
 
 ## Execution Flow
 
-**All 3 agents in parallel:**
-```
-Spec artifacts + merged code (input)
-        │
-        ▼
-┌──────────────────────────────────────────────────┐
-│  All 3 Agents in Parallel (background)           │
-│                                                  │
-│  ┌──────────┐ ┌──────────┐ ┌───────────────┐    │
-│  │  README  │ │ API Doc  │ │  Changelog    │    │
-│  │ Updater  │ │Generator │ │   Writer      │    │
-│  └────┬─────┘ └────┬─────┘ └──────┬────────┘    │
-│       │             │              │             │
-└───────┼─────────────┼──────────────┼─────────────┘
-        │             │              │
-        ▼             ▼              ▼
-  ┌──────────────────────────────────────┐
-  │  Orchestrator: Verify and commit     │
-  │  documentation updates               │
-  └──────────────────────────────────────┘
-```
+1. Read spec artifacts, checkpoints, review/QA evidence, and changed files.
+2. Decide which documentation surfaces need updates.
+3. Choose documentation agents only for those surfaces.
+4. Run independent documentation agents in parallel when their write scopes do not overlap.
+5. Verify and commit documentation updates.
+6. Record delegation rationale when agents are used or intentionally skipped.
 
 ## Agent Spawning
 
-All 3 agents run as parallel background tasks:
+Use adaptive agent spawning:
 
 ```
-Task(subagent_type="wb-readme-updater", run_in_background=true)
-  prompt: "Update README. Specs at .wannabuild/spec/. Recent changes: {summary}.
-           Write your full output to .wannabuild/outputs/readme-updater.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/readme-updater.md'"
-
-Task(subagent_type="wb-api-doc-generator", run_in_background=true)
-  prompt: "Generate API docs. Design spec at .wannabuild/spec/design.md. Codebase: {path}.
-           Write your full output to .wannabuild/outputs/api-doc-generator.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/api-doc-generator.md'"
-
-Task(subagent_type="wb-changelog-writer", run_in_background=true)
-  prompt: "Write changelog. Requirements at .wannabuild/spec/requirements.md. Change evidence: {recent_commits_or_checkpoints}.
-           Write your full output to .wannabuild/outputs/changelog-writer.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/changelog-writer.md'"
+Task(subagent_type="<selected documentation specialist>", run_in_background=<true when independent>)
+  capability_tier: <lightweight / standard / strong>
+  reasoning_effort: <low / medium / high>
+  ownership: <README / API docs / changelog / release notes>
+  prompt: "Update <owned documentation surface>.
+           Specs at .wannabuild/spec/. Evidence: {summary}.
+           Write your full output to .wannabuild/outputs/<agent>-document.md.
+           Return ONLY: 'COMPLETE - [one sentence]. Report at <path>'"
 ```
 
 ## Documentation Sources

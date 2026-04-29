@@ -11,9 +11,13 @@ Phase 4 of 7 in the WannaBuild SDD pipeline. The implementer works through the t
 | Implementer (default) | `wb-implementer` | Executes tasks from spec using the parent session model, writes code + integration tests, checkpoints |
 | Implementer (escalated) | `wb-implementer-escalated` | Same implementation role, but inherits parent model for high-complexity work and review-loop remediation |
 
-This phase runs one implementer at a time in the foreground with full tool access.
-- Default: `wb-implementer`
-- Escalated: `wb-implementer-escalated` (high-complexity upfront or after first failed review iteration)
+This phase may run single-owner or parallel implementation depending on the task plan.
+
+- Use single-owner implementation when tasks are tightly coupled, tiny, or need one coherent editor.
+- Use parallel implementation only for disjoint slices with explicit file/module/acceptance ownership.
+- Choose capability tier and reasoning effort from task complexity, risk, uncertainty, and remediation history.
+- Do not hard-code concrete model IDs or fixed implementer counts.
+- Record execution shape and delegation rationale in `.wannabuild/decisions.md` or checkpoints.
 
 Advisor escalation may assist the implementer when the path is materially uncertain, but it does not replace the implementer. The implementer remains the foreground executor with full tool ownership; the advisor only provides bounded guidance, correction, risk assessment, or a stop signal.
 
@@ -54,49 +58,43 @@ Pause and resolve contract violations before proceeding.
 
 ## Execution Flow
 
-```
-spec/tasks.md (ordered task list)
-        │
-        ▼
-┌─────────────────────────┐
-│  For each task:         │
-│                         │
-│  1. Read task spec      │
-│  2. Check dependencies  │
-│  3. Study existing code │
-│  4. Write tests first   │
-│  5. Implement feature   │
-│  6. Run test suite      │
-│  7. Write checkpoint    │
-│  8. Update task status  │
-│                         │
-│  Repeat until all done  │
-└────────────┬────────────┘
-             │
-             ▼
-    Implementation complete
-             │
-             ▼
-    Handoff to Review phase
-```
+1. Read `spec/requirements.md`, `spec/design.md`, and `spec/tasks.md`.
+2. Read the task plan's Delegation Guidance.
+3. Choose implementation shape:
+   - single-owner for coupled work
+   - parallel slices for disjoint ownership
+   - stronger capability/higher reasoning for high-risk or ambiguous slices
+4. Study existing code and local conventions.
+5. Implement in micro-steps with tests and verification.
+6. Write checkpoints for each completed micro-step.
+7. Integrate parallel slices before Review.
+8. Run transition validation and hand off to Review.
 
 ## Agent Spawning
 
 ```
-# Default implementation path
-Task(subagent_type="wb-implementer")
-  prompt: "Implement all tasks from .wannabuild/spec/tasks.md.
+# Single-owner path
+Task(subagent_type="<selected implementer>")
+  capability_tier: <standard or strong>
+  reasoning_effort: <medium or high>
+  ownership: <all tasks or specific remediation slice>
+  prompt: "Implement owned tasks from .wannabuild/spec/tasks.md.
            Read the full spec chain at .wannabuild/spec/ first.
-           Codebase at: {codebase_path}"
+           Codebase at: {codebase_path}.
+           Write checkpoints and delegation rationale."
 
-# Escalated path (high-complexity upfront or post-review remediation)
-Task(subagent_type="wb-implementer-escalated")
-  prompt: "Implement/fix tasks from .wannabuild/spec/tasks.md or aggregated review feedback.
-           Read the full spec chain at .wannabuild/spec/ first.
-           Codebase at: {codebase_path}"
+# Parallel path
+for each independent slice:
+  Task(subagent_type="<selected implementer>", run_in_background=true)
+    capability_tier: <standard or strong>
+    reasoning_effort: <medium or high>
+    ownership: <disjoint files/modules/acceptance criteria>
+    prompt: "Implement only your owned slice.
+             You are not alone in the codebase; do not revert others' edits.
+             Write checkpoints and return a compact completion summary."
 ```
 
-The implementer runs in the foreground (not background) because it needs interactive tool access for reading, writing, and running commands.
+Use background implementers only when the host supports safe parallel editing and the slices have disjoint write ownership. Otherwise keep the foreground implementer as the single tool-using owner.
 
 ## Integration Tests Are Non-Negotiable
 
@@ -116,6 +114,7 @@ Checkpoint content should include:
 - changed files
 - verify command + result
 - pending next micro-step
+- execution shape and delegation rationale when the step used or integrated sub-agent work
 
 ## Task Execution Protocol
 
@@ -125,7 +124,7 @@ For each task in `spec/tasks.md`:
 2. **Check dependencies** — verify prerequisite tasks are complete
 3. **Study existing code** — read target files, match patterns and conventions
 4. **Execute micro-steps in order** — one micro-step at a time (`read step -> implement minimal change -> verify -> write checkpoint -> continue`)
-5. **Write integration test** — define expected behavior as a test (TDD approach when applicable)
+5. **Write or update tests** — derive expected behavior from the clarified requirements; use TDD when it helps, but do not replace product intent with test mechanics
 6. **Run tests** — verify changes work and don't break existing tests
 7. **Write checkpoint evidence** — `.wannabuild/checkpoints/task-{N}-step-{M}.md`
 8. **Report status** — mark task complete, note any deviations from spec

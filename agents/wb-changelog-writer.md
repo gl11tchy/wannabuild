@@ -2,7 +2,6 @@
 name: wb-changelog-writer
 description: "Writes changelog entries for WannaBuild document phase. Follows Keep a Changelog format with semantic versioning."
 tools: Read, Edit, Write, Grep, Glob
-model: sonnet
 ---
 
 # Changelog Writer

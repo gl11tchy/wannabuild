@@ -27,11 +27,11 @@ Public steps stay compact for the user; internal phases provide rigor.
 
 ## 3) Control Flow
 
-1. **Discover:** clarify goals, constraints, acceptance criteria.
+1. **Discover:** interview for vision, audience, desired feel, flows, features, constraints, non-goals, and success signals.
 2. **Control mode gate:** ask once: guided vs autonomous.
 3. **Research gate:** only if uncertainty is still materially high.
 4. **Plan:** produce requirements/design/tasks that are implementation-ready.
-5. **Implement gate:** choose single agent mode vs parallel slices.
+5. **Implement gate:** choose or confirm adaptive execution shape.
 6. **Implement:** execute in micro-steps with checkpoints.
 7. **Review:** run reviewer set (adaptive after iteration 1).
 8. **QA:** verify acceptance criteria and integration behavior.
@@ -42,7 +42,7 @@ Public steps stay compact for the user; internal phases provide rigor.
 `.wannabuild/` in the target project:
 
 - `state.json`: workflow state + stage history
-- `spec/requirements.md`: what to build
+- `spec/requirements.md`: vision, audience, desired feel, flows, features, scope, assumptions, acceptance criteria
 - `spec/design.md`: how to build
 - `spec/tasks.md`: ordered slices + verification expectations
 - `checkpoints/task-*-step-*.md`: micro-step evidence
@@ -53,9 +53,9 @@ Public steps stay compact for the user; internal phases provide rigor.
 
 ## 5) Review and QA Logic
 
-- Iteration 1 review: base reviewer set.
-- Iteration 2+: impacted reviewers + `wb-integration-tester` always.
-- If routing confidence is low: fallback to full base set.
+- Reviewers are selected by changed surfaces, risk, acceptance criteria, and prior failures.
+- `wb-integration-tester` is always included.
+- If routing confidence is low: broaden the reviewer set.
 - Any FAIL blocks shipping until fixed.
 - Integration tester FAIL has no override path.
 
@@ -65,13 +65,14 @@ Public steps stay compact for the user; internal phases provide rigor.
 
 Each stage transition updates `public_stage`, `workflow_status`, and `updated_at`.
 
-## 7) Parallelism Rule of Thumb
+## 7) Adaptive Delegation
 
-- Usually single-lane: Discover, Plan, QA, Summary.
-- Parallelize when disjoint:
-  - bounded research investigations
-  - implementation slices with disjoint write scope
-  - reviewer hats on finished work
+- Single-owner when coherence matters or work is tightly coupled.
+- One focused specialist when one uncertainty dimension matters.
+- Multiple parallel specialists when ownership is independent and expected evidence differs.
+- Choose capability tier and reasoning effort by complexity, coupling, risk, uncertainty, and expertise required.
+- Do not hard-code model IDs or agent counts in core workflow decisions.
+- Record delegation rationale in `.wannabuild/decisions.md` or checkpoints.
 
 If unclear, stay single-owner.
 

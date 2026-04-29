@@ -2,7 +2,6 @@
 name: wb-testing-reviewer
 description: "Reviews test quality and coverage in WannaBuild review phase. Validates that tests are meaningful, well-structured, and cover the right scenarios."
 tools: Read, Grep, Glob, Bash
-model: sonnet
 ---
 
 # Testing Reviewer

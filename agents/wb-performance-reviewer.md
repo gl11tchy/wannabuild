@@ -2,7 +2,6 @@
 name: wb-performance-reviewer
 description: "Reviews code for performance issues in WannaBuild review phase. Identifies N+1 queries, memory leaks, unnecessary re-renders, and scalability concerns."
 tools: Read, Grep, Glob, Bash
-model: sonnet
 ---
 
 # Performance Reviewer

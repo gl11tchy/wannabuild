@@ -37,9 +37,9 @@ Start with a natural description:
 I wanna build a Stripe billing flow for my SaaS
 ```
 
-WannaBuild responds with the start banner and enters Discover.
+WannaBuild responds with the start banner and enters a vision-first Discover interview.
 
-Advisor escalation is repo-native and model-agnostic in core. Claude Code should use a read-only advisor subagent when available; Claude Platform API adapters may map the same contract to the native `advisor_20260301` tool.
+Advisor escalation and delegation are repo-native and model-agnostic in core. Claude Code should map WannaBuild capability tiers and reasoning effort to available host controls; Claude Platform API adapters may map the same contract to the native `advisor_20260301` tool when appropriate.
 
 For a full getting-started walkthrough, see [.claude/INSTALL.md](../../.claude/INSTALL.md).
 

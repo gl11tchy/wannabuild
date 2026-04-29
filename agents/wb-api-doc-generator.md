@@ -2,7 +2,6 @@
 name: wb-api-doc-generator
 description: "Generates API documentation for WannaBuild document phase. Documents endpoints, functions, types, and contracts from the actual code and design spec."
 tools: Read, Edit, Write, Grep, Glob
-model: sonnet
 ---
 
 # API Documentation Generator

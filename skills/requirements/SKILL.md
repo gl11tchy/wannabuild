@@ -1,98 +1,126 @@
+---
+name: wannabuild-requirements
+description: Vision-first requirements discovery for WannaBuild. Interviews the user conversationally, synthesizes the product brief, and derives requirements, acceptance criteria, and integration scenarios after the vision is clear.
+---
+
 # WannaBuild Requirements Phase
 
-> Phase 1 of 7 in the WannaBuild SDD pipeline. Captures what the user wants to build as a formal requirements spec with user stories, acceptance criteria, and integration test scenarios.
+Discover is a conversational interview and synthesis phase. It should feel like a strong product-minded engineer helping the user articulate what they actually want, not like a test-case intake form.
 
-## Agents
+The user does not need to arrive with complete requirements. The orchestrator should draw out the vision, infer structure from the conversation, mark assumptions honestly, and only then derive acceptance criteria and verification scenarios.
 
-Requirements always use the same two agents:
+## Analysis Agents
+
+Requirements may use these specialist perspectives when they materially improve the synthesis:
 
 | Agent | File | Role |
-|-------|------|------|
-| Scope Analyst | `wb-scope-analyst` | MVP boundaries, scope risks, size assessment |
-| UX Perspective | `wb-ux-perspective` | User stories, journeys, edge cases, test scenarios |
+|---|---|---|
+| Scope Analyst | `wb-scope-analyst` | MVP boundaries, feature priority, scope risks, size assessment |
+| UX Perspective | `wb-ux-perspective` | Audience, desired feel, user flows, experience risks, testable journeys |
+
+Do not hard-code agent count or force both agents every time.
+
+- Tiny, clear requests can stay single-owner.
+- Medium or ambiguous requests can use one or more focused analysis agents.
+- Complex, high-risk, or multi-surface requests can use parallel perspectives if they are independently useful.
+- Choose capability tier and reasoning effort per the adaptive delegation policy in `skills/build/SKILL.md`; do not name concrete model IDs in the requirements plan.
+- Record the delegation rationale in `.wannabuild/decisions.md` or the phase checkpoint: why agents were or were not used, what each owned, and what evidence they produced.
 
 ## Trigger Conditions
 
-**Explicit:**
-- `/wannabuild-requirements` (auto-prefixed when installed as plugin)
-- "Let's define requirements"
-- "What should we build?"
+Run this phase when:
 
-**Implicit (from orchestrator):**
-- User says "I wanna build..." and orchestrator routes here
-- Orchestrator hands off after project description is captured
+- the user starts a new build or feature request
+- the user says they want to define requirements
+- no `.wannabuild/spec/requirements.md` exists
+- existing requirements need to be refreshed because the user's intent changed materially
+
+Do not start this phase without a concrete task. If the user has not given one, ask what they want to build first.
 
 ## Input
 
-The phase receives a project description from the user (via the orchestrator) and optionally an existing codebase path.
+Expected input:
 
-**Handoff from orchestrator:**
-```json
-{
-  "phase": "requirements",
-  "project_description": "User's description of what they want to build",
-  "codebase_path": "/path/to/existing/project or null",
-  "context": "Any additional context from conversation"
-}
-```
+- user goal or project idea
+- current conversation transcript
+- target codebase path
+- any existing product/docs/design context
+- optional existing requirements or sketches
+
+The first user prompt is raw material, not a complete spec. Treat it as the beginning of discovery unless it is already fully specified.
 
 ## Execution Flow
 
+1. **Confirm the concrete task.**
+   - If the task is missing, ask for the actual goal.
+   - If the task is too broad, keep interviewing before narrowing.
+
+2. **Run the vision interview before planning.**
+   Explore, in natural language:
+   - the product vision and why it matters
+   - audience, users, and contexts of use
+   - desired experience, tone, feel, and quality bar
+   - core workflows from start to finish
+   - feature inventory, priorities, and must-have vs later ideas
+   - constraints, integrations, deadlines, data, platforms, and compatibility needs
+   - explicit non-goals and things the user does not want
+   - success signals: what would make the user say "yes, that's it"
+
+3. **Synthesize the interview.**
+   - Produce a concise problem brief.
+   - Separate confirmed intent from inferred assumptions.
+   - List open questions that would materially affect scope or implementation.
+   - Ask follow-up questions only when the answer changes the plan or success criteria.
+
+4. **Choose the analysis shape.**
+   Decide whether specialist agents would improve the synthesis:
+   - no agents for tiny, obvious, low-risk work
+   - one focused agent for a single uncertain dimension
+   - multiple parallel agents for independent perspectives or high uncertainty
+
+   Each delegated task must be bounded, independently useful, and assigned an ownership area.
+
+5. **Derive requirements after the vision is stable.**
+   Turn the interview and any agent outputs into:
+   - feature priorities
+   - user stories or jobs-to-be-done
+   - scope boundaries
+   - acceptance criteria
+   - integration test scenarios
+   - risks, assumptions, and success metrics
+
+   Derive test scenarios after the clarified vision, main flows, and desired behavior are understood.
+
+6. **Present the synthesized requirements.**
+   Show the user the captured vision, scope, assumptions, and verification direction before moving to planning. In guided mode, do not advance silently.
+
+## Agent Invocation Pattern
+
+When agents are useful, pass the interview transcript and the specific question each agent should answer. Example shape:
+
+```text
+Task(subagent_type="<selected specialist>", run_in_background=<true when independent>)
+  prompt: "Analyze the discovery transcript and codebase for <specific ownership area>.
+           Focus on <scope/UX/risk/etc.>.
+           Write full findings to .wannabuild/outputs/<agent>-requirements.md.
+           Return ONLY: 'COMPLETE - [one sentence]. Report at <path>'"
 ```
-User describes project
-        │
-        ▼
-┌───────────────────────────────────┐
-│  Parallel Agent Execution         │
-│                                   │
-│  ┌─────────────┐ ┌─────────────┐ │
-│  │   Scope     │ │     UX      │ │
-│  │  Analyst    │ │ Perspective │ │
-│  └──────┬──────┘ └──────┬──────┘ │
-│         │               │        │
-└─────────┼───────────────┼────────┘
-          │               │
-          ▼               ▼
-    ┌─────────────────────────┐
-    │   Orchestrator          │
-    │   Synthesizes reports   │
-    │   into requirements.md  │
-    └────────────┬────────────┘
-                 │
-                 ▼
-    Present to user for review
-                 │
-                 ▼
-    Write .wannabuild/spec/requirements.md
-```
 
-## Agent Spawning
-
-Both agents run as parallel background tasks:
-
-```
-Task(subagent_type="wb-scope-analyst", run_in_background=true)
-  prompt: "Analyze scope for: {project_description}. Codebase: {codebase_path}.
-           Write your full analysis to .wannabuild/outputs/scope-analyst.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/scope-analyst.md'"
-
-Task(subagent_type="wb-ux-perspective", run_in_background=true)
-  prompt: "Analyze UX for: {project_description}. Codebase: {codebase_path}.
-           Write your full analysis to .wannabuild/outputs/ux-perspective.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/ux-perspective.md'"
-```
-
-Both agents write their full analysis to `.wannabuild/outputs/` and return a one-line status to the main conversation.
+The orchestrator chooses selected specialists, parallelism, capability tier, and reasoning effort from the task evidence. Do not use fixed model names or fixed agent counts.
 
 ## Synthesis
 
-After both agents complete, the orchestrator reads `.wannabuild/outputs/scope-analyst.md` and `.wannabuild/outputs/ux-perspective.md`, then synthesizes their content into a unified requirements spec. The synthesis process:
+After analysis completes, the orchestrator writes `.wannabuild/spec/requirements.md`.
 
-1. **Merge user stories** from UX Perspective with scope boundaries from Scope Analyst
-2. **Validate scope:** Ensure user stories fit within the MVP boundary
-3. **Combine acceptance criteria** from both agents, deduplicating
-4. **Incorporate integration test scenarios** from UX Perspective, ensuring every story has test coverage
-5. **Present to user** for review and refinement
+Merge all inputs into one coherent spec:
+
+- user interview transcript
+- existing requirements or docs
+- codebase facts
+- specialist outputs, if any
+- orchestrator assumptions and decisions
+
+If specialist outputs conflict, resolve the conflict explicitly in the spec or ask the user when the choice changes product intent.
 
 ## Output Artifact
 
@@ -101,110 +129,161 @@ The phase produces `.wannabuild/spec/requirements.md`:
 ```markdown
 # Requirements Spec
 
+## Vision Brief
+[What the user wants to create, why it matters, and what "great" should feel like.]
+
 ## Project Overview
-[1-2 sentences: what this is and who it's for]
+[1-2 sentences: what this is and who it is for.]
+
+## Audience and Use Context
+- **Primary users:** [who, goals, context]
+- **Secondary users:** [optional]
+
+## Desired Experience and Feel
+- [Tone, pacing, quality bar, UX personality, trust/safety expectations, visual or interaction feel if relevant]
+
+## Core User Flows
+### [Flow Name]
+1. [User/system step]
+2. [User/system step]
+3. [Successful end state]
+
+## Feature Inventory and Priorities
+### Must Have
+- [Feature] - [why it matters]
+
+### Should Have
+- [Feature] - [why it matters]
+
+### Later / Deferred
+- [Feature] - [why deferred]
 
 ## Size Assessment
 **Estimate:** [Tiny/Small/Medium/Large/Epic]
 **Confidence:** [High/Medium/Low]
+**Rationale:** [Why this size]
 
-## User Stories
+## User Stories / Jobs To Be Done
 1. As a [user], I want [feature], so that [value]
-2. ...
 
 ## Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
-- ...
+- [ ] [Testable criterion derived from the clarified vision]
 
 ## Scope
 ### In Scope
-- [Feature/capability that will be built]
+- [Capability that will be built]
+
 ### Out of Scope
-- [Feature/capability explicitly deferred]
+- [Capability explicitly deferred]
 
 ## Integration Test Scenarios
-### [Story Name]
+### [Flow or Story Name]
 - **Happy path:** [expected flow and assertion]
-- **Error path:** [failure mode and expected behavior]
-- **Edge cases:** [boundary conditions]
+- **Failure path:** [failure mode and expected behavior]
+- **Edge cases:** [important boundaries derived after the main flow is understood]
+
+## Assumptions and Open Questions
+### Assumptions
+- [Inference made by the orchestrator]
+
+### Open Questions
+- [Question that still matters, or "None"]
 
 ## Scope Risks
 | Risk | Severity | Notes |
-|------|----------|-------|
+|---|---|---|
 | [risk] | High/Med/Low | [details] |
 
 ## Success Metrics
 - [How to know the project succeeded]
+
+## Delegation Rationale
+- **Shape:** [single-owner / one specialist / parallel specialists]
+- **Why:** [complexity, uncertainty, independence, risk]
+- **Evidence:** [outputs consulted or reason agents were unnecessary]
 ```
 
 ## State Update
 
-Merge into existing state.json:
+After writing `requirements.md`, update `.wannabuild/state.json`:
+
 ```json
 {
   "current_phase": "requirements",
   "phase_status": "complete",
+  "public_stage": "discover",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md"
-  },
-  "next_phase": "design"
+  }
 }
 ```
 
 ## Handoff
 
-Requirements hand off to Design:
-```json
-{
-  "phase": "design",
-  "from": "requirements",
-  "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md"
-  },
-  "codebase_path": "/path/to/project"
-}
+Next public gate: Control mode.
+
+Ask exactly once:
+
+```text
+Continue in guided mode, or switch to autonomous mode?
 ```
+
+Default remains guided mode unless the user explicitly chooses autonomous.
 
 ## User Interaction
 
 After synthesis, present the requirements to the user:
 
-> Here's what I've captured for your project. Review the requirements below — especially the scope boundaries and integration test scenarios. Let me know if anything needs adjustment before we move to design.
+```text
+Here's what I've captured so far: the vision, core flows, feature priorities,
+scope boundaries, assumptions, and how we'll verify the work. Tell me what I
+missed or what feels off before we move into planning.
+```
 
 The user can:
-- **Approve:** Move to Design
-- **Modify:** Adjust specific sections, re-run affected agent
-- **Restart:** Scrap and start over with a different description
-- **Skip:** Jump directly to a later phase if they already have requirements
+
+- approve and continue
+- clarify the vision or desired feel
+- add/remove/reprioritize features
+- change scope
+- answer open questions
+
+If the user changes the vision materially, re-run only the affected synthesis or specialist analysis.
 
 ## Quality Checklist
 
-- [ ] Every user story has at least one acceptance criterion
-- [ ] Every acceptance criterion is testable (not subjective)
-- [ ] Integration test scenarios exist for every user story
-- [ ] Scope boundaries are explicit (in/out)
+- [ ] Vision, audience, desired feel, and core flows are captured
+- [ ] Feature priorities distinguish must-have from deferred ideas
+- [ ] Assumptions are explicit and not disguised as facts
+- [ ] Open questions are limited to decisions that materially change scope or success
+- [ ] Every user story or core flow has at least one acceptance criterion
+- [ ] Acceptance criteria are testable and derived from the clarified vision
+- [ ] Integration test scenarios exist for the important flows
+- [ ] Edge cases are included without dominating the interview
+- [ ] Scope boundaries are explicit
 - [ ] Size assessment is honest with rationale
-- [ ] Ambiguities are flagged, not assumed away
-- [ ] Scope risks are identified with severity
+- [ ] Delegation rationale is recorded
 
 ## Contract Validation
 
-- The output spec file must contain all required sections:
-  - `# Requirements Spec`
-  - `## Project Overview`
-  - `## User Stories`
-  - `## Acceptance Criteria`
-  - `## Scope`
-  - `## Integration Test Scenarios`
-  - `## Scope Risks`
-- Confirm every user story has at least one testable acceptance criterion checkbox.
-- Confirm at least one integration test scenario is mapped to each user story.
-- If `scope` is `Epic`, force a follow-up scope reduction prompt before moving to design.
+Before handoff to Design:
+
+```bash
+scripts/validate-wannabuild-artifacts.sh . design
+```
+
+If validation fails:
+
+1. Read the exact error
+2. Fix the artifact or state
+3. Re-run validation
+4. Only proceed once it passes
 
 ## Edge Cases
 
-- **User has existing requirements:** Skip agent execution, validate and format existing requirements into the spec template.
-- **Scope is too large:** Scope Analyst flags it as Epic. Orchestrator asks user to narrow scope or break into multiple projects.
-- **User changes mind mid-phase:** Re-run affected agent(s), re-synthesize.
-- **Greenfield vs. existing project:** Both agents adapt — Scope Analyst assesses existing code, UX Perspective considers existing users.
+- **User has existing requirements:** Treat them as input, then interview for missing vision, flows, feel, priorities, assumptions, and non-goals before formatting.
+- **User only knows the vibe:** Keep asking vision and flow questions until a concrete task and success signal exist.
+- **Scope is too large:** Mark it Epic and ask whether to narrow, split, or plan a first milestone.
+- **User changes mind mid-phase:** Re-synthesize affected sections and re-run only relevant agents.
+- **Greenfield vs. existing project:** Adapt the interview and analysis to the actual codebase and user context.
+- **Testing conversation overwhelms the user:** Move test derivation later; capture the user's desired behavior first.
