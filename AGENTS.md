@@ -1,5 +1,36 @@
 # AGENTS.md
 
+## Working Principles
+
+Apply in order of precedence — #1 trumps #2, etc.
+
+### 1. Think Before Coding
+- State assumptions explicitly. If uncertain, ask — don't guess.
+- When ambiguity exists, surface the interpretations; don't pick silently.
+- Push back when a simpler approach exists.
+- If confused, name what's unclear and stop. Don't paper over it.
+
+### 2. Simplicity First
+- Minimum code that solves the problem. Nothing speculative.
+- No features, abstractions, flexibility, or error handling beyond what was asked.
+- No abstractions for single-use code.
+- If 200 lines could be 50, rewrite it.
+- Test: would a senior engineer call this overcomplicated? If yes, simplify.
+
+### 3. Surgical Changes
+- Touch only what the task requires. Every changed line should trace to the request.
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor what isn't broken. Match existing style even if you'd do it differently.
+- Remove imports/variables your changes orphaned. Don't delete pre-existing dead code — mention it instead.
+
+### 4. Goal-Driven Execution
+- Define success criteria up front. Loop until verified.
+- Translate imperative tasks into verifiable ones:
+  - "Add validation" → write tests for invalid inputs, then make them pass.
+  - "Fix the bug" → write a reproduction test, then make it pass.
+  - "Refactor X" → ensure tests pass before and after.
+- For multi-step work, state a brief plan: 1. [step] → verify: [check].
+
 Primary operator contract for WannaBuild.
 
 ## Purpose
