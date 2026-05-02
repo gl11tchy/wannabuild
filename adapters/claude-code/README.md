@@ -57,4 +57,5 @@ For a full getting-started walkthrough, see [.claude/INSTALL.md](../../.claude/I
 
 ```bash
 ./scripts/wannabuild-doctor.sh
+./scripts/validate-wannabuild-dry-runs.sh
 ```

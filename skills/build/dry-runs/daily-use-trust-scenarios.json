@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "host_invocations": {
+    "claude_code": {
+      "start": "/wannabuild",
+      "intro": "/using-wannabuild"
+    },
+    "codex": {
+      "start": "$wannabuild",
+      "intro": "$using-wannabuild"
+    }
+  },
+  "required_scenarios": [
+    "no-task-invocation",
+    "workspace-bootstrap",
+    "resume",
+    "research-gate",
+    "implementation-gate",
+    "review-failure",
+    "qa-failure",
+    "summary-completion"
+  ],
+  "scenarios": [
+    {
+      "id": "no-task-invocation",
+      "description": "A bare /wannabuild or $wannabuild invocation asks for the concrete task and does not inspect or infer from git state.",
+      "fixture": "no-task-invocation.json",
+      "prompt_has_concrete_task": false,
+      "expected_banner": "[WB-START] WannaBuild STARTED | intent=build | mode=standard",
+      "must_not": [
+        "inspect_repo",
+        "infer_git_diff",
+        "plan",
+        "implement"
+      ]
+    },
+    {
+      "id": "workspace-bootstrap",
+      "description": "Concrete tasks in a git repo start in an isolated workspace with resumable .wannabuild state.",
+      "fixture": "workspace-bootstrap-state.json",
+      "workspace_fixture": "workspace-bootstrap-workspace.json",
+      "branch_prefixes": [
+        "codex/",
+        "wannabuild/"
+      ],
+      "expect": {
+        "public_stage": "discover",
+        "workflow_status": "in_progress",
+        "control_mode": "guided"
+      },
+      "required_public_history": [
+        "discover"
+      ]
+    },
+    {
+      "id": "resume",
+      "description": "Existing state resumes from the current phase and checkpoint context rather than restarting the workflow.",
+      "fixture": "resume-state.json",
+      "expect": {
+        "current_phase": "implement",
+        "phase_status": "in_progress",
+        "public_stage": "implement",
+        "workflow_status": "in_progress"
+      },
+      "required_public_history": [
+        "discover",
+        "control_mode_decision",
+        "plan",
+        "implement"
+      ]
+    },
+    {
+      "id": "research-gate",
+      "description": "When research is selected, the public stage records research and stores the research summary before planning.",
+      "fixture": "research-gate-taken-state.json",
+      "expect": {
+        "public_stage": "plan",
+        "workflow_status": "in_progress"
+      },
+      "required_public_history": [
+        "discover",
+        "control_mode_decision",
+        "research_decision",
+        "research"
+      ]
+    },
+    {
+      "id": "implementation-gate",
+      "description": "A deferred implementation decision pauses at implementation_decision and does not start implementation.",
+      "fixture": "implement-gate-denied-state.json",
+      "expect": {
+        "current_phase": "tasks",
+        "phase_status": "complete",
+        "public_stage": "implementation_decision",
+        "workflow_status": "in_progress"
+      },
+      "latest_public_stage_expect": {
+        "stage": "implementation_decision",
+        "status": "in_progress",
+        "gate_response": "deferred"
+      }
+    },
+    {
+      "id": "review-failure",
+      "description": "A failing reviewer verdict blocks summary completion until the review loop is remediated.",
+      "fixture": "review-failure-loop.json",
+      "expect": {
+        "status": "blocked"
+      },
+      "latest_iteration_expect": {
+        "fail_count": 1,
+        "verdicts.wb-architecture-reviewer.status": "FAIL"
+      }
+    },
+    {
+      "id": "qa-failure",
+      "description": "A failing integration hard gate keeps the workflow in remediation and blocks completion.",
+      "fixture": "qa-failure-remediation-loop.json",
+      "expect": {
+        "status": "in_progress"
+      },
+      "latest_iteration_expect": {
+        "fail_count": 1,
+        "verdicts.wb-integration-tester.status": "FAIL",
+        "verdicts.wb-integration-tester.hard_gate": true
+      }
+    },
+    {
+      "id": "summary-completion",
+      "description": "Summary is only complete after review and QA have both passed and evidence exists.",
+      "fixture": "summary-complete-state.json",
+      "expect": {
+        "public_stage": "summary",
+        "workflow_status": "complete",
+        "phase_status": "complete"
+      },
+      "required_public_history": [
+        "review",
+        "qa",
+        "summary"
+      ]
+    }
+  ]
+}

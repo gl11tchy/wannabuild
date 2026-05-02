@@ -1,0 +1,8 @@
+{
+  "workspace_id": "golden-path-demo",
+  "source_repo": "docs/golden-path-demo",
+  "source_branch": "main",
+  "workspace_path": "docs/golden-path-demo",
+  "branch_name": "codex/golden-path-demo",
+  "dirty_snapshot": false
+}

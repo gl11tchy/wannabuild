@@ -13,6 +13,7 @@ Host-agnostic:
 - condensed workflow contract
 - `.wannabuild/` artifact contract
 - schemas, validation, checkpoints, and review routing
+- daily-use trust harness and golden path demo
 - phase prompts and specialist prompt contracts
 - advisor escalation state contract and report validation
 - repo-native scripts and examples
@@ -67,6 +68,8 @@ Provides:
 | Workflow contract | Yes | Co-primary | Reference | Co-primary |
 | `.wannabuild/` artifacts | Yes | Yes | Yes | Yes |
 | Validator script | Yes | Yes | Yes | Yes |
+| Daily-use dry runs | Yes | Yes | Reference | Yes |
+| Golden path demo | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |
 | Rules files | No | Optional | Yes | Optional |
 | Slash commands / invocation | No | `$wannabuild` | No | `/wannabuild` |

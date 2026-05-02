@@ -1,0 +1,62 @@
+{
+  "mode": "standard",
+  "current_iteration": 1,
+  "max_iterations": 2,
+  "base_reviewer_count": 2,
+  "status": "blocked",
+  "guardrails": {
+    "summary_blocked_until_review_passes": true
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-04-29T11:00:00Z",
+      "routing_reason": "impacted",
+      "active_reviewers": [
+        "wb-architecture-reviewer",
+        "wb-integration-tester"
+      ],
+      "verdicts": {
+        "wb-architecture-reviewer": {
+          "agent": "wb-architecture-reviewer",
+          "status": "FAIL",
+          "summary": "State transition contract is under-specified.",
+          "issues": [
+            {
+              "severity": "high",
+              "file": "skills/wannabuild/SKILL.md",
+              "line": 1,
+              "issue": "Review cannot pass while summary gating rules are missing from the plan.",
+              "recommendation": "Add explicit summary blocking behavior before continuing."
+            }
+          ]
+        },
+        "wb-integration-tester": {
+          "agent": "wb-integration-tester",
+          "status": "PASS",
+          "hard_gate": true,
+          "summary": "Integration smoke checks pass, but architecture review blocks completion.",
+          "issues": [],
+          "test_execution": {
+            "total": 3,
+            "passed": 3,
+            "failed": 0,
+            "errored": 0,
+            "duration_ms": 1000
+          },
+          "coverage_map": [
+            {
+              "criterion": "Summary gate stays blocked on review failure",
+              "test_file": "scripts/validate-wannabuild-dry-runs.sh",
+              "test_name": "review failure scenario",
+              "status": "covered"
+            }
+          ]
+        }
+      },
+      "pass_count": 1,
+      "fail_count": 1,
+      "feedback_sent": "Address architecture reviewer finding before QA or summary."
+    }
+  ]
+}

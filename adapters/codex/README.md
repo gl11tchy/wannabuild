@@ -22,6 +22,13 @@ Then restart Codex and invoke:
 $wannabuild
 ```
 
+Verify the repo-native contract:
+
+```bash
+./scripts/wannabuild-doctor.sh
+./scripts/validate-wannabuild-dry-runs.sh
+```
+
 See:
 - [docs/codex-getting-started.md](../../docs/codex-getting-started.md)
 - [docs/host-capability-matrix.md](../../docs/host-capability-matrix.md)
