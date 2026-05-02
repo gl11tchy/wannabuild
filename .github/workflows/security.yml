@@ -37,7 +37,7 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
       - name: Run gitleaks
@@ -57,10 +57,10 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Dependency review
         # actions/dependency-review-action v4.3.4
-        uses: actions/dependency-review-action@5a2ce3f5b92ee19cbb1541a4984c76d921601d7c
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
@@ -72,14 +72,14 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Initialize CodeQL
         # github/codeql-action v3.26.0 (init)
-        uses: github/codeql-action/init@4dd16135b69a43b6c8efb853346f8437d92d3c93
+        uses: github/codeql-action/init@e46ed2cbd01164d986452f91f178727624ae40d7
         with:
           languages: actions
       - name: Analyze
         # github/codeql-action v3.26.0 (analyze)
-        uses: github/codeql-action/analyze@4dd16135b69a43b6c8efb853346f8437d92d3c93
+        uses: github/codeql-action/analyze@e46ed2cbd01164d986452f91f178727624ae40d7
         with:
           category: "/language:actions"
