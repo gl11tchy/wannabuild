@@ -1,0 +1,96 @@
+{
+  "project": "wannabuild-dryrun-summary-complete",
+  "mode": "standard",
+  "current_phase": "document",
+  "phase_status": "complete",
+  "public_stage": "summary",
+  "workflow_status": "complete",
+  "control_mode": "guided",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "design": ".wannabuild/spec/design.md",
+    "tasks": ".wannabuild/spec/tasks.md",
+    "qa_summary": ".wannabuild/outputs/qa-summary.md"
+  },
+  "started_at": "2026-04-29T12:00:00Z",
+  "updated_at": "2026-04-29T12:45:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:05:00Z"
+    },
+    {
+      "phase": "design",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:12:00Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:18:00Z"
+    },
+    {
+      "phase": "implement",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:30:00Z"
+    },
+    {
+      "phase": "review",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:38:00Z"
+    },
+    {
+      "phase": "document",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:45:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:02:00Z"
+    },
+    {
+      "stage": "control_mode_decision",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:04:00Z"
+    },
+    {
+      "stage": "research_decision",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:06:00Z"
+    },
+    {
+      "stage": "plan",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:18:00Z"
+    },
+    {
+      "stage": "implementation_decision",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:19:00Z"
+    },
+    {
+      "stage": "implement",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:30:00Z"
+    },
+    {
+      "stage": "review",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:38:00Z"
+    },
+    {
+      "stage": "qa",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:42:00Z"
+    },
+    {
+      "stage": "summary",
+      "status": "complete",
+      "timestamp": "2026-04-29T12:45:00Z"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Imp
 ![Claude Code](https://img.shields.io/badge/claude--code-supported-5B21B6?style=flat-square)
 ![Cursor](https://img.shields.io/badge/cursor-supported-0f766e?style=flat-square)
 
-[Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts)
+[Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts) · [Trust Harness](#trust-harness)
 
 </div>
 
@@ -141,6 +141,7 @@ Use WannaBuild directly from the repo in Codex:
 - [docs/codex-getting-started.md](docs/codex-getting-started.md)
 - [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
 - [scripts/validate-wannabuild-artifacts.sh](scripts/validate-wannabuild-artifacts.sh)
+- [scripts/validate-wannabuild-dry-runs.sh](scripts/validate-wannabuild-dry-runs.sh)
 - [scripts/wannabuild-doctor.sh](scripts/wannabuild-doctor.sh)
 - [scripts/install-codex-skill.sh](scripts/install-codex-skill.sh)
 
@@ -239,6 +240,27 @@ Core artifact roles:
 - `tasks.md`: ordered implementation slices with verification expectations
 - `checkpoints/`: implementation evidence and resume anchors
 - `review/`: structured review verdicts
+
+## Trust Harness
+
+WannaBuild includes a host-neutral daily-use trust harness. It validates the behavior that must hold in both Claude Code and Codex:
+
+- no-task invocation asks for the actual goal instead of inferring from repo state
+- concrete git tasks start in an isolated workspace
+- resume, research, implementation, review, QA, and summary gates preserve state
+- failed review or QA evidence blocks completion
+- the golden path demo validates end to end
+
+Run the readiness checks from the repo root:
+
+```bash
+scripts/wannabuild-doctor.sh
+scripts/validate-wannabuild-dry-runs.sh
+scripts/validate-wannabuild-artifacts.sh docs/golden-path-demo document
+scripts/wannabuild-gate-check.sh docs/golden-path-demo summary
+```
+
+The committed demo project lives at [docs/golden-path-demo](docs/golden-path-demo).
 
 ## Review and QA
 

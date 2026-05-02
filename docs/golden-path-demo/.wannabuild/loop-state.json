@@ -1,0 +1,65 @@
+{
+  "mode": "standard",
+  "current_iteration": 1,
+  "max_iterations": 2,
+  "base_reviewer_count": 2,
+  "status": "approved",
+  "guardrails": {
+    "summary_requires_review_and_qa": true
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-04-29T13:38:00Z",
+      "routing_reason": "base_set",
+      "active_reviewers": [
+        "wb-integration-tester",
+        "wb-code-simplifier"
+      ],
+      "verdicts": {
+        "wb-integration-tester": {
+          "agent": "wb-integration-tester",
+          "status": "PASS",
+          "hard_gate": true,
+          "summary": "Golden path acceptance criteria are covered.",
+          "issues": [],
+          "test_execution": {
+            "total": 3,
+            "passed": 3,
+            "failed": 0,
+            "errored": 0,
+            "duration_ms": 500
+          },
+          "coverage_map": [
+            {
+              "criterion": "State reaches summary complete",
+              "test_file": "docs/golden-path-demo/.wannabuild/state.json",
+              "test_name": "summary state fixture",
+              "status": "covered"
+            },
+            {
+              "criterion": "Review verdicts pass",
+              "test_file": "docs/golden-path-demo/.wannabuild/review",
+              "test_name": "passing review fixtures",
+              "status": "covered"
+            },
+            {
+              "criterion": "QA summary exists",
+              "test_file": "docs/golden-path-demo/.wannabuild/outputs/qa-summary.md",
+              "test_name": "qa summary fixture",
+              "status": "covered"
+            }
+          ]
+        },
+        "wb-code-simplifier": {
+          "agent": "wb-code-simplifier",
+          "status": "PASS",
+          "summary": "Fixture is small and readable.",
+          "issues": []
+        }
+      },
+      "pass_count": 2,
+      "fail_count": 0
+    }
+  ]
+}

@@ -42,6 +42,8 @@ logs/
 # WannaBuild state (if generated locally)
 .wannabuild/
 .wannabuild-*/
+!docs/golden-path-demo/.wannabuild/
+!docs/golden-path-demo/.wannabuild/**
 
 # Local Codex/OMX workspace state
 .omx/

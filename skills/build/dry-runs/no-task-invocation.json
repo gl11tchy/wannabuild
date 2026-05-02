@@ -1,0 +1,12 @@
+{
+  "scenario": "no-task-invocation",
+  "prompt_has_concrete_task": false,
+  "expected_banner": "[WB-START] WannaBuild STARTED | intent=build | mode=standard",
+  "must_not": [
+    "inspect_repo",
+    "infer_git_diff",
+    "plan",
+    "implement"
+  ],
+  "next_prompt": "Tell me what you want to build or change."
+}

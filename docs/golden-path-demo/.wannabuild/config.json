@@ -1,0 +1,16 @@
+{
+  "mode": "standard",
+  "skip_phases": [],
+  "adaptive_review_reruns": true,
+  "review_rerun_policy": "impacted_plus_integration",
+  "review_context_scope": "diff_plus_targeted_spec",
+  "on_limit": "pause-and-ask",
+  "advisor_escalation": true,
+  "advisor_record_decisions": true,
+  "advisor_context_scope": "spec_plus_targeted_repo_summary",
+  "advisor_on_limit": "pause-and-ask",
+  "max_agent_runs_per_phase": 3,
+  "max_total_review_runs": 4,
+  "advisor_max_uses_per_phase": 1,
+  "max_prompt_chars_per_reviewer": 4000
+}
