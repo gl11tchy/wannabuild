@@ -13,6 +13,7 @@ WannaBuild is different. It's built ground-up for indie builders who need to shi
 Every line of code traces back to a specification. This isn't enterprise documentation theater — it's the recognition that writing down what you're building before you build it saves more time than it costs.
 
 The SDD pipeline ensures:
+
 - **Requirements** capture the user's vision, audience, desired feel, flows, feature priorities, assumptions, acceptance criteria
 - **Design** defines how to build it (architecture, data models, risks)
 - **Tasks** define the work (ordered, atomic, with test requirements)
@@ -25,12 +26,14 @@ When you're working with AI agents, specs become critical. An agent with a clear
 ### 2. Talk Like a Human
 
 **Bad:**
-```
+
+```text
 /framework:init --template=saas --phases=brainstorm,plan,implement --strict
 ```
 
 **Good:**
-```
+
+```text
 I wanna build a subscription billing system
 ```
 
@@ -43,6 +46,7 @@ You also shouldn't need complete requirements up front. WannaBuild's first job i
 One AI trying to do security review AND architecture review AND code simplification will do all three poorly.
 
 WannaBuild can deploy **21 core specialists**, each with focused expertise:
+
 - Scope analyst who only thinks about boundaries and risks
 - Architect who only thinks about system design
 - Integration tester who only thinks about test coverage
@@ -58,6 +62,7 @@ Unit tests verify components in isolation. Integration tests verify that **the t
 For indie builders shipping real products, integration tests catch the bugs that matter — API endpoints returning wrong data, auth flows breaking on edge cases, database queries failing with real data.
 
 WannaBuild enforces this through the workflow:
+
 - Requirements derive test scenarios after the user's vision and flows are understood
 - Tasks specify required integration tests
 - The implementer writes tests alongside feature code
@@ -68,12 +73,14 @@ This isn't optional. Code without integration tests doesn't ship.
 ### 5. Quality is a Loop, Not a Gate
 
 Traditional review:
-```
+
+```text
 Code → Review → "Looks good" → Ship (with known issues)
 ```
 
 WannaBuild:
-```
+
+```text
 Code → Review → Feedback → Fix → Review → ... → Active reviewers PASS → Ship
 ```
 
@@ -82,6 +89,7 @@ Code doesn't leave the loop until the active reviewer set agrees it's ready. The
 ### 6. Flexibility Over Dogma
 
 WannaBuild recommends best practices but respects that:
+
 - Sometimes you spike first, then test
 - Sometimes the fix is obvious and doesn't need full specs
 - Sometimes you're refactoring, not building new

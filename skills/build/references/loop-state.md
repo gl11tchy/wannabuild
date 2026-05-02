@@ -24,6 +24,7 @@ The loop state is persisted in `.wannabuild/loop-state.json`.
 ## Iteration record schema
 
 Each entry in `iterations` must include:
+
 - `iteration`
 - `timestamp`
 - `active_reviewers`
@@ -34,11 +35,13 @@ Each entry in `iterations` must include:
 - `routing_reason` (string: `base_set`, `impacted`, `fallback`, `fast_track_fallback`, `ambiguous_impact`)
 
 ## Terminal statuses
+
 - `approved`: latest iteration passed active-set unanimously
 - `escalated`: max iterations reached without approval
 - `blocked`: hard gate failed with no override path (ex: integration tester still failing)
 
 ## Update discipline
+
 - Append a new entry per review iteration.
 - Increment `current_iteration` only after verdict aggregation.
 - Preserve all historical iterations for traceability.

@@ -17,16 +17,19 @@ Do not force a fixed three-agent pattern. The orchestrator chooses the smallest 
 ## Trigger Conditions
 
 **Explicit:**
+
 - `/wannabuild-tasks` (auto-prefixed when installed as plugin)
 - "Break this into tasks"
 - "What do we need to do?"
 
 **Implicit (from orchestrator):**
+
 - Design phase completes → auto-transition to Tasks
 
 ## Input
 
 **Handoff from Design:**
+
 ```json
 {
   "phase": "tasks",
@@ -51,8 +54,9 @@ Do not force a fixed three-agent pattern. The orchestrator chooses the smallest 
 
 ## Agent Spawning
 
-**Adaptive pattern**
-```
+### Adaptive pattern
+
+```text
 Task(subagent_type="<selected specialist>", run_in_background=<true only when independent>)
   capability_tier: <lightweight / standard / strong>
   reasoning_effort: <low / medium / high>
@@ -136,6 +140,7 @@ Task [X] → Task [Y] → Task [Z]
 ## State Update
 
 Merge into existing state.json:
+
 ```json
 {
   "current_phase": "tasks",
@@ -152,6 +157,7 @@ Merge into existing state.json:
 ## Handoff to Implement Phase
 
 Standard handoff:
+
 ```json
 {
   "phase": "implement",
@@ -172,6 +178,7 @@ After synthesis:
 > Here's your implementation plan — [N] tasks on the critical path, estimated [size]. Each task has target files, acceptance criteria, required integration tests, and micro-step checkpoints defined. Review the task order and let me know if you want to adjust anything before we start coding.
 
 The user can:
+
 - **Approve:** Move to Implement phase
 - **Reorder:** Change task priorities or dependencies
 - **Split/merge:** Break large tasks into smaller ones or combine related ones

@@ -1,0 +1,6 @@
+{
+  "agent": "wb-security-reviewer",
+  "status": "PASS",
+  "summary": "No security issues found in the diff.",
+  "issues": []
+}

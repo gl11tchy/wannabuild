@@ -10,12 +10,13 @@
 
 ---
 
-### Task 1: Add fast-track decision matrix to AGENTS policy
+## Task 1: Add fast-track decision matrix to AGENTS policy
 
 **Files:**
+
 - Modify: `AGENTS.md`
 
-**Step 1: Open the current quality loop section and define explicit criteria block**
+### Step 1: Open the current quality loop section and define explicit criteria block
 
 ```markdown
 ## Quality Loop
@@ -39,7 +40,7 @@
 - **Integration tester FAIL blocks shipping — no override path**
 ```
 
-**Step 2: Verify the policy is present and only appears once**
+### Step 2: Verify the policy is present and only appears once
 
 Run:
 
@@ -49,19 +50,20 @@ rg -n "Fast-Track Decision Matrix|Integration tester FAIL blocks shipping|Decisi
 
 Expected: 3 matched lines in the `Quality Loop` block with the matrix and hard gate text.
 
-**Step 3: Commit this task**
+### Step 3: Commit this task
 
 ```bash
 git add AGENTS.md
 git commit -m "docs: add deterministic fast-track decision matrix"
 ```
 
-### Task 2: Align orchestrator defaults in build skill
+## Task 2: Align orchestrator defaults in build skill
 
 **Files:**
+
 - Modify: `skills/build/SKILL.md`
 
-**Step 1: Add an execution default section that mirrors the matrix criteria**
+### Step 1: Add an execution default section that mirrors the matrix criteria
 
 Insert after the existing "Adaptive Speed/Efficiency Defaults" section:
 
@@ -81,7 +83,7 @@ If **any** fast-track reviewer fails or confidence drops, rerun the full base se
 The integration hard gate is never bypassed.
 ```
 
-**Step 2: Verify the section is under Adaptive Speed controls and references the fallback explicitly**
+### Step 2: Verify the section is under Adaptive Speed controls and references the fallback explicitly
 
 Run:
 
@@ -91,19 +93,20 @@ rg -n "Fast-Track Review Decision Matrix|files_changed|fallback" skills/build/SK
 
 Expected: one section with all required criteria and a mandatory fallback line.
 
-**Step 3: Commit this task**
+### Step 3: Commit this task
 
 ```bash
 git add skills/build/SKILL.md
 git commit -m "docs: align build skill with fast-track matrix"
 ```
 
-### Task 3: Make reviewer behavior explicit in review skill
+## Task 3: Make reviewer behavior explicit in review skill
 
 **Files:**
+
 - Modify: `skills/review/SKILL.md`
 
-**Step 1: Add fast-track fallback contract to review execution rules**
+### Step 1: Add fast-track fallback contract to review execution rules
 
 Insert immediately after the reviewer set section:
 
@@ -117,7 +120,7 @@ Insert immediately after the reviewer set section:
 - Do not reduce hard-gate logic in any scenario.
 ```
 
-**Step 2: Verify language consistency across matrix references**
+### Step 2: Verify language consistency across matrix references
 
 Run:
 
@@ -127,16 +130,16 @@ rg -n "Fast-Track|full base reviewer set|integration tester|hard gate" skills/re
 
 Expected: fast-track section appears once and references full-set fallback and hard-gate invariance.
 
-**Step 3: Commit this task**
+### Step 3: Commit this task
 
 ```bash
 git add skills/review/SKILL.md
 git commit -m "docs: define fast-track review contract and fallback behavior"
 ```
 
-### Optional verification sweep (post-tasks)
+## Optional verification sweep (post-tasks)
 
-**Step 1: Confirm all three policy touchpoints changed together**
+### Step 1: Confirm all three policy touchpoints changed together
 
 ```bash
 git diff --name-only HEAD~3..HEAD
@@ -150,7 +153,7 @@ skills/build/SKILL.md
 skills/review/SKILL.md
 ```
 
-**Step 2: Spot-check for ambiguous criteria drift**
+### Step 2: Spot-check for ambiguous criteria drift
 
 ```bash
 rg -n "Fast-Track|fallback|hard gate|integration tester" AGENTS.md skills/build/SKILL.md skills/review/SKILL.md

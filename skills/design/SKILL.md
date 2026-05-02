@@ -17,16 +17,19 @@ Do not force all agents for every design. Choose the smallest useful set based o
 ## Trigger Conditions
 
 **Explicit:**
+
 - `/wannabuild-design` (auto-prefixed when installed as plugin)
 - "Let's design this"
 - "How should we build it?"
 
 **Implicit (from orchestrator):**
+
 - Requirements phase completes → auto-transition to Design
 
 ## Input
 
 **Handoff from Requirements:**
+
 ```json
 {
   "phase": "design",
@@ -54,7 +57,7 @@ Selected agents read `spec/requirements.md` as their primary input and scan the 
 
 Use adaptive agent spawning:
 
-```
+```text
 Task(subagent_type="<selected design specialist>", run_in_background=<true when independent>)
   capability_tier: <lightweight / standard / strong>
   reasoning_effort: <low / medium / high>
@@ -90,13 +93,17 @@ The phase produces `.wannabuild/spec/design.md`:
 
 ### Architecture Diagram
 ```
+
 [ASCII diagram]
-```
+
+```text
 
 ### File Structure
 ```
+
 [Proposed directory layout]
-```
+
+```text
 
 ## Tech Stack Decisions
 | Decision | Choice | Rationale | Alternative Considered |
@@ -182,6 +189,7 @@ After synthesis:
 > Here's the technical design for your project. Pay special attention to the architecture decisions and testing strategy. If any tech stack choices or architectural patterns don't feel right, now is the time to change them — it's much cheaper to change a design than to change code.
 
 The user can:
+
 - **Approve:** Move to Tasks phase
 - **Modify:** Adjust specific decisions, re-run affected agent(s)
 - **Override:** Choose a different tech stack or architecture than recommended

@@ -24,15 +24,18 @@ Advisor escalation may assist the implementer when the path is materially uncert
 ## Trigger Conditions
 
 **Explicit:**
+
 - `/wannabuild-implement` (auto-prefixed when installed as plugin)
 - "Let's build it" / "Start coding" / "Implement"
 
 **Implicit (from orchestrator):**
+
 - Tasks phase completes → auto-transition to Implement
 
 ## Input
 
 **Handoff from Tasks:**
+
 ```json
 {
   "phase": "implement",
@@ -72,7 +75,7 @@ Pause and resolve contract violations before proceeding.
 
 ## Agent Spawning
 
-```
+```text
 # Single-owner path
 Task(subagent_type="<selected implementer>")
   capability_tier: <standard or strong>
@@ -108,9 +111,11 @@ Every task with an "Integration Test" field MUST have corresponding test code. T
 ## Checkpoint Format
 
 Each completed micro-step writes a checkpoint file at:
+
 - `.wannabuild/checkpoints/task-{N}-step-{M}.md`
 
 Checkpoint content should include:
+
 - changed files
 - verify command + result
 - pending next micro-step
@@ -159,12 +164,14 @@ Use advisor escalation during remediation only when the fix path is unclear, rev
 ## When to Ask vs. Push Forward
 
 **Ask the user:**
+
 - Requirements are ambiguous and could go either way
 - A task seems impossible or contradicts the design spec
 - External dependencies are unavailable
 - The task is significantly larger than estimated
 
 **Push forward:**
+
 - Minor implementation details not covered by spec
 - Choice between equivalent approaches
 - Small deviations that don't affect acceptance criteria

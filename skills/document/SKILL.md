@@ -19,15 +19,18 @@ Do not force all documentation agents. Choose the smallest useful set based on w
 ## Trigger Conditions
 
 **Explicit:**
+
 - `/wannabuild-document` (auto-prefixed when installed as plugin)
 - "Update the docs" / "Write documentation"
 
 **Implicit (from orchestrator):**
+
 - Ship phase completes → auto-transition to Document
 
 ## Input
 
 **Handoff from Ship:**
+
 ```json
 {
   "phase": "document",
@@ -59,7 +62,7 @@ Do not force all documentation agents. Choose the smallest useful set based on w
 
 Use adaptive agent spawning:
 
-```
+```text
 Task(subagent_type="<selected documentation specialist>", run_in_background=<true when independent>)
   capability_tier: <lightweight / standard / strong>
   reasoning_effort: <low / medium / high>
@@ -83,17 +86,20 @@ This ensures documentation matches what was specified and built, not what someon
 ## Output
 
 ### README Updates
+
 - New features added to features section
 - Setup instructions updated if dependencies changed
 - Usage examples updated if behavior changed
 - Configuration section updated if new config options added
 
 ### API Documentation
+
 - New endpoints documented with request/response schemas
 - Existing endpoint changes updated
 - Discrepancies between spec and code flagged
 
 ### Changelog Entry
+
 ```markdown
 ## [X.Y.Z] - YYYY-MM-DD
 
@@ -108,7 +114,7 @@ This ensures documentation matches what was specified and built, not what someon
 
 After all agents complete, commit documentation updates:
 
-```
+```text
 docs: update documentation for [feature name]
 ```
 

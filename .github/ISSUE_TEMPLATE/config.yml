@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: WannaBuild Discussions
+    url: https://github.com/gl11tchy/wannabuild/discussions
+    about: Ask questions, share workflows, propose ideas.
+  - name: Operator Contract (AGENTS.md)
+    url: https://github.com/gl11tchy/wannabuild/blob/main/AGENTS.md
+    about: Read the canonical operator contract before reporting orchestrator behavior issues.

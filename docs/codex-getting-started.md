@@ -3,6 +3,7 @@
 Codex is a co-primary WannaBuild path (alongside Claude Code).
 
 Use the repo directly:
+
 - `AGENTS.md`
 - `skills/`
 - `agents/`

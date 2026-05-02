@@ -5,12 +5,14 @@
 Apply in order of precedence — #1 trumps #2, etc.
 
 ### 1. Think Before Coding
+
 - State assumptions explicitly. If uncertain, ask — don't guess.
 - When ambiguity exists, surface the interpretations; don't pick silently.
 - Push back when a simpler approach exists.
 - If confused, name what's unclear and stop. Don't paper over it.
 
 ### 2. Simplicity First
+
 - Minimum code that solves the problem. Nothing speculative.
 - No features, abstractions, flexibility, or error handling beyond what was asked.
 - No abstractions for single-use code.
@@ -18,12 +20,14 @@ Apply in order of precedence — #1 trumps #2, etc.
 - Test: would a senior engineer call this overcomplicated? If yes, simplify.
 
 ### 3. Surgical Changes
+
 - Touch only what the task requires. Every changed line should trace to the request.
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor what isn't broken. Match existing style even if you'd do it differently.
 - Remove imports/variables your changes orphaned. Don't delete pre-existing dead code — mention it instead.
 
 ### 4. Goal-Driven Execution
+
 - Define success criteria up front. Loop until verified.
 - Translate imperative tasks into verifiable ones:
   - "Add validation" → write tests for invalid inputs, then make them pass.
@@ -167,7 +171,19 @@ wannabuild/
 ├── skills/
 ├── scripts/
 ├── docs/
-└── README.md
+├── README.md
+├── tests/
+├── .github/
+│   ├── CODEOWNERS
+│   ├── ISSUE_TEMPLATE/
+│   ├── pull_request_template.md
+│   ├── dependabot.yml
+│   ├── rulesets/
+│   └── workflows/
+├── .devcontainer/
+├── .env.example
+├── CHANGELOG.md
+└── SECURITY.md
 ```
 
 Primary surfaces:
@@ -194,6 +210,20 @@ For host-specific details:
 - [README.md](README.md)
 - [docs/codex-getting-started.md](docs/codex-getting-started.md)
 - [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
+
+## Quality Gates
+
+The framework enforces its own contracts via:
+
+- `scripts/lint.sh` — shellcheck, shfmt, markdownlint, jscpd, lizard complexity, large-file detection, dead-ref scanning, tech-debt scanning.
+- `tests/run.sh` — bats unit + integration suite (also runnable via `make -C tests test`).
+- `scripts/wannabuild-doctor.sh` — required-surface presence check.
+- `.pre-commit-config.yaml` — local hook surface (gitleaks, formatter, lint).
+- `.github/workflows/ci.yml` — runs all of the above plus contract validation against dry-run fixtures.
+- `.github/workflows/security.yml` — gitleaks, dependency-review, CodeQL on workflows.
+- `.github/workflows/release-please.yml` — release automation from Conventional Commits.
+
+The full list of CI jobs and what they verify lives in [docs/ci.md](docs/ci.md).
 
 ## Validation Notes
 

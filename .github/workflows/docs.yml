@@ -1,0 +1,64 @@
+# Auto-generated documentation workflow.
+#
+# - On push to main: regenerate docs/generated/* via scripts/generate-docs.sh.
+#   If anything changed, open a PR with the diff (label: docs, automated).
+# - On pull_request: regenerate and fail if anything would change. This forces
+#   contributors to regen locally before merge.
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  generate:
+    name: Generate docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends jq
+      - name: Regenerate docs/generated/*
+        run: bash scripts/generate-docs.sh
+      - name: Verify no diff (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          if ! git diff --exit-code -- docs/generated/; then
+            echo "::error::docs/generated/ is out of date. Run \`bash scripts/generate-docs.sh\` and commit." >&2
+            exit 1
+          fi
+      - name: Open auto-update PR (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        # peter-evans/create-pull-request v6.1.0
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: docs/auto-update-${{ github.run_id }}
+          base: main
+          commit-message: "docs: regenerate auto-generated docs"
+          title: "docs: regenerate auto-generated docs"
+          body: |
+            Automated update of `docs/generated/*` produced by
+            `scripts/generate-docs.sh`.
+
+            Run id: ${{ github.run_id }}
+          labels: |
+            docs
+            automated
+          delete-branch: true
+          add-paths: |
+            docs/generated/**

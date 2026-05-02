@@ -1,0 +1,41 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Renovate config for WannaBuild. Pairs with .github/dependabot.yml as a secondary policy enforcer. The key control here is `minimumReleaseAge: 5 days`, which prevents dependency upgrades less than five days old from being merged. Most compromised package versions on npm/PyPI/etc. are detected and yanked within hours; a five-day cool-off therefore mitigates the most common supply-chain attack class while still allowing security updates to flow immediately via the `vulnerabilityAlerts` override.",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
+  "minimumReleaseAge": "5 days",
+  "internalChecksFilter": "strict",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "minimumReleaseAge": "0 days",
+    "labels": ["security", "dependencies"]
+  },
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "labels": ["dependencies", "renovate"],
+  "assignees": ["gl11tchy"],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "pinDigests": true,
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "separateMinorPatch": true,
+      "groupName": "npm dependencies"
+    },
+    {
+      "matchManagers": ["pre-commit"],
+      "groupName": "pre-commit hooks"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "dev dependencies"
+    }
+  ]
+}

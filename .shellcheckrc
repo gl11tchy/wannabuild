@@ -1,0 +1,23 @@
+# Shellcheck configuration for WannaBuild scripts.
+# See https://www.shellcheck.net/wiki/ for rule documentation.
+
+# Enforce bash dialect across all scripts.
+shell=bash
+
+# Enable optional checks that catch real defects we care about.
+enable=add-default-case
+enable=avoid-nullary-conditions
+enable=check-extra-masked-returns
+enable=check-set-e-suppressed
+enable=check-unassigned-uppercase
+enable=deprecate-which
+enable=quote-safe-variables
+enable=require-double-brackets
+enable=require-variable-braces
+
+# SC1090/SC1091: dynamic source paths are unavoidable in installer scripts;
+# disable only when needed and prefer `# shellcheck source=...` directives in code.
+disable=SC1090,SC1091
+
+# Treat warnings as a hard floor; raise to "style" in CI for stricter runs.
+severity=warning

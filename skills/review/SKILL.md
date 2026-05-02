@@ -5,6 +5,7 @@
 Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. The active reviewer set for each iteration must unanimously PASS for code to ship. The integration tester is a hard gate — no override for missing tests.
 
 The reviewer set is adaptive:
+
 - Choose reviewers from changed surfaces, acceptance criteria, risk, and prior failures.
 - Always include `wb-integration-tester`.
 - Add reviewers only when they have distinct risk ownership and expected evidence.
@@ -35,15 +36,18 @@ The reviewer set is adaptive:
 ## Trigger Conditions
 
 **Explicit:**
+
 - `/wannabuild-review`
 - "Review the code" / "Is this ready?" / "Code review"
 
 **Implicit (from orchestrator):**
+
 - Implement phase completes → auto-transition to Review
 
 ## Input
 
 **Handoff from Implement:**
+
 ```json
 {
   "phase": "review",
@@ -86,7 +90,7 @@ If this check fails, do not spawn reviewers; present the exact validation errors
 
 Build the reviewer list per iteration before spawning:
 
-```
+```text
 active_reviewers = infer_reviewers(
   changed_files,
   acceptance_criteria,
@@ -106,7 +110,7 @@ IF impact uncertain OR blast radius high:
 
 Spawn only `active_reviewers` in parallel (background):
 
-```
+```text
 for reviewer in active_reviewers:
   Task(subagent_type="[reviewer]", run_in_background=true)
     capability_tier: <lightweight / standard / strong>
@@ -189,7 +193,7 @@ If any verdict file is malformed JSON or missing required fields, treat it as a 
 
 Display (counts reflect the **active reviewer set** for that iteration):
 
-```
+```text
 Review Results — Iteration [N]:
   Active reviewers: Security, Performance, Integration Tester
   ✓ Security: PASS
@@ -201,7 +205,7 @@ Review Results — Iteration [N]:
 
 Or on adaptive retry success:
 
-```
+```text
 Review Results — Iteration [N]:
   Active reviewers: Performance, Integration Tester
   ✓ Performance: PASS
@@ -248,6 +252,7 @@ Updated in `.wannabuild/loop-state.json` after each iteration. See orchestrator 
 ## References
 
 Review agents can reference:
+
 - `skills/review/references/security-checklist.md` — regex patterns, OWASP, framework checks
 - `skills/review/references/architecture-patterns.md` — DRY, clean code, refactoring patterns
 
@@ -276,7 +281,7 @@ On unanimous approval:
 
 Elite Code Review can also run standalone (outside the WannaBuild pipeline):
 
-```
+```text
 User: /wannabuild-review
 
 Orchestrator: I'll review the recent changes with the relevant specialist perspectives...

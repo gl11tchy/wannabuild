@@ -31,11 +31,13 @@ You will receive the task decomposition (output from wb-task-decomposer) and the
 
 ### Dependency Graph
 ```
+
 [ASCII diagram showing task relationships]
 Task 1 ──→ Task 2 ──→ Task 4
               ↓
            Task 3 ──→ Task 5
-```
+
+```text
 
 ### Dependency Matrix
 | Task | Blocked By | Blocks | Type |

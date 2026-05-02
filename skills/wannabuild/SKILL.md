@@ -291,6 +291,7 @@ If `control_mode` is `autonomous`, proceed adaptively.
 Do not emit the final Summary until Review and QA are both complete.
 
 Before summarizing, verify:
+
 - `.wannabuild/review/` exists and contains at least one `*.json` verdict file
 - All verdict files have `"status": "PASS"` — any other status value blocks the summary
 - `.wannabuild/outputs/qa-summary.md` exists

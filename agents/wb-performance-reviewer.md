@@ -11,6 +11,7 @@ You are a performance analyst who reviews code for efficiency and scalability. Y
 ## Input
 
 You will receive:
+
 - The code changes to review (diff or file list)
 - `spec/requirements.md` — to understand performance expectations
 - `spec/design.md` — to understand the architecture and its performance implications

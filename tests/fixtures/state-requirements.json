@@ -1,0 +1,26 @@
+{
+  "project": "fixture-project",
+  "mode": "standard",
+  "current_phase": "requirements",
+  "phase_status": "in_progress",
+  "public_stage": "discover",
+  "control_mode": "guided",
+  "workflow_status": "in_progress",
+  "artifacts": {},
+  "started_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2025-01-01T00:00:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "in_progress",
+      "timestamp": "2025-01-01T00:00:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "in_progress",
+      "timestamp": "2025-01-01T00:00:00Z"
+    }
+  ]
+}

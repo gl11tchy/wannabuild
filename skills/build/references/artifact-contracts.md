@@ -16,6 +16,7 @@ Use these with `scripts/validate-wannabuild-artifacts.sh`.
 ## `.wannabuild/state.json`
 
 ### Required core keys
+
 - `project` (string): Friendly project label
 - `mode` (`standard`): Workflow mode
 - `current_phase` (string): Current internal phase name
@@ -29,18 +30,22 @@ Use these with `scripts/validate-wannabuild-artifacts.sh`.
 - `public_stage_history` (array): Chronological public stage status records
 
 ### public_stage_history record
+
 Each item must include:
+
 - `stage` (string): One of the 10 valid public stages
 - `status` (`in_progress` | `complete`): Stage status
 - `timestamp` (ISO string): When this stage was entered or completed
 
 ### Optional advisor keys
+
 - `advisor.enabled` (boolean): Whether advisor escalation is available.
 - `advisor.max_uses_per_phase` (integer): Phase-level advisor budget.
 - `advisor.uses_by_phase` (object): Counts by phase.
 - `advisor.escalations` (array): Advisor report records with `phase`, `trigger`, `report`, `decision_impact`, and `recorded_in_decisions`.
 
 ### Update rule
+
 - Use merge updates, never full replacement.
 - Preserve unknown keys and nested metadata.
 
@@ -97,6 +102,7 @@ Example:
 ## `.wannabuild/loop-state.json`
 
 ### Required core keys
+
 - `mode` (`standard`)
 - `current_iteration` (integer)
 - `max_iterations` (integer)
@@ -105,7 +111,9 @@ Example:
 - `iterations` (array)
 
 ### Iteration record
+
 Each item must include:
+
 - `iteration`
 - `timestamp`
 - `active_reviewers` (array)
@@ -114,6 +122,7 @@ Each item must include:
 - `feedback_sent` (string, optional)
 
 ### `status` meanings
+
 - `approved`: unanimous PASS in final required review iteration
 - `blocked`: routing cannot proceed without explicit user action
 - `escalated`: loop hit max iterations or hard block condition
@@ -124,12 +133,14 @@ Agents in `review` write files to:
 `.wannabuild/review/<agent>-iter-<N>.json`
 
 ### Required fields
+
 - `agent`
 - `status` (`PASS` | `FAIL`)
 - `summary`
 - `issues` (array with `severity`, `file`, `line`, `issue`, `recommendation`)
 
 ### Integration tester extras
+
 - `hard_gate: true`
 - `test_execution` with `total`, `passed`, `failed`, `errored`, `duration_ms`
 - `coverage_map` with `criterion`, `test_file`, `test_name`, `status`
@@ -138,6 +149,7 @@ Agents in `review` write files to:
 
 Checkpoint files are evidence logs, not pure JSON.
 Recommended metadata lines at top:
+
 - `Task:`, `Step:`
 - `Changed Files:`
 - `Verify:`
@@ -149,6 +161,7 @@ Recommended metadata lines at top:
 Optional configuration file that overrides workflow defaults. All keys are optional.
 
 ### Keys
+
 - `max_review_iterations` (integer, >= 1, default 3)
 - `auto_advance` (boolean, default false)
 - `skip_phases` (array of valid phase names)
@@ -172,6 +185,7 @@ Schema: `skills/build/schemas/config.schema.json`
 Created during workspace bootstrap. Tracks the isolated git worktree used for the current WannaBuild session.
 
 ### Required keys
+
 - `workspace_id` (string): Unique workspace identifier
 - `source_repo` (string): Absolute path to the original git repository root
 - `source_branch` (string): Branch name at time of workspace creation

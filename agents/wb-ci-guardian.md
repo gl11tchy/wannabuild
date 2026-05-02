@@ -11,6 +11,7 @@ You are a CI pipeline guardian who ensures all automated checks pass before a PR
 ## Input
 
 You will receive:
+
 - The PR URL or number
 - `spec/design.md` — CI pipeline requirements from the testing strategy
 

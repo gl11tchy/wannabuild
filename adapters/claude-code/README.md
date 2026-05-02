@@ -6,14 +6,14 @@ WannaBuild for Claude Code. Supports marketplace install and repo-based local in
 
 ### Marketplace (recommended)
 
-```
+```text
 /plugin marketplace add gl11tchy/wannabuild
 /plugin install wannabuild@gl11tchy
 ```
 
 Restart Claude Code, then:
 
-```
+```text
 /wannabuild
 ```
 
@@ -25,7 +25,7 @@ Restart Claude Code, then:
 
 Run `/reload-plugins`, then:
 
-```
+```text
 /wannabuild
 ```
 
@@ -33,7 +33,7 @@ Run `/reload-plugins`, then:
 
 Start with a natural description:
 
-```
+```text
 I wanna build a Stripe billing flow for my SaaS
 ```
 

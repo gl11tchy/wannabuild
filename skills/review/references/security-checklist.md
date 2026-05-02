@@ -5,6 +5,7 @@ Detailed security checks for the Security Auditor agent.
 ## Secrets Detection Patterns
 
 ### Common Secret Patterns (Regex)
+
 ```regex
 # API Keys
 (?i)(api[_-]?key|apikey)['":\s]*[=:]\s*['"]?[a-zA-Z0-9_-]{20,}
@@ -27,6 +28,7 @@ eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*
 ```
 
 ### Files to Always Check
+
 - `.env*` files (should be in .gitignore)
 - `config/*.json`
 - `**/config.ts`, `**/config.js`
@@ -49,18 +51,21 @@ eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*
 ## Framework-Specific Checks
 
 ### Next.js / React
+
 - No secrets in `NEXT_PUBLIC_*` env vars
 - API routes have proper auth middleware
 - `getServerSideProps` doesn't leak sensitive data
 - CSP headers configured
 
 ### Node.js / Express
+
 - Helmet.js or equivalent security headers
 - Rate limiting on auth endpoints
 - Input validation on all endpoints
 - Parameterized queries (no string concatenation)
 
 ### Database
+
 - No raw SQL with user input
 - Prepared statements used
 - Connection strings from env vars

@@ -1,0 +1,47 @@
+// markdownlint-cli2 config for WannaBuild docs.
+// Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+{
+  "config": {
+    "default": true,
+
+    // Disabled rules — intentional repo style decisions.
+    "MD013": false,            // line-length: prose intentionally not wrapped (proseWrap: preserve)
+    "MD041": false,            // first-line-h1: many SKILL.md files start with YAML frontmatter
+    "MD024": { "siblings_only": true }, // duplicate headings ok across sections
+
+    // Strict checks we want to actively enforce.
+    "MD003": { "style": "atx" },                          // ATX-style headings only
+    "MD007": { "indent": 2 },                             // unordered list indent
+    "MD009": { "br_spaces": 2, "strict": false },         // trailing spaces (allow `  ` line breaks)
+    "MD012": { "maximum": 1 },                            // no multiple consecutive blank lines
+    "MD018": true,                                        // space after hash on heading
+    "MD019": true,                                        // no multiple spaces after heading hash
+    "MD020": true,                                        // space inside hashes on closed-atx
+    "MD021": true,                                        // no multiple spaces inside hashes
+    "MD022": true,                                        // headings surrounded by blank lines
+    "MD023": true,                                        // headings start at line beginning
+    "MD025": true,                                        // single H1
+    "MD031": true,                                        // fenced code blocks surrounded by blanks
+    "MD032": true,                                        // lists surrounded by blanks
+    "MD033": false,                                       // allow inline HTML (used in some docs)
+    "MD034": true,                                        // bare URLs disallowed; use angle brackets
+    "MD040": true,                                        // fenced code blocks must specify a language
+    "MD046": { "style": "fenced" },                       // code block style
+    "MD047": true                                         // file ends with newline
+  },
+  "globs": [
+    "**/*.md"
+  ],
+  "ignores": [
+    ".wannabuild/**",
+    ".worktrees/**",
+    ".git/**",
+    ".factory/**",
+    "node_modules/**",
+    "skills/build/dry-runs/**",
+    "docs/generated/**",
+    "tests/.bats/**",
+    "tests/.bats-libs/**",
+    "LICENSE"
+  ]
+}

@@ -5,12 +5,14 @@
 Apply in order of precedence — #1 trumps #2, etc.
 
 ### 1. Think Before Coding
+
 - State assumptions explicitly. If uncertain, ask — don't guess.
 - When ambiguity exists, surface the interpretations; don't pick silently.
 - Push back when a simpler approach exists.
 - If confused, name what's unclear and stop. Don't paper over it.
 
 ### 2. Simplicity First
+
 - Minimum code that solves the problem. Nothing speculative.
 - No features, abstractions, flexibility, or error handling beyond what was asked.
 - No abstractions for single-use code.
@@ -18,12 +20,14 @@ Apply in order of precedence — #1 trumps #2, etc.
 - Test: would a senior engineer call this overcomplicated? If yes, simplify.
 
 ### 3. Surgical Changes
+
 - Touch only what the task requires. Every changed line should trace to the request.
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor what isn't broken. Match existing style even if you'd do it differently.
 - Remove imports/variables your changes orphaned. Don't delete pre-existing dead code — mention it instead.
 
 ### 4. Goal-Driven Execution
+
 - Define success criteria up front. Loop until verified.
 - Translate imperative tasks into verifiable ones:
   - "Add validation" → write tests for invalid inputs, then make them pass.
@@ -40,11 +44,13 @@ WannaBuild is a **documentation and framework repository** — there is no appli
 ## Commands
 
 **Check repo readiness** (verifies all required surfaces exist and install symlinks are wired):
+
 ```bash
 scripts/wannabuild-doctor.sh
 ```
 
 **Validate `.wannabuild/` artifacts in a target project** (run before phase transitions):
+
 ```bash
 scripts/validate-wannabuild-artifacts.sh <target_project_root> [target_phase]
 # target_phase: requirements | design | tasks | implement | review | ship | document
@@ -52,13 +58,42 @@ scripts/validate-wannabuild-artifacts.sh <target_project_root> [target_phase]
 ```
 
 **Install into Codex** (symlinks `skills/wannabuild` and `skills/using-wannabuild` into `~/.codex/skills/`):
+
 ```bash
 scripts/install-codex-skill.sh
 ```
 
 **Install into Claude Code** (wires the plugin under `~/.claude/plugins/`):
+
 ```bash
 scripts/install-claude-skill.sh
+```
+
+**Lint everything** (shell + markdown + duplicate detection + complexity + large files + dead refs + tech debt):
+
+```bash
+bash scripts/lint.sh
+```
+
+**Run the test suite** (bats — unit and integration):
+
+```bash
+bash tests/run.sh           # full suite
+bash tests/run.sh --unit    # unit only
+bash tests/run.sh --integration
+bash tests/coverage.sh      # kcov coverage with threshold gate
+```
+
+**Generate auto-docs** (writes to `docs/generated/`, idempotent):
+
+```bash
+bash scripts/generate-docs.sh
+```
+
+**Apply branch protection rulesets** (requires `gh` admin auth; supports `--dry-run`):
+
+```bash
+bash scripts/apply-rulesets.sh --dry-run
 ```
 
 ## Architecture
@@ -113,6 +148,23 @@ Adapter-specific packaging lives under `.claude-plugin/`, `.cursor-plugin/`, and
 ### Dry-run fixtures
 
 `skills/build/dry-runs/` holds JSON fixtures used to validate orchestrator behavior against known states (ambiguous review loop, resume-from-state, missing design state). These are reference fixtures, not executable tests.
+
+## Tooling Layer
+
+Even though the deliverables are prompts/contracts, the repo enforces real engineering hygiene on its own surfaces:
+
+- Static analysis: shellcheck, shfmt (in `.pre-commit-config.yaml` and `scripts/lint.sh`)
+- Markdown lint: markdownlint-cli2 (`.markdownlint-cli2.jsonc`)
+- Duplicate detection: jscpd (`.jscpd.json`)
+- Complexity: lizard (`.lizardrc`, `scripts/check-complexity.sh`)
+- Custom checks: `scripts/check-large-files.sh`, `scripts/check-dead-refs.sh`, `scripts/check-tech-debt.sh`
+- Tests: bats under `tests/` (unit + integration); kcov coverage with threshold gate
+- Secrets: gitleaks (`.gitleaks.toml`), detect-secrets baseline (`.secrets.baseline`)
+- Logging primitive for scripts: `scripts/wb-log.sh` (sourced; provides scrubbed structured logging)
+- Tracing/metrics primitives for scripts: `scripts/wb-trace.sh`, `scripts/wb-metrics.sh`
+- Devcontainer: `.devcontainer/` (Ubuntu base + all toolchains preinstalled)
+- Governance: `.github/CODEOWNERS`, `ISSUE_TEMPLATE/`, `pull_request_template.md`, `dependabot.yml`, `rulesets/`
+- Release: release-please (`release-please-config.json` + `.release-please-manifest.json` + `CHANGELOG.md`)
 
 ## Key Invariants for Editing
 

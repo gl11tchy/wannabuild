@@ -1,0 +1,45 @@
+{
+  "project": "fixture-project",
+  "mode": "standard",
+  "current_phase": "implement",
+  "phase_status": "in_progress",
+  "public_stage": "implement",
+  "control_mode": "guided",
+  "workflow_status": "in_progress",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md",
+    "design": ".wannabuild/spec/design.md",
+    "tasks": ".wannabuild/spec/tasks.md"
+  },
+  "started_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2025-01-01T00:03:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2025-01-01T00:00:30Z"
+    },
+    {
+      "phase": "design",
+      "status": "complete",
+      "timestamp": "2025-01-01T00:01:30Z"
+    },
+    {
+      "phase": "tasks",
+      "status": "complete",
+      "timestamp": "2025-01-01T00:02:30Z"
+    },
+    {
+      "phase": "implement",
+      "status": "in_progress",
+      "timestamp": "2025-01-01T00:03:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "implement",
+      "status": "in_progress",
+      "timestamp": "2025-01-01T00:03:00Z"
+    }
+  ]
+}

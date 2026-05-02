@@ -1,0 +1,108 @@
+version: 2
+
+updates:
+  # GitHub Actions: keep workflow action versions current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    reviewers:
+      - "gl11tchy"
+    assignees:
+      - "gl11tchy"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # npm — enable once package.json is added (prettier, markdownlint-cli2, jscpd, etc.).
+  # - package-ecosystem: "npm"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "09:00"
+  #     timezone: "Etc/UTC"
+  #   open-pull-requests-limit: 10
+  #   labels:
+  #     - "dependencies"
+  #     - "javascript"
+  #   reviewers:
+  #     - "gl11tchy"
+  #   assignees:
+  #     - "gl11tchy"
+  #   commit-message:
+  #     prefix: "chore(npm)"
+  #     include: "scope"
+  #   ignore:
+  #     - dependency-name: "eslint"
+  #       update-types:
+  #         - "version-update:semver-major"
+  #     - dependency-name: "@typescript-eslint/*"
+  #       update-types:
+  #         - "version-update:semver-major"
+  #     - dependency-name: "eslint-*"
+  #       update-types:
+  #         - "version-update:semver-major"
+  #   groups:
+  #     npm-major:
+  #       update-types:
+  #         - "major"
+  #     npm-minor-patch:
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # pip — enable once requirements.txt is added (pre-commit, lizard, yamllint, etc.).
+  # - package-ecosystem: "pip"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "09:00"
+  #     timezone: "Etc/UTC"
+  #   open-pull-requests-limit: 10
+  #   labels:
+  #     - "dependencies"
+  #     - "python"
+  #   reviewers:
+  #     - "gl11tchy"
+  #   assignees:
+  #     - "gl11tchy"
+  #   commit-message:
+  #     prefix: "chore(pip)"
+  #     include: "scope"
+  #   groups:
+  #     pip:
+  #       patterns:
+  #         - "*"
+
+  # docker — enable once .devcontainer/Dockerfile (or any Dockerfile) is added.
+  # - package-ecosystem: "docker"
+  #   directory: "/.devcontainer"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "09:00"
+  #     timezone: "Etc/UTC"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "docker"
+  #   reviewers:
+  #     - "gl11tchy"
+  #   assignees:
+  #     - "gl11tchy"
+  #   commit-message:
+  #     prefix: "chore(docker)"
+  #     include: "scope"

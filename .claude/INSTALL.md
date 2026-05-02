@@ -51,6 +51,7 @@ ln -sfn "$PWD" ~/.claude/plugins/cache/gl11tchy/wannabuild/local
 ```
 
 Then register and enable in Claude Code by running the install script or manually updating:
+
 - `~/.claude/plugins/installed_plugins.json` to add the plugin entry
 - `~/.claude/settings.json` to enable `wannabuild@gl11tchy`
 
@@ -76,7 +77,7 @@ Then start a new Claude Code session and invoke:
 
 You should see the startup banner:
 
-```
+```text
 [WB-START] WannaBuild STARTED | intent=build | mode=standard
 ```
 

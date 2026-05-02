@@ -1,0 +1,64 @@
+# Pre-commit configuration for WannaBuild.
+# Install with: pre-commit install
+# Run on demand with: pre-commit run --all-files
+#
+# Reference: https://pre-commit.com/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        exclude: \.jsonc$
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: detect-private-key
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ["--severity=warning"]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.8.0-1
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci", "-bn", "-d"]
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.13.0
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: wannabuild-tech-debt
+        name: WannaBuild — referenced TODO/FIXME markers
+        entry: scripts/check-tech-debt.sh
+        language: system
+        pass_filenames: false
+      - id: wannabuild-large-files
+        name: WannaBuild — large file detection
+        entry: scripts/check-large-files.sh
+        language: system
+        pass_filenames: false
+      - id: wannabuild-dead-refs
+        name: WannaBuild — dead reference detection
+        entry: scripts/check-dead-refs.sh
+        language: system
+        pass_filenames: false

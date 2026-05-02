@@ -1,0 +1,85 @@
+# Security workflow for WannaBuild
+#
+# Runs:
+#   - gitleaks         (secret scanning, daily + on push/PR)
+#   - dependency-review (PR-time, blocks risky transitive changes)
+#   - codeql-actions    (scans GitHub Actions workflow files for unsafe patterns)
+#
+# Note on CodeQL: CodeQL does not have a stable analyzer for shell-only repos.
+# Since this repo is bash + markdown + JSON, we run CodeQL with language
+# `actions` to scan workflow YAML for taint/injection patterns. Shell linting
+# is covered by shellcheck in the CI lint job.
+name: Security
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Daily at 06:23 UTC
+    - cron: "23 6 * * *"
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        # gitleaks/gitleaks-action v2.3.6
+        uses: gitleaks/gitleaks-action@83373cf2f8c4db6e24b41f1a0ae3ef139399f5e6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
+          GITLEAKS_NOTIFY_USER_LIST: ""
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Dependency review
+        # actions/dependency-review-action v4.3.4
+        uses: actions/dependency-review-action@5a2ce3f5b92ee19cbb1541a4984c76d921601d7c
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  codeql-actions:
+    name: CodeQL (GitHub Actions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Initialize CodeQL
+        # github/codeql-action v3.26.0 (init)
+        uses: github/codeql-action/init@4dd16135b69a43b6c8efb853346f8437d92d3c93
+        with:
+          languages: actions
+      - name: Analyze
+        # github/codeql-action v3.26.0 (analyze)
+        uses: github/codeql-action/analyze@4dd16135b69a43b6c8efb853346f8437d92d3c93
+        with:
+          category: "/language:actions"

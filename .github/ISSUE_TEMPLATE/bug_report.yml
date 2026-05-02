@@ -1,0 +1,107 @@
+name: Bug report
+description: Report a defect in WannaBuild — orchestrator, specialist agent, script, skill, adapter, docs, or CI.
+title: "[bug]: "
+labels: ["bug", "needs-triage"]
+assignees:
+  - gl11tchy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill out the
+        sections below so the maintainer can reproduce the issue quickly.
+
+        Before submitting:
+        - Read the golden path in [AGENTS.md](https://github.com/gl11tchy/wannabuild/blob/main/AGENTS.md).
+        - Run `bash scripts/wannabuild-doctor.sh` and include any failures.
+        - Try to reproduce in a fresh worktree to rule out local state.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      description: Which part of WannaBuild is affected?
+      options:
+        - Orchestrator
+        - Specialist agent
+        - Script
+        - Skill
+        - Adapter
+        - Docs
+        - CI
+    validations:
+      required: true
+
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host
+      description: Which host did you encounter the bug in?
+      options:
+        - Claude Code
+        - Codex
+        - Cursor
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: WannaBuild version
+      description: Version or commit SHA. Check `CHANGELOG.md` or `git rev-parse HEAD`.
+      placeholder: "e.g. v0.4.2 or commit e0ba27b"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps the maintainer can follow to reproduce.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include error messages, stack traces, or unexpected output.
+    validations:
+      required: true
+
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Relevant `.wannabuild/` artifacts
+      description: |
+        Optional. Paste relevant snippets from `state.json`, `loop-state.json`,
+        review verdicts, checkpoints, etc. **Redact any secrets or PII** before
+        submitting.
+      render: json
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have read the golden path in `AGENTS.md`.
+          required: true
+        - label: I ran `bash scripts/wannabuild-doctor.sh` and reviewed the output.
+          required: true
+        - label: I reproduced the issue in a fresh worktree.
+          required: false

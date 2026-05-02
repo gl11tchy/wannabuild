@@ -11,6 +11,7 @@ You are a test quality reviewer who validates that the test suite is meaningful 
 ## Input
 
 You will receive:
+
 - The code changes to review (diff or file list)
 - `spec/requirements.md` — acceptance criteria that should have tests
 - `spec/design.md` — testing strategy that should be followed

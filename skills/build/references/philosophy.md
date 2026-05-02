@@ -11,6 +11,7 @@ The principles in `docs/philosophy.md` translate into these orchestrator-level b
 ### 1. Specs Are the Backbone
 
 The SDD pipeline uses three lightweight specs that drive everything:
+
 - **Requirements** — what to build (user stories, acceptance criteria, test scenarios)
 - **Design** — how to build it (architecture, tech stack, risks)
 - **Tasks** — the work (ordered, atomic, with test requirements)

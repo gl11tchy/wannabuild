@@ -1,0 +1,37 @@
+# WannaBuild minimum required tooling for host installs.
+# When the dev container isn't an option, install these to develop the framework locally.
+# Versions match what .devcontainer/Dockerfile installs; CI uses the same.
+# Bump versions here and in .devcontainer/Dockerfile together.
+
+# Shells & VCS (assumed already present on most dev hosts)
+bash>=5.0
+git>=2.40
+
+# Static analysis
+shellcheck>=0.10
+shfmt>=3.10.0
+
+# Search & data
+jq>=1.6
+ripgrep>=14.0
+
+# Testing
+bats>=1.10.0   # plus bats-support, bats-assert, bats-file
+kcov>=42       # optional, only for coverage reporting
+
+# Quality / formatting (Python-side; install via pip)
+pre-commit>=3.5
+lizard>=1.17
+yamllint>=1.35
+detect-secrets>=1.5
+
+# Quality / formatting (Node-side; install via npm -g)
+markdownlint-cli2>=0.13
+jscpd>=4.0
+prettier>=3.0
+
+# Secrets scanning (CI; optional locally)
+gitleaks>=8.18
+
+# GitHub CLI (only if running scripts/apply-rulesets.sh or release tooling)
+gh>=2.50

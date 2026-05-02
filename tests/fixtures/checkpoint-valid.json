@@ -1,0 +1,12 @@
+{
+  "required_fields": [
+    "Task:",
+    "Step:",
+    "Changed Files:",
+    "Verify:",
+    "Result:",
+    "Next:"
+  ],
+  "file_shape": "markdown",
+  "example_markdown": "Task: T-001\nStep: 1\nChanged Files: src/foo.py\nVerify: pytest -k foo\nResult: PASS\nNext: T-002\n"
+}

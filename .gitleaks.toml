@@ -1,0 +1,65 @@
+# gitleaks config for WannaBuild
+# Extends the gitleaks default ruleset and adds repo-specific custom rules
+# and allowlists for documentation examples and dry-run fixtures.
+#
+# Run locally:
+#   gitleaks detect --redact --no-banner --config .gitleaks.toml
+
+title = "WannaBuild gitleaks configuration"
+
+# Inherit all default rules from gitleaks (AWS, GitHub, Stripe, etc.)
+[extend]
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# Custom rules
+# ---------------------------------------------------------------------------
+
+[[rules]]
+id = "wannabuild-state-token"
+description = "WannaBuild orchestrator state token"
+# Illustrative pattern. Tokens follow the shape: wb_<domain>_<purpose>_token
+regex = '''wb_[a-z0-9_]+_token'''
+tags = ["wannabuild", "token"]
+# Reduce false positives by requiring a value-like context
+[rules.allowlist]
+description = "Documentation, dry-run fixtures, and test placeholders"
+regexes = [
+  '''wb_[a-z0-9_]+_token\s*=\s*["']?(EXAMPLE|DUMMY|YOUR|SAMPLE|PLACEHOLDER)''',
+  '''<wb_[a-z0-9_]+_token>''',
+]
+
+# ---------------------------------------------------------------------------
+# Global allowlist
+# ---------------------------------------------------------------------------
+
+[allowlist]
+description = "WannaBuild allowlist for fixtures, examples, and obvious placeholders"
+
+# Path-based allowlists: documentation and fixtures intentionally include
+# example secret-like strings so detectors can be demonstrated.
+paths = [
+  '''^tests/fixtures/.*''',
+  '''^skills/build/dry-runs/.*''',
+  '''^docs/secrets-management\.md$''',
+  '''^docs/log-scrubbing\.md$''',
+  '''^\.secrets\.baseline$''',
+  '''.*\.example$''',
+  '''^\.env\.example$''',
+]
+
+# Regex-based allowlists for obviously-fake placeholders
+regexes = [
+  '''(?i)EXAMPLE_TOKEN''',
+  '''(?i)DUMMY[_-]?[A-Z0-9_-]*''',
+  '''(?i)your[_-][A-Za-z0-9_-]*[_-]here''',
+  '''<YOUR_[A-Z0-9_]+>''',
+  '''xxxxx+''',
+  '''(?i)changeme''',
+  '''(?i)REPLACE_ME''',
+  '''(?i)ghp_[x]{20,}''',
+  '''(?i)sk_(test|live)_[x]{10,}''',
+]
+
+# Note: redaction is enabled via the CLI flag `--redact`, not via config.
+# scripts/check-secrets.sh always passes --redact when invoking gitleaks.

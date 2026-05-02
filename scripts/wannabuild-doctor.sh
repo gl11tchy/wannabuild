@@ -98,6 +98,47 @@ check_file ".factory/droids/wb-advisor.md" || status=1
 check_file ".claude-plugin/plugin.json" || status=1
 check_file ".claude-plugin/marketplace.json" || status=1
 echo
+echo "Quality & governance surfaces"
+check_file ".pre-commit-config.yaml" || status=1
+check_file ".markdownlint-cli2.jsonc" || status=1
+check_file ".jscpd.json" || status=1
+check_file ".shellcheckrc" || status=1
+check_file ".editorconfig" || status=1
+check_file ".gitleaks.toml" || status=1
+check_file ".secrets.baseline" || status=1
+check_file ".gitattributes" || status=1
+check_file ".env.example" || status=1
+check_file "renovate.json" || status=1
+check_file "SECURITY.md" || status=1
+check_file "CHANGELOG.md" || status=1
+check_file "release-please-config.json" || status=1
+check_file ".release-please-manifest.json" || status=1
+check_file ".github/CODEOWNERS" || status=1
+check_file ".github/dependabot.yml" || status=1
+check_file ".github/pull_request_template.md" || status=1
+check_file ".github/workflows/ci.yml" || status=1
+check_file ".github/workflows/security.yml" || status=1
+check_file ".github/workflows/release-please.yml" || status=1
+check_file ".github/rulesets/main.json" || status=1
+check_file ".devcontainer/devcontainer.json" || status=1
+check_file "scripts/lint.sh" || status=1
+check_file "scripts/format.sh" || status=1
+check_file "scripts/check-complexity.sh" || status=1
+check_file "scripts/check-large-files.sh" || status=1
+check_file "scripts/check-dead-refs.sh" || status=1
+check_file "scripts/check-tech-debt.sh" || status=1
+check_file "scripts/check-secrets.sh" || status=1
+check_file "scripts/wb-log.sh" || status=1
+check_file "scripts/wb-metrics.sh" || status=1
+check_file "scripts/wb-trace.sh" || status=1
+check_file "scripts/scrub-log.sh" || status=1
+check_file "scripts/apply-rulesets.sh" || status=1
+check_file "scripts/generate-docs.sh" || status=1
+check_file "tests/run.sh" || status=1
+check_file "tests/test_helper.bash" || status=1
+check_dir "tests/unit" || status=1
+check_dir "tests/integration" || status=1
+echo
 echo "Host docs"
 check_file "docs/codex-getting-started.md" || status=1
 check_file "docs/claude-code-getting-started.md" || status=1

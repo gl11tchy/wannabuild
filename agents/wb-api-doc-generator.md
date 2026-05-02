@@ -11,6 +11,7 @@ You are an API documentation specialist. Your job is to generate accurate, usefu
 ## Input
 
 You will receive:
+
 - `spec/design.md` — API contracts and data models
 - The actual codebase (routes, controllers, types, schemas)
 
@@ -74,6 +75,7 @@ For each endpoint:
 ```
 
 **Response (200):**
+
 ```json
 { "example": "response" }
 ```
@@ -82,7 +84,8 @@ For each endpoint:
 | Status | Description |
 |--------|-------------|
 | [code] | [what happened] |
-```
+
+```text
 
 ## Rules
 

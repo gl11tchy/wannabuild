@@ -1,0 +1,70 @@
+name: Contract or schema change
+description: Propose a change to a `.wannabuild/` artifact, JSON schema, or operator contract.
+title: "[contract]: "
+labels: ["contract-change", "needs-design-review", "breaking-candidate"]
+assignees:
+  - gl11tchy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Artifact contracts and JSON schemas are the backbone of WannaBuild.
+        Changes here are likely breaking and require validator/test updates.
+        Please describe the motivation and migration plan carefully.
+
+  - type: dropdown
+    id: artifact
+    attributes:
+      label: Artifact
+      description: Which artifact or schema is affected?
+      options:
+        - state.json
+        - requirements.md
+        - design.md
+        - tasks.md
+        - loop-state.json
+        - review-verdict
+        - checkpoint
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this change needed? What problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: backward-compat
+    attributes:
+      label: Backward-compatibility plan
+      description: |
+        How will existing `.wannabuild/` directories continue to work?
+        Describe migration steps, version bumps, or shims.
+    validations:
+      required: true
+
+  - type: textarea
+    id: validator-impact
+    attributes:
+      label: Validator and test impact
+      description: |
+        Which parts of `scripts/validate-wannabuild-artifacts.sh`,
+        `skills/build/schemas/*.schema.json`, and tests need to change?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have updated `skills/build/references/artifact-contracts.md`.
+          required: false
+        - label: I have updated the affected JSON schema(s) under `skills/build/schemas/`.
+          required: false
+        - label: I have updated tests and dry-run fixtures.
+          required: false

@@ -43,6 +43,7 @@ New script. Installs WannaBuild as a local Claude Code plugin by symlinking the 
 
 **`adapters/claude-code/README.md`**
 Rewrite as a full install guide. Cover both paths:
+
 - Marketplace: `/plugin marketplace add gl11tchy/wannabuild` then `/plugin install wannabuild@gl11tchy`
 - From repo: `./scripts/install-claude-skill.sh`
 
@@ -71,6 +72,7 @@ Elevate the Claude Code install section to equal prominence with Codex. Marketpl
 ## File Inventory
 
 ### Modified
+
 - `commands/wannabuild.md`
 - `skills/wannabuild/SKILL.md`
 - `adapters/claude-code/README.md`
@@ -81,6 +83,7 @@ Elevate the Claude Code install section to equal prominence with Codex. Marketpl
 - `skills/build/SKILL.md`
 
 ### Created
+
 - `scripts/install-claude-skill.sh`
 - `.claude/INSTALL.md`
 - `docs/claude-code-getting-started.md`

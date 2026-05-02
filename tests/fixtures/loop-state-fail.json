@@ -1,0 +1,20 @@
+{
+  "mode": "standard",
+  "current_iteration": 1,
+  "max_iterations": 3,
+  "base_reviewer_count": 6,
+  "status": "blocked",
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2025-01-01T00:05:00Z",
+      "active_reviewers": [
+        "wb-integration-tester"
+      ],
+      "verdicts": {},
+      "pass_count": 0,
+      "fail_count": 1,
+      "routing_reason": "base_set"
+    }
+  ]
+}

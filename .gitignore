@@ -57,3 +57,18 @@ htmlcov/
 *.whl
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Tooling caches
+.jscpd-report/
+.cache-loader/
+
+# Test infrastructure caches
+tests/.bats/
+tests/.bats-libs/
+tests/results/
+tests/coverage/
+tests/coverage-out/
+
+# Local secrets
+.env.local
+.secrets

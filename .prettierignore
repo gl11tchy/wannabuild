@@ -1,0 +1,10 @@
+.wannabuild/
+.worktrees/
+.git/
+.factory/
+node_modules/
+LICENSE
+# Generated reports and fixtures
+.jscpd-report/
+skills/build/dry-runs/
+**/*.min.*

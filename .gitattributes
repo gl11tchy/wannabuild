@@ -1,0 +1,25 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.bash text eol=lf
+*.bats text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.cfg text eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+
+# Mark generated docs as generated (collapsed in PR diffs)
+docs/generated/** linguist-generated=true
+
+# Mark fixtures as test data
+tests/fixtures/** linguist-vendored=true
+
+# Mark dry-run JSON as test data
+skills/build/dry-runs/** linguist-vendored=true

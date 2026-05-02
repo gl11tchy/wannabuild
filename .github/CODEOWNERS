@@ -1,0 +1,46 @@
+# CODEOWNERS for WannaBuild
+#
+# This file controls who is automatically requested as reviewer when a PR
+# touches matching paths. Patterns are evaluated top-to-bottom; the LAST
+# match wins (per GitHub's CODEOWNERS rules), so more-specific rules go
+# below the catch-all.
+#
+# Currently @gl11tchy is the sole maintainer, so every path resolves to a
+# single reviewer. PRs that touch sensitive surfaces (skills/, agents/,
+# scripts/, schemas) MUST receive a maintainer review before merge — the
+# `main` branch ruleset enforces required code-owner review.
+#
+# To propose adding a new maintainer or co-owner: open an issue using the
+# "Specialist agent change" or "Contract or schema change" template (or a
+# plain Discussion) describing scope, rationale, and the paths the new
+# owner will cover. Maintainership additions are merged via a PR that
+# updates this file plus docs/governance.md.
+
+# Default owner — gl11tchy is the maintainer for everything not otherwise specified.
+*                                       @gl11tchy
+
+# Operator contract & spec
+/AGENTS.md                              @gl11tchy
+/CLAUDE.md                              @gl11tchy
+/README.md                              @gl11tchy
+
+# Skills & specialist agents (sensitive — they define orchestrator behavior)
+/skills/                                @gl11tchy
+/agents/                                @gl11tchy
+
+# Build & validation scripts
+/scripts/                               @gl11tchy
+
+# CI, release, governance
+/.github/                               @gl11tchy
+
+# Adapters
+/adapters/                              @gl11tchy
+/.claude-plugin/                        @gl11tchy
+/.cursor-plugin/                        @gl11tchy
+
+# Tests
+/tests/                                 @gl11tchy
+
+# Documentation
+/docs/                                  @gl11tchy

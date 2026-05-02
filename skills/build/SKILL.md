@@ -38,6 +38,7 @@ If `.wannabuild/state.json` exists and is recoverable, use this exact line:
 `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
 
 Examples:
+
 - `[WB-START] WannaBuild STARTED | intent=build | mode=standard`
 - `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=implement | progress=5/8`
 
@@ -56,7 +57,7 @@ To avoid repeated user-facing messages:
 
 Internal phase graph:
 
-```
+```text
 REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
                                      │         │
                                      ▼         │
@@ -243,6 +244,7 @@ Public routing is conversational. The user should mostly experience step-level i
 | "Summarize what happened" / "What is left?" | Summary | Ship/Document/handoff synthesis |
 
 **Routing algorithm:**
+
 1. Check for explicit internal phase commands (`/wannabuild-requirements`, etc.) when a host adapter exposes them.
 2. Check `.wannabuild/state.json` for current internal context.
 3. Infer the user's public step from conversational cues.
@@ -260,7 +262,8 @@ The orchestrator uses the host-native task or delegation surface. Each agent is 
 All agents write their full analysis to `.wannabuild/outputs/` (or `.wannabuild/review/` for reviewers), then return only a one-line status to the main conversation. The orchestrator reads files for synthesis instead of reading message content. This keeps the main thread to ~1 line per agent completion instead of ~500 words.
 
 **Output layout:**
-```
+
+```text
 .wannabuild/
   outputs/
     scope-analyst.md, ux-perspective.md
@@ -276,6 +279,7 @@ All agents write their full analysis to `.wannabuild/outputs/` (or `.wannabuild/
 ```
 
 **Compact return formats:**
+
 - Analysis agents: `COMPLETE — [one sentence]. Report at .wannabuild/outputs/[agent].md`
 - Reviewer agents: `VERDICT: PASS — no issues found. Details at .wannabuild/review/[agent]-iter-{N}.json`
                 or `VERDICT: FAIL — [M] issues ([X] critical). Details at .wannabuild/review/[agent]-iter-{N}.json`
@@ -303,7 +307,8 @@ record delegation rationale in .wannabuild/decisions.md
 Never create parallel agents simply because a phase has multiple available specialists. Each selected agent needs distinct ownership and expected evidence.
 
 ### Sequential-Then-Parallel Pattern (Tasks)
-```
+
+```text
 // Step 1: decompose first when task structure is the blocker.
 Task(subagent_type="<task decomposition specialist>")
   capability_tier: <standard or strong, based on ambiguity/risk>
@@ -317,7 +322,8 @@ Task(subagent_type="<task decomposition specialist>")
 ```
 
 ### Foreground Pattern (Implement)
-```
+
+```text
 # Single-owner path
 Task(subagent_type="<selected implementer>")
   capability_tier: <standard or strong>
@@ -341,6 +347,7 @@ for each independent slice:
 Before spawning reviewers, the orchestrator reads the latest checkpoint files in `.wannabuild/checkpoints/` and builds a changed-step summary.
 
 Required behavior:
+
 - include the **latest checkpoint** window in review inputs
 - pass changed files from checkpoints to adaptive reviewer routing
 - if no checkpoints exist, fall back to spec + diff-only routing and warn the user
@@ -351,7 +358,7 @@ The most critical section. Reviews validate code against the specs, not just gen
 
 ### Loop Architecture
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │                      QUALITY LOOP                            │
 │                                                              │
@@ -370,7 +377,7 @@ The most critical section. Reviews validate code against the specs, not just gen
 
 ### Review Loop Algorithm
 
-```
+```text
 iteration = 1
 max_iterations = config.max_review_iterations ?? 3
 
@@ -420,6 +427,7 @@ LOOP:
 Verdict schema at `skills/build/schemas/review-verdict.schema.json`. Required fields: agent, status (PASS|FAIL), issues[], summary. Integration tester additionally requires hard_gate:true, test_execution{}, coverage_map[].
 
 Context policy for reviewer prompts:
+
 - **Security/Architecture/Performance/Testing/Code-simplifier:** diff summary + touched files + relevant spec excerpts.
 - **Integration tester:** full acceptance criteria + test files + command output summaries.
 
@@ -464,9 +472,9 @@ After max iterations:
 > **Review loop reached [N] iterations without unanimous approval.**
 >
 > **Still failing:**
-> - [Agent]: [summary]
 >
 > **Options:**
+>
 > 1. **Continue:** Run another iteration
 > 2. **Override:** Ship with known issues *(removed if integration-tester is failing)*
 > 3. **Pause:** Address issues manually
@@ -524,21 +532,25 @@ Then write `.wannabuild/state.json` with all required fields:
 ## Internal Phase Transitions
 
 ### Internal Normal Flow
-```
+
+```text
 requirements → design → tasks → implement → review (loop until all pass) → ship → document
 ```
 
 ### Public Normal Flow
-```
+
+```text
 discover → control_mode_decision → research_decision (optional research) → plan → implementation_decision → implement → review → qa → summary
 ```
 
 ### Skip-Phase Logic
+
 Users can skip to any phase. Warn about missing artifacts:
 
 > You're jumping to Implementation, but there's no requirements or design spec yet. The implementer will work from verbal instructions, but you'll miss spec-driven review validation. Continue or go back?
 
 ### Resume Logic
+
 If `.wannabuild/state.json` exists, read the stored state and resume directly in standard mode. Resume must still emit a banner before continuing:
 
 > `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
@@ -552,7 +564,7 @@ When resuming mid-implementation, continue from the latest checkpoint instead of
 
 ## Example
 
-```
+```text
 User: I wanna build a Stripe payment integration for my SaaS
 
 Orchestrator: Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary

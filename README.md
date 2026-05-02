@@ -103,6 +103,25 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 Parallelism is selective. The orchestrator decides how many sub-agents to use, which capability tier they need, and how much reasoning effort is justified by task complexity, coupling, risk, and uncertainty.
 Single-owner work is preferred when coherence matters. Fan-out is useful for independent discovery perspectives, disjoint implementation slices, and review hats with distinct risk ownership.
 
+## Development & Contribution
+
+For contributors and maintainers working on the framework itself:
+
+- [docs/build.md](docs/build.md) — local build, lint, and test commands.
+- [docs/release.md](docs/release.md) — Conventional Commits + release-please.
+- [docs/ci.md](docs/ci.md) — workflow overview.
+- [docs/governance.md](docs/governance.md) — CODEOWNERS and triage.
+- [docs/branch-protection.md](docs/branch-protection.md) — applying ruleset JSON.
+- [docs/style-guide.md](docs/style-guide.md) — naming and style.
+- [docs/security.md](docs/security.md) — security posture.
+- [docs/secrets-management.md](docs/secrets-management.md) — handling secrets.
+- [docs/supply-chain.md](docs/supply-chain.md) — dependency hardening.
+- [docs/log-scrubbing.md](docs/log-scrubbing.md) — runtime scrubbing primitives.
+- [docs/observability.md](docs/observability.md) — metrics, traces, runbooks.
+- [tests/README.md](tests/README.md) — bats unit + integration suite.
+- [.devcontainer/README.md](.devcontainer/README.md) — dev container setup.
+- [SECURITY.md](SECURITY.md) — vulnerability reporting.
+
 ## Install
 
 ### Claude Code
@@ -111,14 +130,14 @@ Co-primary path (alongside Codex).
 
 **Marketplace:**
 
-```
+```text
 /plugin marketplace add gl11tchy/wannabuild
 /plugin install wannabuild@gl11tchy
 ```
 
 Restart Claude Code, then:
 
-```
+```text
 /wannabuild
 ```
 
@@ -165,6 +184,8 @@ Cursor is supported via the same repo-native contracts and scripts.
 - [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
 - [.cursor/rules/wannabuild.mdc](.cursor/rules/wannabuild.mdc)
 - [.cursor-plugin/plugin.json](.cursor-plugin/plugin.json)
+
+> Or use the dev container: open in VS Code → Reopen in Container. See [.devcontainer/README.md](.devcontainer/README.md).
 
 ## Usage
 

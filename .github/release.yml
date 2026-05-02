@@ -1,0 +1,39 @@
+# Configuration for GitHub's auto-generated release notes.
+# Used as a fallback when release-please isn't producing the notes directly,
+# and to categorize PRs in the GitHub release UI.
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - duplicate
+      - invalid
+      - wontfix
+    authors:
+      - dependabot
+      - dependabot[bot]
+      - renovate
+      - renovate[bot]
+  categories:
+    - title: Features
+      labels:
+        - feat
+        - feature
+        - enhancement
+    - title: Bug Fixes
+      labels:
+        - fix
+        - bug
+    - title: Documentation
+      labels:
+        - docs
+        - documentation
+    - title: Maintenance
+      labels:
+        - chore
+        - refactor
+        - perf
+        - test
+        - ci
+    - title: Other Changes
+      labels:
+        - "*"

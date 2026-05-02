@@ -9,18 +9,20 @@ All dry-runs are intentionally low-effort and contract-focused.
 Fixture: `skills/build/dry-runs/resume-state.json`
 
 Expected behavior:
+
 - `mode` is preserved from prior context.
 - Latest checkpoint window is used as input to review routing.
 - Transition to `implement` or `review` does not restart task order from the beginning.
 - Validation must pass if the checkpoint window has valid metadata fields.
 
 Use case:
+
 1. Temporarily stage fixture as `.wannabuild/state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . implement
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . implement
+   ```
 
 3. Verify:
    - no schema failures
@@ -32,6 +34,7 @@ scripts/validate-wannabuild-artifacts.sh . implement
 Fixture: `skills/build/dry-runs/standard-missing-design-state.json`
 
 Expected behavior:
+
 - transition to implement should pass when requirements + tasks artifacts exist
 - transition to tasks should still require `design.md`
 - orchestrator writes an explicit note:
@@ -39,12 +42,13 @@ Expected behavior:
   - implementation should proceed with requirements + existing code patterns
 
 Use case:
+
 1. Stage the fixture as `.wannabuild/state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . implement
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . implement
+   ```
 
 3. Verify:
    - validation passes for implement without design spec
@@ -55,17 +59,19 @@ scripts/validate-wannabuild-artifacts.sh . implement
 Fixture: `skills/build/dry-runs/ambiguous-review-loop.json`
 
 Expected behavior:
+
 - reviewer inference confidence is `ambiguous`
 - review routing falls back to full base reviewer set
 - no reviewer is skipped in review reruns when ambiguity remains
 
 Use case:
+
 1. Stage fixture and its `loop-state` equivalent.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . review
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . review
+   ```
 
 3. Verify:
    - any parse/contract ambiguity is surfaced as an explicit failure reason
@@ -77,18 +83,20 @@ scripts/validate-wannabuild-artifacts.sh . review
 Fixture: `skills/build/dry-runs/autonomous-control-mode-state.json`
 
 Expected behavior:
+
 - `control_mode` is `autonomous`, set at `control_mode_decision`.
 - `implementation_decision` shows `autonomous_advance: true` — orchestrator selected single agent mode without waiting for user input.
 - No guided gate question appears between plan completion and implement start.
 - State is valid to validate as `implement` phase.
 
 Use case:
+
 1. Stage fixture as `.wannabuild/state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . implement
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . implement
+   ```
 
 3. Verify:
    - no schema failures
@@ -101,18 +109,20 @@ scripts/validate-wannabuild-artifacts.sh . implement
 Fixture: `skills/build/dry-runs/research-gate-taken-state.json`
 
 Expected behavior:
+
 - `research_decision` stage records `decision: "research"`.
 - `research` stage is `complete` with `agents_run` and `output` populated.
 - `artifacts` includes `research_summary` pointing to `.wannabuild/outputs/research-summary.md`.
 - `current_phase` is `design` (pending), indicating research completed and planning is next.
 
 Use case:
+
 1. Stage fixture as `.wannabuild/state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . design
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . design
+   ```
 
 3. Verify:
    - no schema failures
@@ -125,18 +135,20 @@ scripts/validate-wannabuild-artifacts.sh . design
 Fixture: `skills/build/dry-runs/implement-gate-denied-state.json`
 
 Expected behavior:
+
 - `public_stage` is `implementation_decision` with `status: "in_progress"`.
 - `gate_response` is `deferred` — user did not proceed to implement.
 - `current_phase` remains `tasks` with `phase_status: "complete"` — internal phase must not advance to `implement` when the public gate is deferred.
 - No implement checkpoint or implement phase entry in `phase_history`.
 
 Use case:
+
 1. Stage fixture as `.wannabuild/state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . tasks
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . tasks
+   ```
 
 3. Verify:
    - no schema failures
@@ -149,18 +161,20 @@ scripts/validate-wannabuild-artifacts.sh . tasks
 Fixture: `skills/build/dry-runs/advisor-escalation-triggered-state.json`
 
 Expected behavior:
+
 - `advisor` block is present in state with one escalation recorded for `implement` phase.
 - `uses_by_phase.implement` is `1`, within the `max_uses_per_phase: 3` budget.
 - Escalation entry includes `trigger`, `report` path, `decision_impact`, and `recorded_in_decisions`.
 - State remains valid for continued implement-phase work after advisor output was consumed.
 
 Use case:
+
 1. Stage fixture as `.wannabuild/state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . implement
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . implement
+   ```
 
 3. Verify:
    - no schema failures
@@ -174,18 +188,20 @@ scripts/validate-wannabuild-artifacts.sh . implement
 Fixture: `skills/build/dry-runs/qa-failure-remediation-loop.json`
 
 Expected behavior:
+
 - Iteration 1: full base reviewer set; `wb-integration-tester` FAILs on 2 missing acceptance-criterion tests.
 - Iteration 2: adaptive routing targets only `wb-integration-tester` (`routing_reason: "impacted"`); hard gate still FAIL on AC-5.
 - `status` is `in_progress` — loop has not yet exhausted `max_iterations`.
 - Because `wb-integration-tester` is still failing, the **ship-with-known-issues** escalation option must be absent if `max_iterations` is reached before the tester passes.
 
 Use case:
+
 1. Stage fixture as `.wannabuild/loop-state.json`.
 2. Run:
 
-```bash
-scripts/validate-wannabuild-artifacts.sh . review
-```
+   ```bash
+   scripts/validate-wannabuild-artifacts.sh . review
+   ```
 
 3. Verify:
    - no schema failures

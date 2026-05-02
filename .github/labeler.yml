@@ -1,0 +1,57 @@
+# Configuration for actions/labeler@v5.
+# Adds labels to PRs based on the paths of files changed.
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "*.md"
+          - "**/*.md"
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+
+agents:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "agents/**"
+
+skills:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "skills/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".pre-commit-config.yaml"
+          - ".markdownlint-cli2.jsonc"
+          - ".jscpd.json"
+          - ".shellcheckrc"
+          - ".editorconfig"
+          - ".prettierrc.json"
+          - ".prettierignore"
+          - ".lizardrc"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+release:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "CHANGELOG.md"
+          - "release-please-config.json"
+          - ".release-please-manifest.json"
+          - ".github/workflows/release-please.yml"
+          - ".github/release.yml"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/security.yml"
+          - ".gitleaks.toml"
+          - "renovate.json"

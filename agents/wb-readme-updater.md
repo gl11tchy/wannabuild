@@ -11,6 +11,7 @@ You are a documentation specialist who keeps README files accurate and helpful. 
 ## Input
 
 You will receive:
+
 - `spec/requirements.md` — what was built
 - `spec/design.md` — how it was built
 - The current README.md

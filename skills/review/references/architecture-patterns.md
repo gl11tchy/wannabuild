@@ -5,6 +5,7 @@ Patterns and principles for the Architecture Reviewer agent.
 ## DRY Violation Patterns
 
 ### Code Duplication Signs
+
 - Same logic in multiple files with slight variations
 - Copy-pasted error handling
 - Repeated validation logic
@@ -12,6 +13,7 @@ Patterns and principles for the Architecture Reviewer agent.
 - Duplicate utility functions across modules
 
 ### Solutions
+
 | Pattern | Solution |
 |---------|----------|
 | Repeated logic | Extract to shared utility |
@@ -23,6 +25,7 @@ Patterns and principles for the Architecture Reviewer agent.
 ## Clean Code Principles
 
 ### Function Guidelines
+
 - **Single Responsibility**: One function, one job
 - **Max Length**: ~20-30 lines (exceptions: switch statements, configs)
 - **Max Parameters**: 3-4 (use object param for more)
@@ -30,7 +33,8 @@ Patterns and principles for the Architecture Reviewer agent.
 - **Naming**: Verb + noun (e.g., `getUserById`, `validateEmail`)
 
 ### Complexity Red Flags
-```
+
+```text
 ❌ Nested callbacks > 2 levels
 ❌ if/else chains > 3 branches
 ❌ Functions > 50 lines
@@ -41,7 +45,8 @@ Patterns and principles for the Architecture Reviewer agent.
 
 ### Refactoring Patterns
 
-**Extract Method**
+#### Extract Method
+
 ```typescript
 // Before
 function processOrder(order) {
@@ -58,7 +63,8 @@ function processOrder(order) {
 }
 ```
 
-**Replace Conditional with Polymorphism**
+##### Replace Conditional with Polymorphism
+
 ```typescript
 // Before
 function getPrice(type) {
@@ -72,7 +78,8 @@ const pricing = { basic: 10, premium: 20, enterprise: 50 }
 const getPrice = (type) => pricing[type]
 ```
 
-**Introduce Parameter Object**
+###### Introduce Parameter Object
+
 ```typescript
 // Before
 function createUser(name, email, age, role, dept, manager)
@@ -84,7 +91,8 @@ function createUser({ name, email, age, role, dept, manager })
 ## Architecture Patterns
 
 ### Frontend (React/Next.js)
-```
+
+```text
 src/
 ├── components/     # Reusable UI components
 │   ├── ui/        # Primitives (Button, Input)
@@ -96,7 +104,8 @@ src/
 ```
 
 ### Backend (Node.js)
-```
+
+```text
 src/
 ├── routes/        # Route handlers
 ├── controllers/   # Business logic
@@ -108,6 +117,7 @@ src/
 ```
 
 ### Separation of Concerns
+
 - **Presentation**: UI rendering only
 - **Business Logic**: Domain rules, calculations
 - **Data Access**: Database queries, API calls

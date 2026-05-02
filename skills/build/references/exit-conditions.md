@@ -24,11 +24,13 @@
   - user acknowledges merge strategy or no-remote equivalent is accepted
 
 ## Fast-track and fallback
+
 - Fast-track can run reduced reviewer set only if matrix criteria are met and explicit confidence is high.
 - Any fail in fast-track forces full base set next iteration.
 - Any malformed verdict or ambiguous routing -> fallback to base set.
 
 ## Escalation
+
 - If max iterations reached: surface blocked state with issue summary.
 - If integration gate remains `FAIL`: do not offer ship-with-known-issues.
 - Otherwise, user may choose: continue loop, pause/manual fix, or abort.

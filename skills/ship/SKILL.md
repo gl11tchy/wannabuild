@@ -14,15 +14,18 @@ Phase 6 of 7 in the WannaBuild SDD pipeline. Creates a well-structured PR refere
 ## Trigger Conditions
 
 **Explicit:**
+
 - `/wannabuild-ship` (auto-prefixed when installed as plugin)
 - "Ship it" / "Create a PR" / "Let's merge"
 
 **Implicit (from orchestrator):**
+
 - Review phase achieves unanimous PASS → auto-transition to Ship
 
 ## Input
 
 **Handoff from Review:**
+
 ```json
 {
   "phase": "ship",
@@ -42,7 +45,7 @@ Phase 6 of 7 in the WannaBuild SDD pipeline. Creates a well-structured PR refere
 
 ## Execution Flow
 
-```
+```text
 Review approval (input)
         │
         ▼
@@ -79,7 +82,7 @@ Review approval (input)
 
 These agents run **sequentially** (CI Guardian needs the PR to exist):
 
-```
+```text
 // Step 1: Create PR
 Task(subagent_type="wb-pr-craftsman")
   prompt: "Create PR. Specs at .wannabuild/spec/. Review approved after {iterations} iterations.
@@ -137,6 +140,7 @@ The CI Guardian specifically verifies that integration tests run in the CI pipel
 After CI passes, the orchestrator presents merge options to the user:
 
 > CI is green. All integration tests passed. How do you want to merge?
+>
 > 1. **Squash and merge** (recommended — clean history)
 > 2. **Merge commit** (preserves individual commits)
 > 3. **Rebase and merge** (linear history)

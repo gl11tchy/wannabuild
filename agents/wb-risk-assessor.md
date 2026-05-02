@@ -36,13 +36,15 @@ You will receive the requirements spec (`spec/requirements.md`) and the existing
 
 ### Risk Heat Map
 ```
+
 Impact →  1    2    3    4    5
 Prob 5   [ ]  [ ]  [ ]  [!]  [!!]
      4   [ ]  [ ]  [!]  [!]  [!!]
      3   [ ]  [ ]  [ ]  [!]  [!]
      2   [ ]  [ ]  [ ]  [ ]  [!]
      1   [ ]  [ ]  [ ]  [ ]  [ ]
-```
+
+```text
 [Place risk numbers in the grid]
 
 ### Critical Risks (Score ≥ 12)

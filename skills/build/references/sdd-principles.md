@@ -6,7 +6,7 @@ Spec-Driven Development means **every line of code traces back to a specificatio
 
 ## The SDD Pipeline
 
-```
+```text
 Requirements → Design → Tasks → Implement → Review → Ship → Document
      ↑            ↑        ↑         ↑          ↑
      └────────────┴────────┴──────────┴──────────┘
@@ -18,7 +18,9 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 ## Three Spec Artifacts
 
 ### 1. Requirements Spec (`spec/requirements.md`)
+
 **What** to build and why it should feel right. Written in user language.
+
 - Vision brief, audience, desired experience, and core flows
 - Feature priorities, assumptions, open questions, and non-goals
 - User stories or jobs-to-be-done with acceptance criteria
@@ -27,7 +29,9 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 - Success metrics
 
 ### 2. Design Spec (`spec/design.md`)
+
 **How** to build it. Written in technical language.
+
 - Architecture decisions with rationale
 - Tech stack choices with trade-off analysis
 - Data models and API contracts
@@ -35,7 +39,9 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 - Risk register with mitigations
 
 ### 3. Task Spec (`spec/tasks.md`)
+
 **Do** — the ordered work. Written as atomic units.
+
 - Each task targets specific files
 - Dependencies explicitly mapped when dependency analysis is needed
 - Every task includes required integration tests
@@ -45,18 +51,23 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 ## SDD Rules
 
 ### 1. Specs Before Code
+
 No implementation begins until requirements, design, and tasks are specified. The implementer works from `spec/tasks.md`, not from memory or conversation.
 
 ### 2. Tests Prove Specs
+
 Integration tests are the executable form of acceptance criteria. A feature without tests is an unverified claim. Tests are non-negotiable — they're the bridge between "what we said" and "what we built."
 
 ### 3. Review Against Specs
+
 Code review isn't subjective opinion. Reviewers validate code against `spec/requirements.md` — did we build what we specified? Did we test what we claimed? The integration-tester agent is a hard gate: no tests = no ship.
 
 ### 4. Specs Evolve
+
 Specs aren't frozen. Discovery during implementation may reveal new requirements or design changes. When this happens, update the spec first, then the code. The spec always reflects current intent.
 
 ### 5. Minimal Viable Spec
+
 Specs should be as detailed as needed and no more. For a weekend project, a requirements spec might be 20 lines. For a complex feature, it might be 200. The goal is clarity, not ceremony.
 
 ## Integration Testing Philosophy
@@ -64,6 +75,7 @@ Specs should be as detailed as needed and no more. For a weekend project, a requ
 ### Why Integration Tests Are Non-Negotiable
 
 Unit tests verify components in isolation. Integration tests verify that **the thing you built actually works as a whole**. For indie builders shipping real products, integration tests catch the bugs that matter:
+
 - API endpoints that return wrong data
 - Auth flows that break on edge cases
 - Database queries that work in isolation but fail with real data
@@ -79,7 +91,7 @@ Unit tests verify components in isolation. Integration tests verify that **the t
 
 ### The Test Pyramid for Indie Hackers
 
-```
+```text
          ╱ E2E ╲          ← Few, critical paths only
         ╱────────╲
        ╱Integration╲      ← Most tests live here
@@ -93,6 +105,7 @@ Integration tests are the sweet spot: they catch real bugs without the brittlene
 ## Spec Artifact Formats
 
 ### requirements.md
+
 ```markdown
 # Requirements Spec
 ## Vision Brief
@@ -120,6 +133,7 @@ Integration tests are the sweet spot: they catch real bugs without the brittlene
 ```
 
 ### design.md
+
 ```markdown
 # Design Spec
 ## Architecture
@@ -139,6 +153,7 @@ Integration tests are the sweet spot: they catch real bugs without the brittlene
 ```
 
 ### tasks.md
+
 ```markdown
 # Task Spec
 ## Tasks

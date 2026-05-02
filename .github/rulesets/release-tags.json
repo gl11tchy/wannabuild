@@ -1,0 +1,25 @@
+{
+  "name": "Protect release tags",
+  "target": "tag",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/tags/v*.*.*"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    { "type": "update" },
+    {
+      "type": "required_signatures"
+    }
+  ],
+  "_comment": [
+    "Required signatures will warn (and block, if signing isn't configured).",
+    "If signed tags aren't yet enforced for this repo, drop the required_signatures",
+    "rule or downgrade enforcement to 'evaluate' before applying."
+  ],
+  "bypass_actors": []
+}

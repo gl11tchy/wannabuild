@@ -1,0 +1,72 @@
+name: Feature request
+description: Propose a new capability, workflow step, or improvement to WannaBuild.
+title: "[feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees:
+  - gl11tchy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please describe the problem
+        you're trying to solve before proposing a specific solution — that
+        helps the maintainer evaluate alternatives.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which surface would this feature touch?
+      options:
+        - Workflow step
+        - Specialist agent
+        - Script
+        - Adapter
+        - Docs
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are you trying to solve? What's the user pain?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like WannaBuild to behave?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider, and why did you discard them?
+    validations:
+      required: false
+
+  - type: textarea
+    id: golden-path
+    attributes:
+      label: How it fits the golden path
+      description: |
+        How does this proposal fit the public golden path
+        (`Discover → Control mode → Research? → Plan → Implement → Review → QA → Summary`)
+        and the internal seven-phase execution model?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have read the "Key Invariants for Editing" section in `CLAUDE.md`.
+          required: true
+        - label: I have searched existing issues and discussions for duplicates.
+          required: true

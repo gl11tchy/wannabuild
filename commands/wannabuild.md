@@ -15,7 +15,7 @@ If invoked with no task or only a question about the workflow:
 
 Respond with exactly:
 
-```
+```text
 [WB-START] WannaBuild STARTED | intent=build | mode=standard
 
 Tell me what you want to build or change.

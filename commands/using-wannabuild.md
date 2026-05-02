@@ -7,6 +7,7 @@ description: Brief intro to WannaBuild, then hand off to the main workflow
 Explain WannaBuild briefly, then invoke the `wannabuild` skill to start the workflow.
 
 Keep the intro short:
+
 - Spec-driven development framework
 - Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
 - Vision-first discovery interview before planning

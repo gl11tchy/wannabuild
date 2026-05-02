@@ -1,0 +1,90 @@
+name: Specialist agent change
+description: Propose a change to one of the wb-* specialist agents under `agents/`.
+title: "[agent]: "
+labels: ["specialist-agent", "needs-design-review"]
+assignees:
+  - gl11tchy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Specialist agent prompts are part of the operator contract. Changes
+        here can ripple into `AGENTS.md`, the relevant `SKILL.md`, and the
+        artifact contracts. Please describe the change carefully.
+
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      description: Which specialist agent is affected?
+      options:
+        - wb-api-doc-generator
+        - wb-architect
+        - wb-architecture-reviewer
+        - wb-changelog-writer
+        - wb-ci-guardian
+        - wb-code-simplifier
+        - wb-dependency-mapper
+        - wb-implementer
+        - wb-implementer-escalated
+        - wb-integration-tester
+        - wb-performance-reviewer
+        - wb-pr-craftsman
+        - wb-readme-updater
+        - wb-risk-assessor
+        - wb-scope-analyst
+        - wb-scope-validator
+        - wb-security-reviewer
+        - wb-task-decomposer
+        - wb-tech-advisor
+        - wb-testing-reviewer
+        - wb-ux-perspective
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: What does the agent do today? Quote the relevant prompt section if helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired behavior
+      description: What should the agent do instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: model-tier
+    attributes:
+      label: Model tier impact
+      description: |
+        Does this change require a stronger or weaker model than the agent currently uses?
+        Reference the "Model Defaults" section of `AGENTS.md`.
+    validations:
+      required: false
+
+  - type: textarea
+    id: artifact-contract
+    attributes:
+      label: Artifact contract impact
+      description: |
+        Does the change alter what the agent writes to `.wannabuild/outputs/`,
+        `.wannabuild/review/`, or any other artifact? If yes, list the
+        affected artifacts and fields.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have updated `AGENTS.md` if the operator contract changed.
+          required: false
+        - label: I have updated the relevant `SKILL.md` if orchestrator behavior changed.
+          required: false

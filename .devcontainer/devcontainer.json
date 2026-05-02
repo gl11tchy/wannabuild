@@ -1,0 +1,40 @@
+{
+  "name": "WannaBuild",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false
+    },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.11" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "DavidAnson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "files.eol": "\n",
+        "shellcheck.enable": true,
+        "[shellscript]": { "editor.defaultFormatter": "foxundermoon.shell-format" },
+        "[markdown]": { "editor.defaultFormatter": "esbenp.prettier-vscode" }
+      }
+    }
+  },
+  "remoteEnv": { "WB_DEV_CONTAINER": "1" },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "forwardPorts": [],
+  "remoteUser": "vscode"
+}

@@ -34,8 +34,10 @@ You will receive the requirements spec (`spec/requirements.md`) and the existing
 
 ### Architecture Diagram
 ```
+
 [ASCII diagram showing component relationships]
-```
+
+```text
 
 ### Data Models
 #### [Model Name]
@@ -57,8 +59,10 @@ You will receive the requirements spec (`spec/requirements.md`) and the existing
 
 ### File Structure
 ```
+
 [Proposed file/directory layout]
-```
+
+```text
 
 ### Testing Strategy
 #### Test Framework

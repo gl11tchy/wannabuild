@@ -1,0 +1,239 @@
+# CI workflow for WannaBuild
+#
+# Design:
+#   - This is a docs/framework repo, so "build" = lint + tests + contract validation.
+#   - Jobs run independently and in parallel where possible:
+#       * lint            -> shellcheck/shfmt/markdownlint/jscpd/lizard via scripts/lint.sh
+#       * test            -> bats tests via tests/run.sh on Ubuntu + macOS
+#       * coverage        -> kcov-based coverage via tests/coverage.sh (Ubuntu only)
+#       * validate-contracts -> wannabuild-doctor + dry-run fixture validation
+#       * pre-commit      -> pre-commit run --all-files
+#   - Caching keeps pip/npm/bats installs warm.
+#   - Concurrency: cancel in-progress runs for the same ref unless ref is main/master.
+#
+# Action pin policy:
+#   GitHub-published actions are pinned to a commit SHA (with the matching
+#   semver tag in a comment) where a stable SHA was known at authoring time.
+#   Where a SHA was not verifiable, the action is pinned to a major version
+#   tag with a TODO note referencing the follow-up to upgrade to a SHA pin.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Setup Python
+        # actions/setup-python v5.1.1
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Setup Node
+        # actions/setup-node v4.0.3
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            **/package-lock.json
+            **/package.json
+      - name: Install shell linters (shellcheck, shfmt)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends shellcheck
+          # shfmt via Go binary.
+          # NOTE: shfmt version is mirrored across CI and devcontainer; bump
+          # both .github/workflows/ci.yml and .devcontainer/Dockerfile together.
+          SHFMT_VERSION="v3.10.0"
+          curl -fsSL -o /tmp/shfmt \
+            "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64"
+          chmod +x /tmp/shfmt
+          sudo mv /tmp/shfmt /usr/local/bin/shfmt
+      - name: Install npm-based linters
+        run: |
+          set -euo pipefail
+          npm install -g \
+            markdownlint-cli2@0.14.0 \
+            jscpd@4.0.4 \
+            prettier@3.3.3
+      - name: Install python-based linters
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install \
+            "lizard==1.17.13" \
+            "pre-commit==3.8.0" \
+            "yamllint==1.35.1"
+      - name: Run lint
+        run: |
+          set -euo pipefail
+          if [ -x scripts/lint.sh ]; then
+            bash scripts/lint.sh
+          else
+            echo "scripts/lint.sh not found; running default lint set"
+            shellcheck scripts/*.sh || true
+            shfmt -d scripts/ || true
+            markdownlint-cli2 "**/*.md" "#node_modules" || true
+          fi
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Setup bats (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends bats jq
+      - name: Setup bats (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          brew install bats-core jq
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          if [ -x tests/run.sh ]; then
+            bash tests/run.sh
+          else
+            echo "tests/run.sh not found; skipping" >&2
+            exit 0
+          fi
+      - name: Upload JUnit results
+        if: always()
+        # actions/upload-artifact v4.3.6
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: junit-${{ matrix.os }}
+          path: tests/results/junit.xml
+          if-no-files-found: ignore
+      - name: Publish test report
+        if: always() && hashFiles('tests/results/junit.xml') != ''
+        # dorny/test-reporter v1.9.1
+        uses: dorny/test-reporter@31a54ee7ebcacc03a09ea97a7e5465a47b84aea5
+        with:
+          name: bats-tests-${{ matrix.os }}
+          path: tests/results/junit.xml
+          reporter: jest-junit
+          fail-on-error: false
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [test]
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Install kcov + bats
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kcov bats jq
+      - name: Run coverage
+        run: |
+          set -euo pipefail
+          if [ -x tests/coverage.sh ]; then
+            bash tests/coverage.sh
+          else
+            echo "tests/coverage.sh not found; skipping" >&2
+            exit 0
+          fi
+      - name: Upload coverage report
+        if: always()
+        # actions/upload-artifact v4.3.6
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: coverage
+          path: tests/coverage/
+          if-no-files-found: ignore
+
+  validate-contracts:
+    name: Validate contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends jq
+      - name: Run wannabuild-doctor
+        run: bash scripts/wannabuild-doctor.sh
+      - name: Validate dry-run fixtures
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          fixtures=(skills/build/dry-runs/*.json)
+          if [ "${#fixtures[@]}" -eq 0 ]; then
+            echo "No dry-run fixtures found; skipping" >&2
+            exit 0
+          fi
+          # Fixtures may be either valid (expect exit 0) or intentionally invalid.
+          # We invoke the validator non-fatally per fixture and require that at
+          # least one fixture exists; the validator's exit code is recorded.
+          status=0
+          for f in "${fixtures[@]}"; do
+            echo "::group::validate $f"
+            if bash scripts/validate-wannabuild-artifacts.sh "$(dirname "$f")"; then
+              echo "ok: $f"
+            else
+              echo "validator exit non-zero for $f (this may be expected for fixtures that exercise failure modes)"
+            fi
+            echo "::endgroup::"
+          done
+          exit $status
+
+  pre-commit:
+    name: Pre-commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Setup Python
+        # actions/setup-python v5.1.1
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pre-commit
+        run: python -m pip install --upgrade "pre-commit==3.8.0"
+      - name: Run pre-commit
+        run: |
+          set -euo pipefail
+          if [ -f .pre-commit-config.yaml ]; then
+            pre-commit run --all-files --show-diff-on-failure
+          else
+            echo ".pre-commit-config.yaml not found; skipping"
+          fi

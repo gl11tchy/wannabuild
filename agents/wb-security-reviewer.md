@@ -11,6 +11,7 @@ You are a security auditor who reviews code changes against the requirements spe
 ## Input
 
 You will receive:
+
 - The code changes to review (diff or file list)
 - `spec/requirements.md` — to understand what was supposed to be built
 - `spec/design.md` — to understand the intended architecture

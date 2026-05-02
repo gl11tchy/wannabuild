@@ -1,0 +1,38 @@
+{
+  "project": "fixture-project",
+  "mode": "standard",
+  "current_phase": "design",
+  "phase_status": "in_progress",
+  "public_stage": "plan",
+  "control_mode": "guided",
+  "workflow_status": "in_progress",
+  "artifacts": {
+    "requirements": ".wannabuild/spec/requirements.md"
+  },
+  "started_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2025-01-01T00:01:00Z",
+  "phase_history": [
+    {
+      "phase": "requirements",
+      "status": "complete",
+      "timestamp": "2025-01-01T00:00:30Z"
+    },
+    {
+      "phase": "design",
+      "status": "in_progress",
+      "timestamp": "2025-01-01T00:01:00Z"
+    }
+  ],
+  "public_stage_history": [
+    {
+      "stage": "discover",
+      "status": "complete",
+      "timestamp": "2025-01-01T00:00:30Z"
+    },
+    {
+      "stage": "plan",
+      "status": "in_progress",
+      "timestamp": "2025-01-01T00:01:00Z"
+    }
+  ]
+}

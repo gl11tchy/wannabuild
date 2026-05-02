@@ -3,6 +3,7 @@
 Primary WannaBuild adapter.
 
 Use the repo directly:
+
 - `AGENTS.md`
 - `skills/`
 - `agents/`
@@ -30,5 +31,6 @@ Verify the repo-native contract:
 ```
 
 See:
+
 - [docs/codex-getting-started.md](../../docs/codex-getting-started.md)
 - [docs/host-capability-matrix.md](../../docs/host-capability-matrix.md)

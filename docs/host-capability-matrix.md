@@ -3,6 +3,7 @@
 WannaBuild is repo-native first.
 
 Host priority:
+
 - Co-primary: Codex, Claude Code
 - Secondary: Cursor
 
@@ -22,6 +23,7 @@ Host-agnostic:
 ## Canonical Entry Point
 
 The canonical path is:
+
 - root [AGENTS.md](../AGENTS.md)
 - `scripts/`
 - shared contracts and prompt files in the repo
@@ -35,6 +37,7 @@ If it only exists in adapter packaging, it is not core.
 Co-primary adapter.
 
 Provides:
+
 - `AGENTS.md` guidance
 - script-first workflows
 - local and web/cloud repo usage docs
@@ -46,6 +49,7 @@ Provides:
 Secondary adapter.
 
 Provides:
+
 - `.cursor/rules`
 - optional custom modes
 - repo-native usage docs
@@ -57,6 +61,7 @@ Provides:
 Co-primary adapter.
 
 Provides:
+
 - Marketplace install: `/plugin install wannabuild@gl11tchy`
 - Repo install: `scripts/install-claude-skill.sh`
 - Slash command: `/wannabuild`

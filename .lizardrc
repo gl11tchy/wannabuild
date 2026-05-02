@@ -1,0 +1,16 @@
+# Lizard cyclomatic-complexity configuration for WannaBuild.
+# Reference: https://github.com/terryyin/lizard
+#
+# Thresholds:
+#   - CCN (cyclomatic complexity per function): max 10
+#   - length (NLOC per function): max 80
+#   - arguments per function: max 5
+#
+# These are read by `scripts/check-complexity.sh` (lizard does not auto-load
+# this file, but we keep it as the canonical configuration source).
+
+CCN=10
+length=80
+arguments=5
+languages=shell
+exclude=.wannabuild/*,.worktrees/*,node_modules/*,.git/*,.factory/*
