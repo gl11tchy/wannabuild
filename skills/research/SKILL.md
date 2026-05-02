@@ -20,16 +20,17 @@ Trigger research when one or more of these are true:
 
 ## Research Agents
 
-Use a bounded set of existing specialists:
+Use the smallest useful set of existing specialists. Choose by uncertainty type, independence, expected evidence, capability tier, and reasoning effort.
 
-- `wb-tech-advisor`
-- `wb-architect`
-- `wb-risk-assessor`
+Common specialist fits:
 
-Optionally include:
+- `wb-tech-advisor` when technology choice, dependency, or build-vs-buy uncertainty matters
+- `wb-architect` when system shape, contracts, or integration boundaries are unclear
+- `wb-risk-assessor` when blast radius, security, migration, compliance, or operational risk is material
+- `wb-scope-analyst` when scope boundaries or MVP priority remain unclear
+- `wb-ux-perspective` when user journey, desired feel, or experience risk remains unclear
 
-- `wb-scope-analyst` when scope uncertainty remains high
-- `wb-ux-perspective` when user journey uncertainty remains high
+Record why each selected specialist was used, what it owned, and what evidence it produced. Do not use fixed agent counts or concrete model IDs.
 
 ## Output
 

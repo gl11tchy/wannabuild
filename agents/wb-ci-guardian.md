@@ -2,7 +2,6 @@
 name: wb-ci-guardian
 description: "Monitors CI pipeline and ensures all checks pass for WannaBuild ship phase. Verifies integration tests pass in CI before allowing merge."
 tools: Read, Bash, Grep, Glob
-model: sonnet
 ---
 
 # CI Guardian

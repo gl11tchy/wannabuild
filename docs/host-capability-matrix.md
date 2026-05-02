@@ -16,6 +16,7 @@ Host-agnostic:
 - daily-use trust harness and golden path demo
 - phase prompts and specialist prompt contracts
 - advisor escalation state contract and report validation
+- adaptive capability-tier and reasoning-effort policy
 - repo-native scripts and examples
 
 ## Canonical Entry Point
@@ -38,6 +39,7 @@ Provides:
 - script-first workflows
 - local and web/cloud repo usage docs
 - model-agnostic advisor escalation via read-only advisor equivalent when available
+- host mapping from core capability tiers to available models/reasoning controls
 
 ### Cursor
 
@@ -48,6 +50,7 @@ Provides:
 - optional custom modes
 - repo-native usage docs
 - prompt/report fallback for advisor escalation
+- prompt/report fallback for capability-tier decisions when explicit model controls are unavailable
 
 ### Claude Code
 
@@ -60,6 +63,7 @@ Provides:
 - Getting-started: `.claude/INSTALL.md`
 - Full adapter guide: `adapters/claude-code/README.md`
 - read-only advisor subagent fallback; Claude API adapters may map to native `advisor_20260301`
+- host mapping from core capability tiers to available Claude Code model controls
 
 ## Capability Table
 
@@ -77,6 +81,7 @@ Provides:
 | Repo-only usage | Yes | Yes | Yes | Yes |
 | Getting-started doc | No | Yes | No | Yes |
 | Advisor escalation | State/report contract | Read-only advisor equivalent | Prompt/report fallback | Read-only subagent or native Claude API advisor |
+| Capability tier mapping | Tier/effort contract | Host mapped | Prompt/report fallback | Host mapped |
 
 ## Rule
 

@@ -1,6 +1,6 @@
 # Review Routing Rules
 
-This file defines how WannaBuild selects reviewers for retry iterations.
+This file defines how WannaBuild selects reviewers for each review iteration.
 
 ## Routing inputs
 - Changed files from latest checkpoint window
@@ -8,8 +8,15 @@ This file defines how WannaBuild selects reviewers for retry iterations.
 - `changed_files_from_last_checkpoint_window` from orchestrator handoff
 - Any explicit risk tag from previous feedback
 
-## Base reviewer sets
-- Standard mode: `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-integration-tester`, `wb-code-simplifier`
+## Reviewer pool
+- `wb-security-reviewer`
+- `wb-performance-reviewer`
+- `wb-architecture-reviewer`
+- `wb-testing-reviewer`
+- `wb-integration-tester`
+- `wb-code-simplifier`
+
+Select from this pool based on changed surfaces, acceptance criteria, risk, and prior failures. Do not default to a fixed count or a fixed full set.
 
 ## Impact mapping
 - `wb-security-reviewer`: auth/session/session-id/state/authz/crypto/secret/input-validation changes
@@ -17,18 +24,16 @@ This file defines how WannaBuild selects reviewers for retry iterations.
 - `wb-architecture-reviewer`: module boundaries, API contracts, state-shape changes, route wiring
 - `wb-testing-reviewer`: test harness, fixture updates, assertions, test config changes
 - `wb-code-simplifier`: broad refactors, file removals, duplicated logic cleanup
-- `wb-integration-tester`: **always included** when reviewers are run in review iteration 2+
+- `wb-integration-tester`: **always included** for every review iteration
 
 ## Routing algorithm
-1. Default to base set for iteration 1.
-2. On iteration 2+:
-   - Start with impacted reviewer set from change classification.
-   - Always include `wb-integration-tester`.
-   - If no impacted files can be confidently mapped, or if previous iteration fails are ambiguous -> fallback to base set.
-3. If no changed files can be inferred (resume edge case), use `diff summary + spec excerpt` fallback and run base set.
-4. In fast-track mode, if any reviewer fails, next iteration must fall back to full base set.
+1. Infer impacted reviewers from changed files, acceptance criteria, checkpoint evidence, prior failures, and risk profile.
+2. Always include `wb-integration-tester`.
+3. If no impacted files can be confidently mapped, or if previous iteration failures are ambiguous, broaden the reviewer set until risk ownership is covered.
+4. If no changed files can be inferred (resume edge case), use `diff summary + spec excerpt` fallback and include reviewers that cover any plausible changed surfaces.
+5. In fast-track mode, if any reviewer fails, next iteration must include the failed reviewer, the integration tester, and any additional reviewers needed to cover uncertainty.
 
-## Confidence reasons (for fallback)
+## Confidence reasons (for broadening)
 - Missing checkpoint window
 - Mixed risk indicators across unrelated files
 - Previous iteration had parse/JSON/contract failures

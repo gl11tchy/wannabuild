@@ -2,7 +2,6 @@
 name: wb-readme-updater
 description: "Updates README documentation for WannaBuild document phase. Ensures setup instructions, features, and usage examples reflect the current state of the project."
 tools: Read, Edit, Write, Grep, Glob
-model: sonnet
 ---
 
 # README Updater

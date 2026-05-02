@@ -4,13 +4,15 @@
 
 ## Agents
 
-Tasks use a sequential-then-parallel pattern with three agents:
+Tasks can use these specialist perspectives when they materially improve task quality:
 
-| Agent | File | Role | Execution |
-|-------|------|------|-----------|
-| Task Decomposer | `wb-task-decomposer` | Breaks design into atomic tasks | **First** (needs design spec) |
-| Dependency Mapper | `wb-dependency-mapper` | Maps task dependencies and critical path | **Then parallel** |
-| Scope Validator | `wb-scope-validator` | Validates task coverage against requirements | **Then parallel** |
+| Agent | File | Role |
+|---|---|---|
+| Task Decomposer | `wb-task-decomposer` | Breaks design into atomic tasks |
+| Dependency Mapper | `wb-dependency-mapper` | Maps task dependencies, critical path, and parallelization opportunities |
+| Scope Validator | `wb-scope-validator` | Validates task coverage against requirements |
+
+Do not force a fixed three-agent pattern. The orchestrator chooses the smallest useful set based on complexity, coupling, risk, and uncertainty.
 
 ## Trigger Conditions
 
@@ -39,79 +41,43 @@ Tasks use a sequential-then-parallel pattern with three agents:
 
 ## Execution Flow
 
-```
-spec/requirements.md + spec/design.md (input)
-        │
-        ▼
-┌──────────────────────────┐
-│  Task Decomposer (first) │
-│  Reads both specs        │
-│  Produces task list      │
-└────────────┬─────────────┘
-             │
-             ▼
-┌────────────────────────────────────────┐
-│  Parallel Validation                   │
-│                                        │
-│  ┌────────────────┐ ┌───────────────┐  │
-│  │  Dependency    │ │    Scope      │  │
-│  │   Mapper       │ │  Validator    │  │
-│  │  (ordering)    │ │  (coverage)   │  │
-│  └───────┬────────┘ └──────┬────────┘  │
-│          │                 │           │
-└──────────┼─────────────────┼───────────┘
-           │                 │
-           ▼                 ▼
-     ┌──────────────────────────────┐
-     │  Orchestrator                │
-     │  Merge: tasks + deps + gaps  │
-     └─────────────┬────────────────┘
-                   │
-                   ▼
-     Present to user for review
-                   │
-                   ▼
-     Write .wannabuild/spec/tasks.md
-```
+1. Read `spec/requirements.md` and `spec/design.md` completely.
+2. Decide whether the task plan can be produced single-owner or needs specialist analysis.
+3. Use task decomposition first only when the work needs structured breakdown before dependency or coverage review.
+4. Add dependency mapping, scope validation, or other checks only when they answer distinct questions.
+5. Record delegation rationale in `.wannabuild/decisions.md`.
+6. Present the task plan to the user for review.
+7. Write `.wannabuild/spec/tasks.md`.
 
 ## Agent Spawning
 
-**Step 1 — Task Decomposer (foreground, must complete first)**
+**Adaptive pattern**
 ```
-Task(subagent_type="wb-task-decomposer")
-  prompt: "Decompose into tasks. Requirements: {requirements_path}. Design: {design_path}. Codebase: {codebase_path}.
-           Write your full task list to .wannabuild/outputs/task-decomposer.md.
-           Return ONLY: 'COMPLETE — [N] tasks decomposed. Report at .wannabuild/outputs/task-decomposer.md'"
+Task(subagent_type="<selected specialist>", run_in_background=<true only when independent>)
+  capability_tier: <lightweight / standard / strong>
+  reasoning_effort: <low / medium / high>
+  ownership: <task decomposition / dependency mapping / scope coverage / test planning>
+  prompt: "Analyze the requirements and design for <specific ownership area>.
+           Write your full report to .wannabuild/outputs/<agent>-tasks.md.
+           Return ONLY: 'COMPLETE - [one sentence]. Report at <path>'"
 ```
 
-After Step 1 completes, read `.wannabuild/outputs/task-decomposer.md` to get the task list for passing to Step 2 agents.
-
-**Step 2 — Dependency Mapper + Scope Validator (parallel background)**
-```
-Task(subagent_type="wb-dependency-mapper", run_in_background=true)
-  prompt: "Map dependencies for tasks at .wannabuild/outputs/task-decomposer.md. Design: {design_path}.
-           Write your full dependency analysis to .wannabuild/outputs/dependency-mapper.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/dependency-mapper.md'"
-
-Task(subagent_type="wb-scope-validator", run_in_background=true)
-  prompt: "Validate coverage. Requirements: {requirements_path}. Design: {design_path}. Tasks: .wannabuild/outputs/task-decomposer.md.
-           Write your full validation report to .wannabuild/outputs/scope-validator.md.
-           Return ONLY: 'COMPLETE — [one sentence summary]. Report at .wannabuild/outputs/scope-validator.md'"
-```
+Use multiple agents only when their work can proceed independently or when sequential output from one agent is needed before the next decision.
 
 ## Synthesis
 
-After all agents complete, the orchestrator reads `.wannabuild/outputs/task-decomposer.md`, `.wannabuild/outputs/dependency-mapper.md`, and `.wannabuild/outputs/scope-validator.md`:
+After selected analysis completes, the orchestrator reads the relevant `.wannabuild/outputs/` files:
 
-1. **Start with the task list** from Task Decomposer
-2. **Overlay dependencies** from Dependency Mapper (update task Dependencies fields)
-3. **Address coverage gaps** from Scope Validator:
+1. **Start with a coherent task list** derived from the requirements and design
+2. **Overlay dependencies** when dependency analysis was run
+3. **Address coverage gaps** when scope validation was run:
    - Missing tasks → add them
    - Scope creep tasks → flag for user decision
    - Missing integration tests → add Integration Test field to tasks
-4. **Add critical path** and parallelization info from Dependency Mapper
-5. **Final validation:** Every task has files, acceptance criteria, integration test requirements, and micro-step checkpoints
-6. **Present to user** for review
+4. **Add critical path** and parallelization info when useful
+5. **Add delegation guidance:** note which slices should stay single-owner and which can run in parallel
+6. **Final validation:** Every task has files, acceptance criteria, integration test requirements, and micro-step checkpoints
+7. **Present to user** for review
 
 ## Output Artifact
 
@@ -155,6 +121,12 @@ Task [X] → Task [Y] → Task [Z]
 ## Parallelization Opportunities
 - **Group A:** Tasks [X, Y] (no mutual dependencies)
 - **Group B:** Tasks [Z, W] (after Group A)
+
+## Delegation Guidance
+- **Recommended shape:** [single-owner / focused specialist / parallel slices]
+- **Capability tier:** [lightweight / standard / strong]
+- **Reasoning effort:** [low / medium / high]
+- **Rationale:** [complexity, coupling, risk, uncertainty, ownership]
 
 ## Coverage Summary
 - **Requirements covered:** [N/N] (100%)
@@ -213,14 +185,14 @@ The user can:
 - [ ] Every task has verifiable acceptance criteria
 - [ ] Every user-facing task has an Integration Test field
 - [ ] Dependencies are correctly mapped (no circular deps)
-- [ ] Critical path is identified
+- [ ] Critical path is identified when dependency mapping was needed
 - [ ] All requirements from `spec/requirements.md` have task coverage
 - [ ] All acceptance criteria have integration test coverage in task specs
 - [ ] Task sizes are honest (no L tasks that should be broken down)
 - [ ] Every task includes ordered Micro-Steps with 2–5 min granularity
 - [ ] Every micro-step has Verify + Checkpoint fields
 - [ ] No single micro-step exceeds ~15 minutes without explicit split
-- [ ] Scope Validator verdict is PASS
+- [ ] Scope Validator verdict is PASS when scope validation was run
 
 ## Contract Validation
 
@@ -228,8 +200,8 @@ The user can:
   - `## Tasks`
   - Task entries with `**Files:**`, `**Acceptance:**`, `**Integration Test:**`
   - `Micro-Steps` entries that include `**Verify:**` and `**Checkpoint:**`
-- `Scope-validator` must return PASS before implementation starts.
-- `Dependency-mapper` must provide `critical_path` and `parallelization` sections.
+- If scope validation was run, `Scope-validator` must return PASS before implementation starts.
+- If dependency mapping was run, `Dependency-mapper` must provide `critical_path` and `parallelization` sections.
 - Task IDs from `Tasks` must map to requirement items from `requirements.md` (no orphan tasks).
 
 ## Edge Cases

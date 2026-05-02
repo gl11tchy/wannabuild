@@ -21,14 +21,14 @@ Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Imp
 
 ## Overview
 
-WannaBuild is a repo-native framework for running a disciplined product-development loop with AI agents. The user experience stays compact:
+WannaBuild is a repo-native framework for running a disciplined product-development loop with AI agents. The user experience stays conversational and compact:
 
-1. Discover the real goal
+1. Discover the real vision, flows, feel, and feature priorities
 2. Choose guided or autonomous progression
 3. Decide whether optional research will improve planning
 4. Produce a plan
 5. Verify the approach
-6. Implement in solo or parallel mode
+6. Implement with an adaptive solo or parallel shape
 7. Review from the right specialist angles
 8. Run QA against acceptance criteria
 9. Return a concise summary with gaps and remaining work
@@ -47,7 +47,7 @@ Most AI coding flows fail in predictable ways:
 - QA is hand-wavy
 - final summaries are noisy or incomplete
 
-WannaBuild fixes that by making specs and verification first-class while keeping the visible workflow short.
+WannaBuild fixes that by making vision, specs, and verification first-class while keeping the visible workflow short.
 
 ## Workflow
 
@@ -57,8 +57,9 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 
 ### Discover
 
-- Ask focused questions to clarify goals, constraints, scope, and flavor.
-- Produce a crisp problem brief instead of jumping straight into code.
+- Interview for vision, audience, desired feel, core flows, features, constraints, priorities, non-goals, and success signals.
+- Infer and synthesize requirements after the interview instead of expecting the user to arrive with everything ready.
+- Derive acceptance criteria and integration scenarios from the clarified vision rather than making tests the center of discovery.
 
 ### Control Mode
 
@@ -73,12 +74,14 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 
 ### Optional Research
 
-- When uncertainty is still high, WannaBuild can ask whether to kick off research agents or move straight to planning.
+- When uncertainty is still high, WannaBuild can ask whether to kick off bounded research agents or move straight to planning.
 - Research is adaptive and user-approved, not a permanent required phase.
+- The orchestrator chooses specialist count, capability tier, and reasoning effort from the uncertainty involved.
 
 ### Implement
 
-- Offer single agent mode or parallel mode.
+- Offer or choose the implementation shape based on task independence, coupling, risk, and required expertise.
+- Use parallel agents only when slices have distinct ownership and expected evidence.
 - Use checkpoints so progress, verification, and resume paths stay explicit.
 
 ### Review
@@ -97,8 +100,8 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 - Report what passed.
 - Call out gaps, risks, and remaining work.
 
-Parallelism is selective. In practice, Discover, Plan, QA, and Summary are usually single-lane. Fan-out is most useful during implementation and review when the work splits cleanly.
-Research is the other place where bounded multi-agent fan-out can help.
+Parallelism is selective. The orchestrator decides how many sub-agents to use, which capability tier they need, and how much reasoning effort is justified by task complexity, coupling, risk, and uncertainty.
+Single-owner work is preferred when coherence matters. Fan-out is useful for independent discovery perspectives, disjoint implementation slices, and review hats with distinct risk ownership.
 
 ## Install
 
@@ -232,7 +235,7 @@ WannaBuild writes structured state and evidence into `.wannabuild/`:
 
 Core artifact roles:
 
-- `requirements.md`: goals, scope, acceptance criteria, test scenarios
+- `requirements.md`: vision brief, audience, desired feel, core flows, feature priorities, scope, assumptions, acceptance criteria, test scenarios
 - `design.md`: architecture, contracts, risks, testing direction
 - `tasks.md`: ordered implementation slices with verification expectations
 - `checkpoints/`: implementation evidence and resume anchors
@@ -282,6 +285,7 @@ These specialists power the framework under the hood:
 | Handoff | `wb-pr-craftsman`, `wb-ci-guardian`, `wb-readme-updater`, `wb-api-doc-generator`, `wb-changelog-writer` |
 
 The specialist system exists to improve output quality, not to force the user through a committee-shaped workflow.
+Core workflow docs express model choice as capability tiers and reasoning effort. Host adapters map those tiers to whichever models and controls are available.
 
 ## Portability
 

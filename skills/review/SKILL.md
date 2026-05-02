@@ -4,14 +4,16 @@
 
 Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. The active reviewer set for each iteration must unanimously PASS for code to ship. The integration tester is a hard gate — no override for missing tests.
 
-The reviewer set depends on iteration:
-- **Iteration 1:** run the base review set
-- **Iteration 2+:** run only impacted reviewers + `wb-integration-tester` always
-- **Fallback:** if impact is ambiguous, run the base set
+The reviewer set is adaptive:
+- Choose reviewers from changed surfaces, acceptance criteria, risk, and prior failures.
+- Always include `wb-integration-tester`.
+- Add reviewers only when they have distinct risk ownership and expected evidence.
+- If impact is ambiguous, broaden the reviewer set.
+- Record reviewer selection rationale in `.wannabuild/decisions.md` or review notes.
 
 ## Agents
 
-### Base Review Set
+### Reviewer Pool
 
 | Agent | File | Role | Hard Gate? |
 |-------|------|------|------------|
@@ -24,10 +26,10 @@ The reviewer set depends on iteration:
 
 ## Fast-Track Review Contract (Mode-agnostic)
 
-- Iteration 1 may start with the reduced reviewer set only if matrix criteria in `AGENTS.md` are met.
+- Iteration 1 may start with a reduced reviewer set only if the fast-track matrix in `skills/build/SKILL.md` is met and the rationale is recorded.
 - Set must always include `wb-integration-tester`.
-- Any FAIL in fast-track triggers the next iteration to run the full base reviewer set.
-- If impact routing confidence is unclear, route to the full base reviewer set immediately.
+- Any FAIL in fast-track triggers the next iteration to run the impacted reviewers plus any reviewers needed to cover uncertainty.
+- If impact routing confidence is unclear, broaden the reviewer set immediately.
 - Do not reduce hard-gate logic in any scenario.
 
 ## Trigger Conditions
@@ -72,49 +74,34 @@ If this check fails, do not spawn reviewers; present the exact validation errors
 
 ## Execution Flow
 
-```
-Code changes + spec artifacts (input)
-        │
-        ▼
-┌──────────────────────────────────────────────────────────────┐
-│ Iteration 1: Base reviewer set                              │
-│   - security, performance, architecture, testing,          │
-│     integration, code-simplifier                           │
-└──────────────────────────────────────────────────────────────┘
-        │
-        ▼
-Collect verdicts → update loop-state → all active reviewers PASS?
-        │
-   YES  ▼                                     NO
-      Ship                        Aggregate failures + changed files
-                                              │
-                                              ▼
-                                Escalated implementer remediates
-                                              │
-                                              ▼
-┌──────────────────────────────────────────────────────────────┐
-│ Iteration 2+: Adaptive reviewer rerun                       │
-│   active_reviewers = impacted_reviewers(changes, failures)  │
-│                      + integration tester (always)           │
-│   if impact uncertain: fallback to full base reviewer set    │
-└──────────────────────────────────────────────────────────────┘
-```
+1. Read specs, checkpoints, changed-file summaries, and test output.
+2. Select reviewers by changed surfaces, risk, acceptance criteria, and prior failures.
+3. Include `wb-integration-tester` in every review iteration.
+4. Choose capability tier and reasoning effort for each reviewer based on risk and ambiguity.
+5. Run selected reviewers in parallel when their inspections are independent.
+6. Collect verdicts, update loop state, and route remediation if any active reviewer fails.
+7. On retries, rerun impacted reviewers plus the integration hard gate; broaden if confidence is low.
 
 ## Agent Spawning
 
 Build the reviewer list per iteration before spawning:
 
 ```
-base_reviewers = [wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer, wb-testing-reviewer, wb-integration-tester, wb-code-simplifier]
+active_reviewers = infer_reviewers(
+  changed_files,
+  acceptance_criteria,
+  checkpoints,
+  prior_failures,
+  risk_profile
+)
 
-IF iteration == 1:   # first pass
-  active_reviewers = base_reviewers
-ELSE:
-  impacted = infer_impacted_reviewers(changed_files_since_last_iteration, prior_failures)
-  active_reviewers = union(impacted, [wb-integration-tester])
+active_reviewers = union(active_reviewers, [wb-integration-tester])
 
-  IF active_reviewers empty OR impact uncertain:
-    active_reviewers = base_reviewers
+IF active_reviewers has no distinct reviewer beyond integration AND risk is low:
+  proceed with integration hard gate only
+
+IF impact uncertain OR blast radius high:
+  broaden active_reviewers until risk ownership is covered
 ```
 
 Spawn only `active_reviewers` in parallel (background):
@@ -122,10 +109,15 @@ Spawn only `active_reviewers` in parallel (background):
 ```
 for reviewer in active_reviewers:
   Task(subagent_type="[reviewer]", run_in_background=true)
+    capability_tier: <lightweight / standard / strong>
+    reasoning_effort: <low / medium / high>
+    ownership: <risk class, file surface, acceptance criteria, or test concern>
     prompt: "Review using relevant specs + scoped diff context.
              Write full JSON verdict to .wannabuild/review/[reviewer]-iter-{N}.json.
              Return one-line VERDICT summary with file path."
 ```
+
+Do not spawn a reviewer that has no relevant risk surface to inspect.
 
 ### Reviewer Impact Routing Matrix
 
@@ -138,7 +130,7 @@ Use changed files from last checkpoint window + prior failures to choose impacte
 - `wb-code-simplifier`: large refactors, abstraction churn, dead-code risk areas.
 - `wb-integration-tester`: **always included** (hard gate).
 
-If routing confidence is low, run the full base reviewer set for the selected mode.
+If routing confidence is low, broaden the reviewer set until the changed surfaces and risks are covered.
 
 ### Context Scope Rules
 
@@ -287,16 +279,16 @@ Elite Code Review can also run standalone (outside the WannaBuild pipeline):
 ```
 User: /wannabuild-review
 
-Orchestrator: I'll review the recent changes with my specialist team...
-[Spawns the mode base reviewer set against the current diff or specified files]
+Orchestrator: I'll review the recent changes with the relevant specialist perspectives...
+[Selects reviewers from changed surfaces, risk, and test evidence]
 [Reports verdicts]
 ```
 
-When running standalone without spec artifacts, reviewers use general best practices instead of spec validation. The integration tester checks for test existence rather than spec coverage mapping. Standalone runs use the same base review set.
+When running standalone without spec artifacts, reviewers use general best practices instead of spec validation. The integration tester checks for test existence rather than spec coverage mapping. Standalone runs still use adaptive reviewer selection.
 
 ## Quality Checklist
 
-- [ ] Active reviewer set selected correctly for the iteration (base on iter-1, adaptive on retries)
+- [ ] Active reviewer set selected from changed surfaces, risk, acceptance criteria, and prior failures
 - [ ] Integration tester included in every iteration
 - [ ] Verdicts are valid JSON with required fields
 - [ ] Loop state updated in `loop-state.json` (includes `active_reviewers` and counts)
@@ -307,10 +299,10 @@ When running standalone without spec artifacts, reviewers use general best pract
 ## Contract Validation
 
 - If any review artifact is malformed (`state.json`, checkpoint window, verdict JSON), route to `blocked` status and request user clarification.
-- Iteration 1 uses the base review set; iterations 2+ use:
-  - impacted reviewers from change surface
+- Reviewer selection uses:
+  - impacted reviewers from changed surfaces and prior failures
   - plus `wb-integration-tester` always
-  - fallback to base set if routing confidence is low
+  - broader coverage if routing confidence is low
 - Hard gate rule: `wb-integration-tester` must be PASS for all approved states.
 - Merge iteration feedback by file and severity before passing to implementer remediation.
 

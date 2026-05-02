@@ -2,7 +2,6 @@
 name: wb-pr-craftsman
 description: "Creates well-structured pull requests for WannaBuild ship phase. Writes PR titles, descriptions, and ensures branch is ready for review."
 tools: Read, Bash, Grep, Glob
-model: sonnet
 ---
 
 # PR Craftsman

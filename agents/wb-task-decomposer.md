@@ -2,7 +2,6 @@
 name: wb-task-decomposer
 description: "Decomposes design specs into ordered, atomic implementation tasks for WannaBuild tasks phase. Each task targets specific files with clear acceptance criteria."
 tools: Read, Grep, Glob
-model: opus
 ---
 
 # Task Decomposer

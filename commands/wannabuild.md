@@ -1,11 +1,11 @@
 ---
-description: Start the WannaBuild spec-driven development workflow
+description: Start the WannaBuild vision-first, spec-driven development workflow
 argument-hint: [what you want to build]
 ---
 
 # /wannabuild
 
-Start the WannaBuild spec-driven development workflow.
+Start the WannaBuild vision-first, spec-driven development workflow.
 
 If invoked with no task or only a question about the workflow:
 
@@ -25,7 +25,7 @@ If invoked with a concrete task:
 
 1. Check for `.wannabuild/state.json` — if it exists and is recoverable, resume with:
    `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
-2. Otherwise emit the start banner and begin Discover.
+2. Otherwise emit the start banner and begin the vision-first Discover interview.
    The `wannabuild` skill handles mandatory workspace/worktree bootstrap before phase work.
 
 Deduplication guard:

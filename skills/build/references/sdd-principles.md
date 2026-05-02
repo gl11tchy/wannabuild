@@ -18,9 +18,11 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 ## Three Spec Artifacts
 
 ### 1. Requirements Spec (`spec/requirements.md`)
-**What** to build. Written in user language.
-- User stories with acceptance criteria
-- Integration test scenarios for every story
+**What** to build and why it should feel right. Written in user language.
+- Vision brief, audience, desired experience, and core flows
+- Feature priorities, assumptions, open questions, and non-goals
+- User stories or jobs-to-be-done with acceptance criteria
+- Integration test scenarios derived after the main flows are understood
 - Explicit scope boundaries (in/out)
 - Success metrics
 
@@ -35,10 +37,10 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 ### 3. Task Spec (`spec/tasks.md`)
 **Do** — the ordered work. Written as atomic units.
 - Each task targets specific files
-- Dependencies explicitly mapped
+- Dependencies explicitly mapped when dependency analysis is needed
 - Every task includes required integration tests
 - Complexity sized (S/M/L)
-- Critical path identified
+- Critical path identified when it materially affects sequencing or delegation
 
 ## SDD Rules
 
@@ -93,7 +95,13 @@ Integration tests are the sweet spot: they catch real bugs without the brittlene
 ### requirements.md
 ```markdown
 # Requirements Spec
-## User Stories
+## Vision Brief
+[What the user wants to create, why it matters, and what great should feel like.]
+## Audience and Use Context
+## Desired Experience and Feel
+## Core User Flows
+## Feature Inventory and Priorities
+## User Stories / Jobs To Be Done
 - As a [user], I want [feature], so that [value]
 ## Acceptance Criteria
 - [ ] Criterion 1
@@ -102,10 +110,12 @@ Integration tests are the sweet spot: they catch real bugs without the brittlene
 ### In Scope
 ### Out of Scope
 ## Integration Test Scenarios
-### [Story Name]
+### [Flow or Story Name]
 - **Happy path:** [expected flow and assertion]
-- **Error path:** [failure mode and expected behavior]
+- **Failure path:** [failure mode and expected behavior]
 - **Edge cases:** [boundary conditions]
+## Assumptions and Open Questions
+## Delegation Rationale
 ## Success Metrics
 ```
 
