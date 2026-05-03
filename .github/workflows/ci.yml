@@ -39,15 +39,15 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Setup Python
         # actions/setup-python v5.1.1
-        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.11"
       - name: Setup Node
         # actions/setup-node v4.0.3
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: "20"
       - name: Install shell linters (shellcheck, shfmt)
@@ -101,7 +101,7 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Setup bats (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -125,7 +125,7 @@ jobs:
       - name: Upload JUnit results
         if: always()
         # actions/upload-artifact v4.3.6
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: junit-${{ matrix.os }}
           path: tests/results/junit.xml
@@ -133,7 +133,7 @@ jobs:
       - name: Publish test report
         if: always() && hashFiles('tests/results/junit.xml') != ''
         # dorny/test-reporter v1.9.1
-        uses: dorny/test-reporter@31a54ee7ebcacc03a09ea97a7e5465a47b84aea5
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2
         with:
           name: bats-tests-${{ matrix.os }}
           path: tests/results/junit.xml
@@ -148,7 +148,7 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install kcov + bats
         run: |
           set -euo pipefail
@@ -171,7 +171,7 @@ jobs:
       - name: Upload coverage report
         if: always()
         # actions/upload-artifact v4.3.6
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage
           path: tests/coverage/
@@ -184,7 +184,7 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends jq
       - name: Run wannabuild-doctor
@@ -220,10 +220,10 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Setup Python
         # actions/setup-python v5.1.1
-        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.11"
       - name: Install pre-commit

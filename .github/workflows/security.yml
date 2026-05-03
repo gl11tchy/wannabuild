@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
       - name: Run gitleaks
@@ -56,10 +56,10 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Dependency review
         # actions/dependency-review-action v4.3.4
-        uses: actions/dependency-review-action@5a2ce3f5b92ee19cbb1541a4984c76d921601d7c
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
@@ -71,7 +71,7 @@ jobs:
     steps:
       - name: Checkout
         # actions/checkout v4.1.7
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Check workflow risk patterns
         run: |
           set -euo pipefail
