@@ -48,7 +48,7 @@ __WB_TRACE_DISABLED=0
 # disable tracing rather than failing under `set -euo pipefail`. Callers will
 # still source us cleanly; wb_trace_start / wb_trace_end short-circuit.
 if ! { : >"${__WB_TRACE_STACK_FILE}"; } 2>/dev/null \
-   || ! { : >"${__WB_TRACE_STATE_FILE}"; } 2>/dev/null; then
+  || ! { : >"${__WB_TRACE_STATE_FILE}"; } 2>/dev/null; then
   __WB_TRACE_DISABLED=1
   wb_log_warn "wb-trace: TMPDIR (${__WB_TRACE_TMPDIR}) not writable; tracing disabled"
 else
@@ -70,7 +70,7 @@ __wb_trace_now_ns() {
 __wb_trace_rand_hex() {
   # Generates N hex chars from /dev/urandom; portable across macOS and Linux.
   local n="$1"
-  local bytes=$(( (n + 1) / 2 ))
+  local bytes=$(((n + 1) / 2))
   if command -v xxd >/dev/null 2>&1; then
     head -c "${bytes}" /dev/urandom | xxd -p -c 256 | head -c "${n}"
   elif command -v od >/dev/null 2>&1; then
@@ -105,7 +105,8 @@ __wb_trace_attrs_json() {
   # wb_log_scrub so secrets that ended up in WB_RUN_ID, hostname, or script
   # paths are redacted before they reach the OTLP endpoint.
   local script="${BASH_SOURCE[1]:-${0}}"
-  local hostname; hostname="$(hostname 2>/dev/null || printf 'unknown')"
+  local hostname
+  hostname="$(hostname 2>/dev/null || printf 'unknown')"
   local run_id="${WB_RUN_ID:-}"
   printf '[{"key":"hostname","value":{"stringValue":"%s"}},{"key":"script","value":{"stringValue":"%s"}},{"key":"wb.run_id","value":{"stringValue":"%s"}}]' \
     "$(__wb_trace_json_escape "${hostname}")" \
@@ -134,8 +135,8 @@ __wb_trace_post() {
     done
   fi
   if ! curl -fsS -X POST --max-time 3 --retry 1 \
-        "${hdrs[@]}" -d "${payload}" "${url}" \
-        >/dev/null 2>&1; then
+    "${hdrs[@]}" -d "${payload}" "${url}" \
+    >/dev/null 2>&1; then
     wb_log_warn "wb-trace: OTLP export to ${url} failed (non-fatal)"
   fi
   return 0
@@ -149,7 +150,8 @@ wb_trace_start() {
     return 0
   fi
   local name="${1:-span}"
-  local span_id; span_id="$(__wb_trace_rand_hex 16)"
+  local span_id
+  span_id="$(__wb_trace_rand_hex 16)"
   local trace_id parent_id=""
   if [[ -s "${__WB_TRACE_STACK_FILE}" ]]; then
     parent_id="$(tail -n 1 "${__WB_TRACE_STACK_FILE}")"
@@ -160,7 +162,8 @@ wb_trace_start() {
   else
     trace_id="$(__wb_trace_rand_hex 32)"
   fi
-  local start_ns; start_ns="$(__wb_trace_now_ns)"
+  local start_ns
+  start_ns="$(__wb_trace_now_ns)"
   printf '%s|%s|%s|%s|%s\n' "${span_id}" "${trace_id}" "${parent_id}" "${name}" "${start_ns}" \
     >>"${__WB_TRACE_STATE_FILE}"
   printf '%s\n' "${span_id}" >>"${__WB_TRACE_STACK_FILE}"
@@ -191,7 +194,8 @@ wb_trace_end() {
   parent_id="$(printf '%s' "${row}" | awk -F'|' '{print $3}')"
   name="$(printf '%s' "${row}" | awk -F'|' '{print $4}')"
   start_ns="$(printf '%s' "${row}" | awk -F'|' '{print $5}')"
-  local end_ns; end_ns="$(__wb_trace_now_ns)"
+  local end_ns
+  end_ns="$(__wb_trace_now_ns)"
 
   # Remove span_id from stack and state files (in place).
   local tmp
@@ -209,7 +213,8 @@ wb_trace_end() {
   # OTLP export. Both the attributes object and the final payload run through
   # wb_log_scrub so anything secret-looking in WB_RUN_ID, hostname, the script
   # path, or the span name is redacted before it leaves the host.
-  local attrs; attrs="$(__wb_trace_attrs_json)"
+  local attrs
+  attrs="$(__wb_trace_attrs_json)"
   local payload
   payload="$(printf '{"resourceSpans":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"%s"}}]},"scopeSpans":[{"scope":{"name":"wb-trace.sh"},"spans":[{"traceId":"%s","spanId":"%s","parentSpanId":"%s","name":"%s","kind":1,"startTimeUnixNano":"%s","endTimeUnixNano":"%s","attributes":%s}]}]}]}' \
     "$(__wb_trace_json_escape "${OTEL_SERVICE_NAME:-wannabuild}")" \
@@ -225,7 +230,8 @@ wb_trace_end() {
 # ---- self-test ------------------------------------------------------------
 
 __wb_trace_self_test() {
-  local tmp; tmp="$(mktemp -t wb-trace-selftest.XXXXXX)"
+  local tmp
+  tmp="$(mktemp -t wb-trace-selftest.XXXXXX)"
   # shellcheck disable=SC2064
   trap "rm -f '${tmp}' '${__WB_TRACE_STACK_FILE}' '${__WB_TRACE_STATE_FILE}'" EXIT
 
@@ -275,7 +281,7 @@ __wb_trace_self_test() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   case "${1:-}" in
     --self-test) __wb_trace_self_test ;;
-    -h|--help|"")
+    -h | --help | "")
       sed -n '2,18p' "${BASH_SOURCE[0]}"
       ;;
     *)

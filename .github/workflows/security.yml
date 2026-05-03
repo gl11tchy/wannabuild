@@ -50,7 +50,7 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    if: github.event_name == 'pull_request' && github.event.repository.private == false
+    if: github.event_name == 'pull_request' && vars.WANNABUILD_ENABLE_DEPENDENCY_REVIEW == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

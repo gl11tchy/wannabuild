@@ -26,8 +26,14 @@ qa_summary="$project_root/.wannabuild/outputs/qa-summary.md"
 loop_state="$project_root/.wannabuild/loop-state.json"
 
 check_review() {
-  [[ -d "$review_dir" ]] || { echo "Missing review directory: $review_dir" >&2; return 1; }
-  compgen -G "$review_dir/*.json" >/dev/null || { echo "No review verdict files found in $review_dir" >&2; return 1; }
+  [[ -d "$review_dir" ]] || {
+    echo "Missing review directory: $review_dir" >&2
+    return 1
+  }
+  compgen -G "$review_dir/*.json" >/dev/null || {
+    echo "No review verdict files found in $review_dir" >&2
+    return 1
+  }
   python3 - "$review_dir" "$loop_state" <<'PY'
 import json
 from pathlib import Path
@@ -84,7 +90,10 @@ PY
 }
 
 check_qa() {
-  [[ -f "$qa_summary" ]] || { echo "Missing QA summary: $qa_summary" >&2; return 1; }
+  [[ -f "$qa_summary" ]] || {
+    echo "Missing QA summary: $qa_summary" >&2
+    return 1
+  }
 }
 
 case "$gate" in

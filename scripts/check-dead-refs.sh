@@ -33,9 +33,9 @@ while IFS=$'\t' read -r file target; do
   [[ -z "${file:-}" || -z "${target:-}" ]] && continue
   # Skip absolute URLs and mailto links.
   case "${target}" in
-    http://*|https://*|mailto:*|ftp://*|tel:*) continue ;;
-    /*) abs="${REPO_ROOT}${target}" ;;          # repo-rooted path
-    *)  abs="$(dirname -- "${file}")/${target}" ;;
+    http://* | https://* | mailto:* | ftp://* | tel:*) continue ;;
+    /*) abs="${REPO_ROOT}${target}" ;; # repo-rooted path
+    *) abs="$(dirname -- "${file}")/${target}" ;;
   esac
 
   # Skip placeholder targets (documentation examples like `[text](url)`):
@@ -58,11 +58,11 @@ while IFS=$'\t' read -r file target; do
   dead_links+=("${file} -> ${target}")
 done < <(
   rg --pcre2 --no-heading --no-line-number --only-matching \
-     --replace $'\t$1' \
-     -g '*.md' \
-     "${link_regex}" \
-     "${md_dirs[@]}" 2>/dev/null \
-  | awk -F'\t' 'NF>=2 {
+    --replace $'\t$1' \
+    -g '*.md' \
+    "${link_regex}" \
+    "${md_dirs[@]}" 2>/dev/null \
+    | awk -F'\t' 'NF>=2 {
        split($1, a, ":"); file=a[1];
        # rejoin remainder of $1 in case the path contained colons
        for (i=2; i<length(a); i++) file=file ":" a[i];
@@ -98,11 +98,11 @@ while IFS= read -r match; do
   defs+=("${match}")
 done < <(
   rg --no-heading --line-number \
-     -g '*.sh' \
-     '^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*\(\)[[:space:]]*\{' \
-     "${scripts_dir}" \
-  | sed -E 's/[[:space:]]*\(\).*$//' \
-  | awk -F: '{print $1 ":" $NF}'
+    -g '*.sh' \
+    '^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*\(\)[[:space:]]*\{' \
+    "${scripts_dir}" \
+    | sed -E 's/[[:space:]]*\(\).*$//' \
+    | awk -F: '{print $1 ":" $NF}'
 )
 
 for def in "${defs[@]}"; do
@@ -110,8 +110,8 @@ for def in "${defs[@]}"; do
   fn="${def##*:}"
   fn="$(echo "${fn}" | tr -d '[:space:]')"
   case "${fn}" in
-    main|usage|help) continue ;;       # conventional entrypoints
-    "")              continue ;;
+    main | usage | help) continue ;; # conventional entrypoints
+    "") continue ;;
   esac
 
   # Skip functions defined in sourced library files.
@@ -122,9 +122,9 @@ for def in "${defs[@]}"; do
   # Look for invocations. The regex excludes the definition line because
   # `fn(` is not allowed by `[^A-Za-z0-9_(]`, so any match is an actual call.
   if rg --no-heading -q \
-       -g '*.sh' \
-       "(^|[^A-Za-z0-9_])${fn}([[:space:]]|$|[^A-Za-z0-9_(])" \
-       "${scripts_dir}"; then
+    -g '*.sh' \
+    "(^|[^A-Za-z0-9_])${fn}([[:space:]]|$|[^A-Za-z0-9_(])" \
+    "${scripts_dir}"; then
     continue
   fi
 
@@ -135,19 +135,19 @@ done
 
 violations=0
 
-if (( ${#dead_links[@]} > 0 )); then
+if ((${#dead_links[@]} > 0)); then
   echo "check-dead-refs: ${#dead_links[@]} broken markdown link(s):" >&2
   printf '  %s\n' "${dead_links[@]}" >&2
   violations=$((violations + ${#dead_links[@]}))
 fi
 
-if (( ${#unused_funcs[@]} > 0 )); then
+if ((${#unused_funcs[@]} > 0)); then
   echo "check-dead-refs: ${#unused_funcs[@]} unused shell function(s):" >&2
   printf '  %s\n' "${unused_funcs[@]}" >&2
   violations=$((violations + ${#unused_funcs[@]}))
 fi
 
-if (( violations > 0 )); then
+if ((violations > 0)); then
   exit 1
 fi
 

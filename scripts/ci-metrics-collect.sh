@@ -22,7 +22,7 @@ now_ms() {
     local s ns
     s="$(date +%s)"
     ns="$(date +%N)"
-    printf '%s\n' "$(( s * 1000 + 10#${ns:0:9} / 1000000 ))"
+    printf '%s\n' "$((s * 1000 + 10#${ns:0:9} / 1000000))"
   else
     printf '%s000\n' "$(date +%s)"
   fi
@@ -38,7 +38,7 @@ result="${JOB_STATUS:-unknown}"
 
 end_ms="$(now_ms)"
 start_ms="${JOB_START_EPOCH_MS:-${end_ms}}"
-duration_ms=$(( end_ms - start_ms ))
+duration_ms=$((end_ms - start_ms))
 if [[ ${duration_ms} -lt 0 ]]; then duration_ms=0; fi
 
 if declare -F wb_metric_event >/dev/null 2>&1; then

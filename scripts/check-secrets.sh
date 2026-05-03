@@ -40,9 +40,16 @@ EOF
 STRICT=0
 for arg in "$@"; do
   case "$arg" in
-    -h|--help) print_help; exit 0 ;;
-    --strict)  STRICT=1 ;;
-    *) printf 'check-secrets.sh: unknown argument: %s\n' "$arg" >&2; print_help >&2; exit 2 ;;
+    -h | --help)
+      print_help
+      exit 0
+      ;;
+    --strict) STRICT=1 ;;
+    *)
+      printf 'check-secrets.sh: unknown argument: %s\n' "$arg" >&2
+      print_help >&2
+      exit 2
+      ;;
   esac
 done
 

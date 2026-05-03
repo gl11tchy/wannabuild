@@ -40,7 +40,7 @@ push lands; runs on `main` are never cancelled.
 | Job | Purpose |
 |---|---|
 | `gitleaks` | Scans the git history for committed secrets. |
-| `dependency-review` | Public-repo PR only. Blocks risky transitive dependency changes (high-severity vulns). |
+| `dependency-review` | Optional PR dependency review. Enable with `WANNABUILD_ENABLE_DEPENDENCY_REVIEW=true` once the repository supports dependency graph review. |
 | `workflow-static-check` | Runs a small static guard against known unsafe workflow patterns until a pinned workflow scanner is added. |
 
 **Why no shell CodeQL?** CodeQL has no first-class shell analyzer, and it does

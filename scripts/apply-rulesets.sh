@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
-    -h|--help)
+    -h | --help)
       print_help
       exit 0
       ;;
