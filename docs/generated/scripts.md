@@ -43,6 +43,7 @@ Examples:
 - `--input`
 - `--owner`
 - `--repo`
+- `-X`
 - `-c`
 - `-d`
 - `-e`
@@ -54,7 +55,6 @@ Examples:
 - `-t`
 - `-u`
 - `-v`
-- `-X`
 - `-z`
 
 ## `check-complexity.sh`
@@ -74,8 +74,8 @@ Thresholds (mirror .lizardrc):
 
 ### CLI flags / options observed
 
-- `--arguments`
 - `--CCN`
+- `--arguments`
 - `--length`
 - `-e`
 - `-l`
@@ -109,11 +109,11 @@ Two checks:
 - `--only-matching`
 - `--pcre2`
 - `--replace`
+- `-E`
+- `-F`
 - `-a`
 - `-d`
 - `-e`
-- `-E`
-- `-F`
 - `-g`
 - `-q`
 - `-r`
@@ -209,8 +209,8 @@ Bare `TODO:` / `FIXME ` / `XXX` / `HACK` will fail the check.
 
 - `--line-number`
 - `--no-heading`
-- `-e`
 - `-E`
+- `-e`
 - `-g`
 - `-r`
 - `-v`
@@ -324,10 +324,10 @@ Requirements: bash, awk, sed, sort, jq.
 ### CLI flags / options observed
 
 - `--flag`
-- `-e`
 - `-E`
-- `-f`
 - `-F`
+- `-e`
+- `-f`
 - `-n`
 - `-p`
 - `-r`
@@ -342,8 +342,8 @@ Path: `scripts/install-claude-skill.sh`
 
 ### CLI flags / options observed
 
-- `-e`
 - `-L`
+- `-e`
 - `-p`
 - `-r`
 - `-s`
@@ -462,13 +462,13 @@ Path: `scripts/validate-wannabuild-dry-runs.sh`
 ### CLI flags / options observed
 
 - `--help`
+- `-R`
 - `-d`
 - `-e`
 - `-f`
 - `-h`
 - `-p`
 - `-r`
-- `-R`
 - `-v`
 
 ## `wannabuild-doctor.sh`
@@ -485,11 +485,11 @@ Path: `scripts/wannabuild-doctor.sh`
 
 ### CLI flags / options observed
 
+- `-F`
+- `-L`
 - `-d`
 - `-e`
 - `-f`
-- `-F`
-- `-L`
 
 ## `wannabuild-gate-check.sh`
 
@@ -503,10 +503,10 @@ Path: `scripts/wannabuild-gate-check.sh`
 
 ### CLI flags / options observed
 
+- `-G`
 - `-d`
 - `-e`
 - `-f`
-- `-G`
 - `-n`
 
 ## `wannabuild-session.sh`
@@ -612,9 +612,9 @@ during scrubbing to keep character classes deterministic.
 - `--help`
 - `--help.`
 - `--self-test`
-- `-e`
 - `-E`
 - `-F`
+- `-e`
 - `-g`
 - `-h`
 - `-n`
@@ -668,17 +668,17 @@ Failures to POST never fail the script — they emit a warning via wb_log_warn
 - `--max-time`
 - `--retry`
 - `--self-test`
+- `-E`
+- `-F`
+- `-H`
+- `-X`
 - `-d`
 - `-e`
-- `-E`
 - `-f`
-- `-F`
 - `-h`
-- `-H`
 - `-n`
 - `-t`
 - `-v`
-- `-X`
 - `-z`
 
 ## `wb-trace.sh`
@@ -729,20 +729,20 @@ nesting in the emitted lines.
 - `--retry`
 - `--self-test`
 - `-A`
+- `-F`
+- `-H`
+- `-N`
+- `-X`
 - `-c`
 - `-d`
 - `-e`
 - `-f`
-- `-F`
 - `-h`
-- `-H`
 - `-n`
-- `-N`
 - `-p`
 - `-q`
 - `-s`
 - `-t`
 - `-v`
-- `-X`
 - `-z`
 

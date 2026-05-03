@@ -20,6 +20,7 @@
 # Requirements: bash, awk, sed, sort, jq.
 
 set -euo pipefail
+export LC_ALL=C
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_DIR="${ROOT_DIR}/docs/generated"
