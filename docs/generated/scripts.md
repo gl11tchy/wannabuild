@@ -387,6 +387,7 @@ then exits non-zero if any check failed.
 
 ### CLI flags / options observed
 
+- `--severity`
 - `--yes`
 - `-a`
 - `-b`

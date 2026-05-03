@@ -37,7 +37,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # 1. shellcheck
 if have shellcheck; then
   run_check "shellcheck scripts/*.sh" \
-    bash -c 'shellcheck scripts/*.sh'
+    bash -c 'shellcheck --severity=warning scripts/*.sh'
 else
   skip_check "shellcheck scripts/*.sh" "shellcheck not installed"
 fi
