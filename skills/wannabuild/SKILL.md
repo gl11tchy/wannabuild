@@ -1,11 +1,18 @@
 ---
 name: wannabuild
-description: Repo-native WannaBuild workflow for discover -> control mode -> research? -> plan -> implement -> review -> qa -> summary
+description: Repo-native WannaBuild full-loop workflow, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps.
 ---
 
 # WannaBuild
 
 Use this skill when the user wants WannaBuild itself, not generic coding help.
+
+WannaBuild supports two surfaces:
+
+- **Full-loop mode:** use `wannabuild` for Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary.
+- **Toolbox mode:** use `wb-discover`, `wb-plan`, `wb-build`, `wb-debug`, `wb-review`, `wb-qa`, or `wb-ship` when the user asks for one step only.
+
+Toolbox mode still follows WannaBuild principles, but it does not auto-advance across public gates.
 
 ## Invocation Guard
 
@@ -118,6 +125,7 @@ Run this condensed workflow:
 - Default to guided mode until the user explicitly switches to autonomous mode after Discover.
 - Offer optional research before planning when uncertainty is still materially high.
 - Offer implementation shape in guided mode; choose adaptively in autonomous mode.
+- In toolbox mode, do only the requested step and keep exploratory work bounded to the decision at hand.
 - Scale sub-agents from task evidence, not fixed counts.
 - Choose capability tier and reasoning effort from complexity, coupling, risk, uncertainty, and required expertise; do not name concrete model IDs in core workflow decisions.
 - Record delegation rationale in `.wannabuild/decisions.md` or checkpoints.
@@ -130,6 +138,13 @@ Use these contracts as needed. If installed via the Claude Code marketplace, the
 
 - `AGENTS.md` (repo root) — primary operator contract
 - `skills/build/SKILL.md` — full orchestrator contract
+- `skills/wb-discover/SKILL.md` — standalone discovery toolbox skill
+- `skills/wb-plan/SKILL.md` — standalone planning toolbox skill
+- `skills/wb-build/SKILL.md` — standalone implementation toolbox skill
+- `skills/wb-debug/SKILL.md` — standalone debugging toolbox skill
+- `skills/wb-review/SKILL.md` — standalone review toolbox skill
+- `skills/wb-qa/SKILL.md` — standalone QA toolbox skill
+- `skills/wb-ship/SKILL.md` — standalone ship toolbox skill
 - `skills/requirements/SKILL.md`
 - `skills/design/SKILL.md`
 - `skills/tasks/SKILL.md`
@@ -150,7 +165,7 @@ If resuming from `.wannabuild/state.json`, use:
 
 `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
 
-Do not ask the user to choose between Full, Light, or Spark. Run one standard workflow.
+Do not ask the user to choose between Full, Light, or Spark. Run one standard full-loop workflow unless the user explicitly invokes a toolbox step.
 
 ## Message De-duplication Guard
 
@@ -236,6 +251,8 @@ If `control_mode` is `guided`, offer exactly two paths:
 2. Use adaptive parallel implementation for disjoint slices
 
 Default to the smallest shape that can implement the plan well. Use single-owner implementation when tasks are tightly coupled. Use parallel agents only when slices are genuinely independent or when separate expertise materially improves the outcome.
+
+When using adaptive parallel implementation, assign each agent concrete files, risks, acceptance criteria, or questions, and stop adding agents once ownership stops being distinct.
 
 Do not begin implementation in guided mode until the user has selected a path or clearly delegated the choice.
 

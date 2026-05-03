@@ -1,11 +1,15 @@
 ---
-description: Start the WannaBuild vision-first, spec-driven development workflow
+description: Start the full WannaBuild vision-first, spec-driven development loop
 argument-hint: [what you want to build]
 ---
 
 # /wannabuild
 
-Start the WannaBuild vision-first, spec-driven development workflow.
+Start the full WannaBuild vision-first, spec-driven development loop:
+
+```text
+Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+```
 
 If invoked with no task or only a question about the workflow:
 
@@ -35,3 +39,5 @@ Deduplication guard:
 - For guided gates, if the exact gate prompt is already the latest assistant message and no new user answer was provided, wait instead of repeating the same prompt.
 
 Use the `wannabuild` skill for the full workflow contract.
+
+For phase-specific toolbox work, prefer `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, or `/wb-ship`.

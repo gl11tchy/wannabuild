@@ -352,11 +352,19 @@ Path: `scripts/install-claude-skill.sh`
 
 Path: `scripts/install-codex-skill.sh`
 
+### Functions
+
+- `install_repo_skill`
+
 ### CLI flags / options observed
 
+- `-d`
 - `-e`
+- `-m`
 - `-p`
+- `-r`
 - `-s`
+- `-t`
 
 ## `lint.sh`
 

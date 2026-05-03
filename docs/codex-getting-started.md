@@ -32,6 +32,24 @@ Optional intro skill:
 $using-wannabuild
 ```
 
+## Usage
+
+Use `$wannabuild` for the full loop:
+
+```text
+Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+```
+
+For toolbox work, ask for one phase directly:
+
+- `Run discovery only for this idea`
+- `Plan this from the requirements`
+- `Build the next planned slice`
+- `Debug this failing behavior`
+- `Review this change`
+- `QA this against the acceptance criteria`
+- `Prepare the final handoff`
+
 ## Flow
 
 1. Open the repo in Codex.

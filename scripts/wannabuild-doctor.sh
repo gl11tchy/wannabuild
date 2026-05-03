@@ -3,6 +3,16 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+TOOLBOX_SKILLS=(
+  "wb-build"
+  "wb-debug"
+  "wb-discover"
+  "wb-plan"
+  "wb-qa"
+  "wb-review"
+  "wb-ship"
+)
+
 check_file() {
   local path="$1"
   if [[ -f "$ROOT/$path" ]]; then
@@ -98,6 +108,19 @@ check_file ".factory/droids/wb-advisor.md" || status=1
 check_file ".claude-plugin/plugin.json" || status=1
 check_file ".claude-plugin/marketplace.json" || status=1
 echo
+echo "Toolbox surfaces"
+check_dir "skills" || status=1
+check_dir "commands" || status=1
+for skill in "${TOOLBOX_SKILLS[@]}"; do
+  check_file "skills/${skill}/SKILL.md" || status=1
+  check_file "commands/${skill}.md" || status=1
+  check_contains "skills/${skill}/SKILL.md" "Mandatory Toolbox Bootstrap" "Toolbox skill ${skill} enforces bootstrap" || status=1
+  check_contains "commands/${skill}.md" "Mandatory Toolbox Bootstrap" "Toolbox command /${skill} enforces bootstrap" || status=1
+  check_contains ".codex/INSTALL.md" "${skill}" "Codex manual install includes ${skill}" || status=1
+  check_contains "README.md" "/${skill}" "README docs expose /${skill}" || status=1
+done
+check_contains ".codex/INSTALL.md" "toolbox work" "Codex install docs mention toolbox work" || status=1
+echo
 echo "Quality & governance surfaces"
 check_file ".pre-commit-config.yaml" || status=1
 check_file ".markdownlint-cli2.jsonc" || status=1
@@ -181,6 +204,9 @@ echo
 echo "Codex install"
 check_link_target "${HOME}/.codex/skills/wannabuild" "$ROOT/skills/wannabuild"
 check_link_target "${HOME}/.codex/skills/using-wannabuild" "$ROOT/skills/using-wannabuild"
+for skill in "${TOOLBOX_SKILLS[@]}"; do
+  check_link_target "${HOME}/.codex/skills/${skill}" "$ROOT/skills/${skill}"
+done
 echo
 echo "Claude install"
 check_link_target "${HOME}/.claude/plugins/cache/gl11tchy/wannabuild/local" "$ROOT"

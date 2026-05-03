@@ -35,6 +35,7 @@ WannaBuild is a repo-native framework for running a disciplined product-developm
 
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
 Every real run should start in an isolated workspace so parallel chats cannot collide in the same repo.
+Use `/wannabuild` in Claude Code or `$wannabuild` in Codex for the full loop. Use the Claude Code `/wb-*` toolbox commands, or equivalent Codex phase prompts, when you only want one stage.
 
 ## Why
 
@@ -141,6 +142,8 @@ Restart Claude Code, then:
 /wannabuild
 ```
 
+For one-stage toolbox work, use `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, or `/wb-ship`.
+
 **From repo:**
 
 ```bash
@@ -176,6 +179,8 @@ Then restart Codex and invoke:
 $wannabuild
 ```
 
+For toolbox work in Codex, ask for the phase directly, such as "run discovery only" or "QA this against the requirements".
+
 ### Cursor
 
 Cursor is supported via the same repo-native contracts and scripts.
@@ -189,42 +194,60 @@ Cursor is supported via the same repo-native contracts and scripts.
 
 ## Usage
 
-### Start with natural language
+### Full loop
+
+Use the main entrypoint when you want WannaBuild to drive the work from discovery through summary.
+
+Claude Code:
 
 ```text
-I wanna build a user authentication system with OAuth and magic links
+/wannabuild I wanna build a user authentication system with OAuth and magic links
 ```
 
-WannaBuild begins with the startup banner:
+Codex:
 
 ```text
-[WB-START] WannaBuild STARTED | intent=build | mode=standard
+$wannabuild I wanna build a user authentication system with OAuth and magic links
 ```
 
-Then it starts discovery and drives the workflow for you.
+WannaBuild starts with `[WB-START]`, runs the full loop, and creates an isolated workspace/worktree first when the target repo is under git.
 
-If the repo is under git, WannaBuild should first create an isolated workspace/worktree and continue there.
+### Toolbox usage
+
+Use toolbox commands when you want one stage instead of the full loop.
+
+Claude Code commands:
+
+- `/wb-discover`: clarify vision, scope, flows, and acceptance criteria
+- `/wb-plan`: turn requirements into design, tasks, risks, and verification expectations
+- `/wb-build`: implement a planned slice with checkpoints and checks
+- `/wb-debug`: reproduce, isolate, fix, and verify a failure
+- `/wb-review`: run targeted reviewer hats and capture findings
+- `/wb-qa`: validate acceptance criteria and integration behavior
+- `/wb-ship`: prepare the final handoff after review and QA
+
+In Codex, use the same toolbox intents as plain prompts, such as "run discovery only" or "review this change".
 
 ### Typical prompts
 
 ```text
-I wanna build a Stripe billing flow for my SaaS
+/wannabuild I wanna build a Stripe billing flow for my SaaS
 ```
 
 ```text
-Research this first, then plan
+/wb-discover Clarify the onboarding flow before we plan
 ```
 
 ```text
-Let's plan the architecture for a collaborative editor
+/wb-plan Plan the architecture for a collaborative editor
 ```
 
 ```text
-Implement this in solo mode
+/wb-build Implement the next planned slice in solo mode
 ```
 
 ```text
-Run review and QA, then summarize gaps
+/wb-qa Validate this against the acceptance criteria
 ```
 
 ### Jump in midstream

@@ -16,6 +16,10 @@ Then restart Codex and use:
 $wannabuild
 ```
 
+Use `$wannabuild` for the full loop: Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
+
+For toolbox work, ask for one phase directly, such as "run discovery only", "plan this", "debug this failure", "review this change", "QA this", or "prepare the final handoff".
+
 WannaBuild runs one standard workflow mode. There is no user-facing Full / Light / Spark choice.
 For real work in a git repo, it should create an isolated workspace/worktree before discovery begins.
 
@@ -33,6 +37,9 @@ Create links in `~/.codex/skills/`:
 mkdir -p ~/.codex/skills
 ln -sfn "$PWD/skills/wannabuild" ~/.codex/skills/wannabuild
 ln -sfn "$PWD/skills/using-wannabuild" ~/.codex/skills/using-wannabuild
+for skill in wb-build wb-debug wb-discover wb-plan wb-qa wb-review wb-ship; do
+  ln -sfn "$PWD/skills/$skill" ~/.codex/skills/$skill
+done
 ```
 
 ## Verify
