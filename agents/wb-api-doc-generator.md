@@ -81,6 +81,7 @@ For each endpoint:
 ```
 
 **Errors:**
+
 | Status | Description |
 |--------|-------------|
 | [code] | [what happened] |

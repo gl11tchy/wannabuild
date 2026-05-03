@@ -54,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends shellcheck
+          sudo apt-get install -y --no-install-recommends shellcheck ripgrep
           # shfmt via Go binary.
           # NOTE: shfmt version is mirrored across CI and devcontainer; bump
           # both .github/workflows/ci.yml and .devcontainer/Dockerfile together.
