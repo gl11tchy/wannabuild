@@ -16,6 +16,7 @@ Host-agnostic:
 - schemas, validation, checkpoints, and review routing
 - daily-use trust harness and golden path demo
 - phase prompts and specialist prompt contracts
+- full-loop and phase-toolbox invocation contracts
 - advisor escalation state contract and report validation
 - adaptive capability-tier and reasoning-effort policy
 - repo-native scripts and examples
@@ -26,6 +27,7 @@ The canonical path is:
 
 - root [AGENTS.md](../AGENTS.md)
 - `scripts/`
+- `commands/`
 - shared contracts and prompt files in the repo
 
 If it only exists in adapter packaging, it is not core.
@@ -41,6 +43,7 @@ Provides:
 - `AGENTS.md` guidance
 - script-first workflows
 - local and web/cloud repo usage docs
+- full loop via `$wannabuild`; toolbox via phase-specific prompts
 - model-agnostic advisor escalation via read-only advisor equivalent when available
 - host mapping from core capability tiers to available models/reasoning controls
 
@@ -64,7 +67,8 @@ Provides:
 
 - Marketplace install: `/plugin install wannabuild@gl11tchy`
 - Repo install: `scripts/install-claude-skill.sh`
-- Slash command: `/wannabuild`
+- Full-loop command: `/wannabuild`
+- Toolbox commands: `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, `/wb-ship`
 - Getting-started: `.claude/INSTALL.md`
 - Full adapter guide: `adapters/claude-code/README.md`
 - read-only advisor subagent fallback; Claude API adapters may map to native `advisor_20260301`
@@ -81,7 +85,8 @@ Provides:
 | Golden path demo | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |
 | Rules files | No | Optional | Yes | Optional |
-| Slash commands / invocation | No | `$wannabuild` | No | `/wannabuild` |
+| Full-loop invocation | Yes | `$wannabuild` | Prompt/rules | `/wannabuild` |
+| Toolbox usage | Phase contract | Phase prompts | Prompt/rules | `/wb-*` commands |
 | Plugin install path | No | Script symlink | No | Marketplace or script |
 | Repo-only usage | Yes | Yes | Yes | Yes |
 | Getting-started doc | No | Yes | No | Yes |

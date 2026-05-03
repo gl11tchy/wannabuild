@@ -36,21 +36,21 @@ while IFS= read -r file; do
   [[ -f "${file}" ]] || continue
 
   size_bytes="$(byte_size "${file}")"
-  if (( size_bytes > BYTES_MAX )); then
+  if ((size_bytes > BYTES_MAX)); then
     report+=$'\n'"  too-large (>${BYTES_MAX}B): ${file} (${size_bytes} bytes)"
     violations=$((violations + 1))
   fi
 
   case "${file}" in
-    *.sh|*.md)
+    *.sh | *.md)
       lines="$(wc -l <"${file}" | tr -d ' ')"
       if [[ "${file}" == "${EXEMPT_PATH}" ]]; then
-        if (( lines > EXEMPT_LINES_MAX )); then
+        if ((lines > EXEMPT_LINES_MAX)); then
           report+=$'\n'"  exempt-cap-exceeded (>${EXEMPT_LINES_MAX} lines): ${file} (${lines} lines)"
           violations=$((violations + 1))
         fi
       else
-        if (( lines > LINES_MAX )); then
+        if ((lines > LINES_MAX)); then
           report+=$'\n'"  too-long (>${LINES_MAX} lines): ${file} (${lines} lines)"
           violations=$((violations + 1))
         fi
@@ -59,7 +59,7 @@ while IFS= read -r file; do
   esac
 done < <(git ls-files)
 
-if (( violations > 0 )); then
+if ((violations > 0)); then
   echo "check-large-files: ${violations} violation(s)${report}" >&2
   exit 1
 fi

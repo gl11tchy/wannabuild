@@ -40,12 +40,13 @@ push lands; runs on `main` are never cancelled.
 | Job | Purpose |
 |---|---|
 | `gitleaks` | Scans the git history for committed secrets. |
-| `dependency-review` | PR-only. Blocks risky transitive dependency changes (high-severity vulns). |
-| `codeql-actions` | CodeQL run against the GitHub Actions language to flag unsafe workflow patterns (e.g., script injection via `${{ github.event.* }}`). |
+| `dependency-review` | Optional PR dependency review. Enable with `WANNABUILD_ENABLE_DEPENDENCY_REVIEW=true` once the repository supports dependency graph review. |
+| `workflow-static-check` | Runs a small static guard against known unsafe workflow patterns until a pinned workflow scanner is added. |
 
-**Why no shell CodeQL?** CodeQL has no first-class shell analyzer. Shell
-linting is enforced by `shellcheck` in the CI lint job. CodeQL here protects
-the workflow YAML itself.
+**Why no shell CodeQL?** CodeQL has no first-class shell analyzer, and it does
+not support `actions` as a language. Shell linting is enforced by `shellcheck`
+in the CI lint job. The workflow static check protects only the workflow YAML
+itself.
 
 **Common failure modes:**
 

@@ -2,7 +2,7 @@
 
 > "What do you wanna build?"
 
-WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts.
+WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts. It supports both full-loop mode and focused toolbox mode.
 
 ## Public Workflow Model
 
@@ -16,6 +16,18 @@ The intended user-facing flow is:
 6. Review
 7. QA
 8. Summary
+
+Toolbox mode uses standalone step skills when the user asks for a single slice:
+
+- `wb-discover`
+- `wb-plan`
+- `wb-build`
+- `wb-debug`
+- `wb-review`
+- `wb-qa`
+- `wb-ship`
+
+Each toolbox skill stops at its public step boundary unless the user explicitly asks to continue.
 
 Internally, the orchestrator uses finer-grained phases and artifacts to keep the workflow rigorous. Those phases are execution detail; the external experience should stay compact.
 
@@ -97,11 +109,12 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 
 ## Single Workflow Mode
 
-WannaBuild now runs one standard workflow mode at the top level.
+WannaBuild now runs one standard full-loop workflow mode at the top level.
 
 - do not ask the user to choose Full, Light, or Spark
 - start with the standard start banner
 - proceed into Discover immediately
+- route explicit `wb-*` requests to the matching toolbox skill instead of starting the full loop
 
 ## Control Mode Gate
 
@@ -157,8 +170,8 @@ If the user chooses planning:
 
 After planning is complete and the approach is verified, ask the user:
 
-1. Implement in single agent mode
-2. Implement with parallel agents
+1. Use single-owner implementation
+2. Use adaptive parallel implementation for disjoint slices
 
 Default to the smallest execution shape that can do the work well. In guided mode, ask at this gate; in autonomous mode, decide adaptively and record why.
 
@@ -239,6 +252,7 @@ Public routing is conversational. The user should mostly experience step-level i
 | "Let's define what we're building" / "What should we build?" | Discover | Requirements |
 | "Let's plan this" / "How should we architect..." / "Break this into tasks" | Plan | Design + Tasks |
 | "Let's build it" / "Start coding" / "Implement" | Implement | Implement |
+| "`wb-discover` / `wb-plan` / `wb-build` / `wb-debug` / `wb-review` / `wb-qa` / `wb-ship`" | Matching toolbox step | Standalone toolbox skill |
 | "Review the code" / "Is this ready?" | Review | Review |
 | "QA this" / "Did we actually cover the requirements?" | QA | Review hard gate + final verification |
 | "Summarize what happened" / "What is left?" | Summary | Ship/Document/handoff synthesis |
@@ -255,7 +269,7 @@ Users can still skip around. The orchestrator tracks internal state but should p
 
 ## Execution Model
 
-The orchestrator uses the host-native task or delegation surface. Each agent is an `agents/wb-*.md` file with YAML frontmatter and a focused system prompt.
+The orchestrator uses the host-native task or delegation surface. Each agent is an `agents/wb-*.md` file with YAML frontmatter and a focused system prompt. Toolbox skills use the same adaptive delegation rules, but keep exploration and artifacts scoped to the requested step.
 
 ### File-First Output Pattern
 

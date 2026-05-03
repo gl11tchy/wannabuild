@@ -44,7 +44,7 @@ __wb_metrics_now_ms() {
     s="$(date +%s)"
     ns="$(date +%N)"
     # ns may have leading zeros — strip with 10# prefix.
-    printf '%s\n' "$(( s * 1000 + 10#${ns:0:9} / 1000000 ))"
+    printf '%s\n' "$((s * 1000 + 10#${ns:0:9} / 1000000))"
   else
     # macOS (BSD date) lacks %N; fall back to seconds * 1000.
     printf '%s000\n' "$(date +%s)"
@@ -77,17 +77,20 @@ __wb_metrics_post() {
   fi
   # 3s timeout, 1 retry on failure.
   if ! curl -fsS -X POST --max-time 3 --retry 1 \
-        "${hdrs[@]}" -d "$payload" "${WB_METRICS_ENDPOINT}" \
-        >/dev/null 2>&1; then
+    "${hdrs[@]}" -d "$payload" "${WB_METRICS_ENDPOINT}" \
+    >/dev/null 2>&1; then
     wb_log_warn "wb-metrics: POST to ${WB_METRICS_ENDPOINT} failed (non-fatal)"
   fi
   return 0
 }
 
 __wb_metrics_emit() {
-  local kind="$1"; shift
-  local name="$1"; shift
-  local ts; ts="$(__wb_metrics_now_ms)"
+  local kind="$1"
+  shift
+  local name="$1"
+  shift
+  local ts
+  ts="$(__wb_metrics_now_ms)"
   # KV stderr line for log post-processors.
   local kv_line="# METRIC kind=${kind} name=${name} ts_ms=${ts}"
   local json_attrs=""
@@ -125,7 +128,8 @@ wb_metric_timing() {
 
 wb_metric_event() {
   # wb_metric_event <name> <key=value...>
-  local name="$1"; shift
+  local name="$1"
+  shift
   __wb_metrics_emit event "${name}" "$@"
 }
 
@@ -175,7 +179,7 @@ __wb_metrics_self_test() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   case "${1:-}" in
     --self-test) __wb_metrics_self_test ;;
-    -h|--help|"")
+    -h | --help | "")
       sed -n '2,18p' "${BASH_SOURCE[0]}"
       ;;
     *)

@@ -40,12 +40,34 @@ DRY_RUN=0
 FILES=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -h|--help) print_help; exit 0 ;;
-    --in-place) IN_PLACE=1; shift ;;
-    --dry-run)  DRY_RUN=1; shift ;;
-    --) shift; while [ "$#" -gt 0 ]; do FILES+=("$1"); shift; done ;;
-    -*) printf 'scrub-log.sh: unknown option: %s\n' "$1" >&2; print_help >&2; exit 2 ;;
-    *) FILES+=("$1"); shift ;;
+    -h | --help)
+      print_help
+      exit 0
+      ;;
+    --in-place)
+      IN_PLACE=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    --)
+      shift
+      while [ "$#" -gt 0 ]; do
+        FILES+=("$1")
+        shift
+      done
+      ;;
+    -*)
+      printf 'scrub-log.sh: unknown option: %s\n' "$1" >&2
+      print_help >&2
+      exit 2
+      ;;
+    *)
+      FILES+=("$1")
+      shift
+      ;;
   esac
 done
 
@@ -71,12 +93,18 @@ for f in "${FILES[@]}"; do
     continue
   fi
   if [ "$IN_PLACE" -eq 1 ]; then
-    cp -- "$f" "$f.bak" || { rc=1; continue; }
+    cp -- "$f" "$f.bak" || {
+      rc=1
+      continue
+    }
     if ! wb_log_scrub <"$f.bak" >"$f"; then
       rc=1
     fi
   elif [ "$DRY_RUN" -eq 1 ]; then
-    tmp=$(mktemp -t scrublog.XXXXXX) || { rc=1; continue; }
+    tmp=$(mktemp -t scrublog.XXXXXX) || {
+      rc=1
+      continue
+    }
     wb_log_scrub <"$f" >"$tmp"
     diff -u -- "$f" "$tmp" || true
     rm -f -- "$tmp"

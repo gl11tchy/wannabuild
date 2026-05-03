@@ -1,6 +1,6 @@
 # WannaBuild for Claude Code
 
-Install WannaBuild into Claude Code by linking the Claude-facing skills from this repository into your local Claude Code plugins directory.
+Install WannaBuild into Claude Code by linking the Claude-facing skills and commands from this repository into your local Claude Code plugins directory.
 
 ## Fast Path
 
@@ -14,6 +14,20 @@ Then reload plugins and use:
 
 ```text
 /wannabuild
+```
+
+Use `/wannabuild` for the full loop: Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
+
+Use toolbox commands when you only want one stage:
+
+```text
+/wb-discover
+/wb-plan
+/wb-build
+/wb-debug
+/wb-review
+/wb-qa
+/wb-ship
 ```
 
 WannaBuild runs one standard workflow mode. There is no user-facing Full / Light / Spark choice.

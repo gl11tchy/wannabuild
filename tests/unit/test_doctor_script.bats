@@ -55,6 +55,73 @@ _copy_repo() {
   [[ "$output" == *"missing"* ]] || [[ "$output" == *"Missing"* ]]
 }
 
+@test "doctor: FAILs when a required toolbox skill is removed" {
+  copy="$(_copy_repo)"
+  rm -f "$copy/skills/wb-build/SKILL.md"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  skills/wb-build/SKILL.md"* ]]
+}
+
+@test "doctor: FAILs when a required toolbox command is removed" {
+  copy="$(_copy_repo)"
+  rm -f "$copy/commands/wb-build.md"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  commands/wb-build.md"* ]]
+}
+
+@test "doctor: FAILs when required toolbox docs are removed" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/README.md" <<'PY'
+from pathlib import Path
+path = Path(__import__("sys").argv[1])
+path.write_text(path.read_text().replace("/wb-build", "/removed-build"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  README docs expose /wb-build"* ]]
+}
+
+@test "doctor: FAILs when a toolbox skill omits bootstrap" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/skills/wb-build/SKILL.md" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("Mandatory Toolbox Bootstrap", "Bootstrap omitted"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Toolbox skill wb-build enforces bootstrap"* ]]
+}
+
+@test "doctor: FAILs when a toolbox command omits bootstrap" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/commands/wb-build.md" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("Mandatory Toolbox Bootstrap", "Bootstrap omitted"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Toolbox command /wb-build enforces bootstrap"* ]]
+}
+
+@test "doctor: FAILs when Codex manual install omits a toolbox skill" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/.codex/INSTALL.md" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("wb-build", "removed-build"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Codex manual install includes wb-build"* ]]
+}
+
 @test "doctor: WARNs when Codex skill symlink is absent in fake HOME" {
   copy="$(_copy_repo)"
   # with_clean_env redirects HOME to an empty tmp dir, so install symlinks
@@ -62,6 +129,13 @@ _copy_repo() {
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [[ "$output" == *"WARN"* ]]
   [[ "$output" == *".codex/skills/wannabuild"* ]]
+}
+
+@test "doctor: WARNs when Codex toolbox skill symlink is absent in fake HOME" {
+  copy="$(_copy_repo)"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [[ "$output" == *"WARN"* ]]
+  [[ "$output" == *".codex/skills/wb-build"* ]]
 }
 
 @test "doctor: WARNs when Claude install link target is absent in fake HOME" {

@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
       json=true
       shift
       ;;
-    -h|--help)
+    -h | --help)
       usage
       exit 0
       ;;
@@ -55,7 +55,8 @@ if [[ -z "$slug" ]]; then
 fi
 
 ts="$(date +%Y%m%d%H%M%S)"
-rand="$(python3 - <<'PY'
+rand="$(
+  python3 - <<'PY'
 import secrets
 alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
 print("".join(secrets.choice(alphabet) for _ in range(6)))
@@ -110,7 +111,7 @@ if [[ "$dirty" == true ]]; then
 fi
 
 mkdir -p "$workspace_path/.wannabuild"
-cat > "$workspace_path/.wannabuild/workspace.json" <<EOF
+cat >"$workspace_path/.wannabuild/workspace.json" <<EOF
 {
   "workspace_id": "$workspace_id",
   "source_repo": "$root",

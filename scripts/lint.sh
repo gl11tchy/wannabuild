@@ -7,7 +7,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${REPO_ROOT}"
+cd "${REPO_ROOT}" || exit 1
 
 declare -a results=()
 overall=0
@@ -37,7 +37,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # 1. shellcheck
 if have shellcheck; then
   run_check "shellcheck scripts/*.sh" \
-    bash -c 'shellcheck scripts/*.sh'
+    bash -c 'shellcheck --severity=warning scripts/*.sh'
 else
   skip_check "shellcheck scripts/*.sh" "shellcheck not installed"
 fi

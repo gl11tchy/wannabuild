@@ -54,14 +54,14 @@ while IFS= read -r hit; do
   fi
 done < <(
   rg --no-heading --line-number \
-     "${ignore_globs[@]}" \
-     "${marker_regex}" \
-     . 2>/dev/null || true
+    "${ignore_globs[@]}" \
+    "${marker_regex}" \
+    . 2>/dev/null || true
 )
 
 echo "check-tech-debt: ${total} marker(s) total, ${attributed} attributed."
 
-if (( ${#unreferenced[@]} > 0 )); then
+if ((${#unreferenced[@]} > 0)); then
   echo "check-tech-debt: ${#unreferenced[@]} unreferenced marker(s):" >&2
   printf '  %s\n' "${unreferenced[@]}" >&2
   echo "  -> attribute each with TODO(name) or TODO(#NN)/TODO(ISSUE-NN)." >&2

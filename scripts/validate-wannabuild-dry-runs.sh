@@ -83,7 +83,7 @@ else
 fi
 
 if [[ $status -eq 0 ]]; then
-  if python3 - "$MANIFEST" "$DRY_RUN_DIR" <<'PY'
+  if python3 - "$MANIFEST" "$DRY_RUN_DIR" <<'PY'; then
 import json
 from pathlib import Path
 import sys
@@ -259,7 +259,6 @@ if errors:
 
 print(f"Validated {len(scenarios)} daily-use trust scenario(s).")
 PY
-  then
     pass "dry-run scenario manifest"
   else
     fail "dry-run scenario manifest"
@@ -283,7 +282,7 @@ if [[ $status -eq 0 ]]; then
   rm -rf "$tmp/.wannabuild"
   mkdir -p "$tmp/.wannabuild/review" "$tmp/.wannabuild/outputs"
   cp "$DRY_RUN_DIR/review-failure-loop.json" "$tmp/.wannabuild/loop-state.json"
-  printf 'QA completed, but review remains blocked.\n' > "$tmp/.wannabuild/outputs/qa-summary.md"
+  printf 'QA completed, but review remains blocked.\n' >"$tmp/.wannabuild/outputs/qa-summary.md"
   python3 - "$tmp/.wannabuild/loop-state.json" "$tmp/.wannabuild/review" <<'PY'
 import json
 from pathlib import Path
@@ -301,7 +300,7 @@ PY
   rm -rf "$tmp/.wannabuild"
   mkdir -p "$tmp/.wannabuild/review" "$tmp/.wannabuild/outputs"
   cp "$DRY_RUN_DIR/qa-failure-remediation-loop.json" "$tmp/.wannabuild/loop-state.json"
-  printf 'QA attempted; integration hard gate remains failing.\n' > "$tmp/.wannabuild/outputs/qa-summary.md"
+  printf 'QA attempted; integration hard gate remains failing.\n' >"$tmp/.wannabuild/outputs/qa-summary.md"
   python3 - "$tmp/.wannabuild/loop-state.json" "$tmp/.wannabuild/review/wb-integration-tester-iter-2.json" <<'PY'
 import json
 from pathlib import Path

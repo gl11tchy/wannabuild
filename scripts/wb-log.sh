@@ -64,10 +64,10 @@ wb_log_scrub() {
 _wb_log_level_value() {
   case "${1:-info}" in
     debug) printf '10\n' ;;
-    info)  printf '20\n' ;;
-    warn)  printf '30\n' ;;
+    info) printf '20\n' ;;
+    warn) printf '30\n' ;;
     error) printf '40\n' ;;
-    *)     printf '20\n' ;;
+    *) printf '20\n' ;;
   esac
 }
 
@@ -92,11 +92,12 @@ _wb_log_json_escape() {
     -e 's/"/\\"/g' \
     -e $'s/\t/\\\\t/g' \
     -e $'s/\r/\\\\r/g' \
-  | awk 'BEGIN{first=1} {if(!first)printf("\\n"); printf("%s",$0); first=0}'
+    | awk 'BEGIN{first=1} {if(!first)printf("\\n"); printf("%s",$0); first=0}'
 }
 
 _wb_log_emit() {
-  local level="$1"; shift
+  local level="$1"
+  shift
   if ! _wb_log_should_emit "$level"; then
     return 0
   fi
@@ -120,8 +121,8 @@ _wb_log_emit() {
 # ---------------------------------------------------------------------------
 
 wb_log_debug() { _wb_log_emit debug "$@" >&2; }
-wb_log_info()  { _wb_log_emit info  "$@" >&2; }
-wb_log_warn()  { _wb_log_emit warn  "$@" >&2; }
+wb_log_info() { _wb_log_emit info "$@" >&2; }
+wb_log_warn() { _wb_log_emit warn "$@" >&2; }
 wb_log_error() { _wb_log_emit error "$@" >&2; }
 
 # ---------------------------------------------------------------------------
@@ -133,7 +134,9 @@ _wb_log_self_test() {
   local input expected got name
 
   _check() {
-    name="$1"; input="$2"; expected="$3"
+    name="$1"
+    input="$2"
+    expected="$3"
     got=$(printf '%s' "$input" | wb_log_scrub)
     if printf '%s' "$got" | grep -Fq -- "$expected"; then
       printf 'PASS  %s\n' "$name"
@@ -145,7 +148,9 @@ _wb_log_self_test() {
   }
 
   _refute() {
-    name="$1"; input="$2"; forbidden="$3"
+    name="$1"
+    input="$2"
+    forbidden="$3"
     got=$(printf '%s' "$input" | wb_log_scrub)
     if printf '%s' "$got" | grep -Fq -- "$forbidden"; then
       printf 'FAIL  %s\n      forbidden substring leaked: %s\n      got: %s\n' \
@@ -220,8 +225,11 @@ _wb_log_self_test() {
 # When sourced, BASH_SOURCE[0] != $0.
 if [ "${BASH_SOURCE[0]:-$0}" = "$0" ]; then
   case "${1:-}" in
-    --self-test) _wb_log_self_test; exit $? ;;
-    -h|--help)
+    --self-test)
+      _wb_log_self_test
+      exit $?
+      ;;
+    -h | --help)
       sed -n '2,40p' "$0"
       exit 0
       ;;

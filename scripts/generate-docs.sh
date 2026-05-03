@@ -20,6 +20,7 @@
 # Requirements: bash, awk, sed, sort, jq.
 
 set -euo pipefail
+export LC_ALL=C
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_DIR="${ROOT_DIR}/docs/generated"
@@ -157,7 +158,7 @@ generate_scripts_md() {
         while IFS= read -r fn; do
           [ -z "${fn}" ] && continue
           printf -- '- `%s`\n' "${fn}"
-        done <<< "${functions}"
+        done <<<"${functions}"
         printf '\n'
       fi
 
@@ -168,11 +169,11 @@ generate_scripts_md() {
         while IFS= read -r flag; do
           [ -z "${flag}" ] && continue
           printf -- '- `%s`\n' "${flag}"
-        done <<< "${flags}"
+        done <<<"${flags}"
         printf '\n'
       fi
-    done <<< "${sources}"
-  } > "${out}"
+    done <<<"${sources}"
+  } >"${out}"
 }
 
 # ---------- agents.md ----------
@@ -212,9 +213,9 @@ generate_agents_md() {
         "$(printf '%s' "${name}" | md_escape)" \
         "$(printf '%s' "${model}" | md_escape)" \
         "$(printf '%s' "${desc}" | md_escape)"
-    done <<< "${sources}"
+    done <<<"${sources}"
     printf '\n'
-  } > "${out}"
+  } >"${out}"
 }
 
 # ---------- skills.md ----------
@@ -255,9 +256,9 @@ generate_skills_md() {
         "$(printf '%s' "${skill_name}" | md_escape)" \
         "$(printf '%s' "${relpath}" | md_escape)" \
         "$(printf '%s' "${desc}" | md_escape)"
-    done <<< "${sources}"
+    done <<<"${sources}"
     printf '\n'
-  } > "${out}"
+  } >"${out}"
 }
 
 # ---------- schemas.md ----------
@@ -294,7 +295,7 @@ generate_schemas_md() {
         while IFS= read -r f; do
           [ -z "${f}" ] && continue
           printf -- '- `%s`\n' "${f}"
-        done <<< "${required}"
+        done <<<"${required}"
         printf '\n'
       fi
 
@@ -318,8 +319,8 @@ generate_schemas_md() {
         printf '|---|---|---|\n'
         printf '%s\n\n' "${props_block}"
       fi
-    done <<< "${sources}"
-  } > "${out}"
+    done <<<"${sources}"
+  } >"${out}"
 }
 
 # ---------- index.md ----------
@@ -338,7 +339,7 @@ generate_index_md() {
     printf -- '- [Agents](agents.md) — specialist agent prompts (`agents/*.md`)\n'
     printf -- '- [Skills](skills.md) — workflow contracts (`skills/**/SKILL.md`)\n'
     printf -- '- [Schemas](schemas.md) — JSON schemas (`skills/build/schemas/*.json`)\n'
-  } > "${out}"
+  } >"${out}"
 }
 
 main() {

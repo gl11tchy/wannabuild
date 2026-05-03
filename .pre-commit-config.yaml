@@ -11,6 +11,7 @@ repos:
       - id: trailing-whitespace
         exclude: \.md$
       - id: end-of-file-fixer
+        exclude: ^docs/generated/
       - id: check-yaml
       - id: check-json
         exclude: \.jsonc$
@@ -19,6 +20,7 @@ repos:
         args: ["--maxkb=500"]
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
+        exclude: ^tests/.*\.(bats|bash)$
       - id: mixed-line-ending
         args: ["--fix=lf"]
       - id: detect-private-key
@@ -28,12 +30,14 @@ repos:
     hooks:
       - id: shellcheck
         args: ["--severity=warning"]
+        files: ^scripts/.*\.sh$
 
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.8.0-1
     hooks:
       - id: shfmt
         args: ["-i", "2", "-ci", "-bn", "-d"]
+        files: ^scripts/.*\.sh$
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.13.0

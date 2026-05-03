@@ -6,6 +6,7 @@ Use the repo directly:
 
 - `AGENTS.md`
 - `skills/`
+- `commands/`
 - `agents/`
 - `scripts/`
 
@@ -60,6 +61,24 @@ Optional intro skill:
 /using-wannabuild
 ```
 
+## Usage
+
+Use `/wannabuild` for the full loop:
+
+```text
+Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+```
+
+Use toolbox commands when you only want one stage:
+
+- `/wb-discover`: discovery and requirements
+- `/wb-plan`: design, tasks, risks, and verification expectations
+- `/wb-build`: implementation
+- `/wb-debug`: diagnosis and targeted fix
+- `/wb-review`: targeted review
+- `/wb-qa`: acceptance and integration validation
+- `/wb-ship`: final handoff
+
 ## Flow
 
 1. Open the repo in Claude Code (or your target project folder).
@@ -87,6 +106,7 @@ The dry-run validator covers startup, workspace bootstrap, resume, research, imp
 - [AGENTS.md](../AGENTS.md)
 - [skills/build/SKILL.md](../skills/build/SKILL.md)
 - [skills/wannabuild/SKILL.md](../skills/wannabuild/SKILL.md)
+- [commands/](../commands)
 - [scripts/validate-wannabuild-artifacts.sh](../scripts/validate-wannabuild-artifacts.sh)
 - [scripts/validate-wannabuild-dry-runs.sh](../scripts/validate-wannabuild-dry-runs.sh)
 - [docs/golden-path-demo](golden-path-demo)
