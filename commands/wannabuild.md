@@ -18,6 +18,6 @@ Command-layer constraints:
 - Do not emit start or resume banners from this command.
 - Do not ask control, research, implementation, review, QA, or summary gate questions from this command.
 - Do not produce the no-task fallback text from this command.
-- Let the `wannabuild` skill own all user-visible workflow output, workspace bootstrap, state updates, and de-duplication.
+- Let the `wannabuild` skill own all user-visible workflow output, workspace behavior, state updates, and de-duplication.
 
 For phase-specific toolbox work, prefer `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, or `/wb-ship`.

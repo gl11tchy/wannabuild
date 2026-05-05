@@ -182,7 +182,7 @@ Schema: `skills/build/schemas/config.schema.json`
 
 ## `.wannabuild/workspace.json`
 
-Created during workspace bootstrap. Tracks the isolated git worktree used for the current WannaBuild session.
+Created only when implementation-time worktree isolation is selected. Tracks the isolated git worktree used for the current WannaBuild session.
 
 ### Required keys
 

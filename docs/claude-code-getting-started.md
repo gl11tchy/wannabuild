@@ -53,7 +53,7 @@ After installation, invoke WannaBuild:
 ```
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
-When used in git repositories, it will create an isolated worktree before starting the actual workflow.
+When used in git repositories, it uses the current checkout for discovery and planning. It only creates an isolated worktree when implementation-time isolation is selected.
 
 Optional intro skill:
 
@@ -99,7 +99,7 @@ Claude Code and Codex share the same host-neutral trust harness:
 ./scripts/wannabuild-gate-check.sh docs/golden-path-demo summary
 ```
 
-The dry-run validator covers startup, workspace bootstrap, resume, research, implementation, review failure, QA failure, and summary completion.
+The dry-run validator covers startup, implementation workspace selection, resume, research, implementation, review failure, QA failure, and summary completion.
 
 ## Key Files
 

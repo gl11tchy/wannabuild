@@ -34,7 +34,7 @@ WannaBuild is a repo-native framework for running a disciplined product-developm
 9. Return a concise summary with gaps and remaining work
 
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
-Every real run should start in an isolated workspace so parallel chats cannot collide in the same repo.
+Runs start in the current checkout. Worktrees are an implementation-time option for approved plans, parallel slices, or explicitly requested isolation.
 Use `/wannabuild` in Claude Code or `$wannabuild` in Codex for the full loop. Use the Claude Code `/wb-*` toolbox commands, or equivalent Codex phase prompts, when you only want one stage.
 
 ## Why
@@ -210,7 +210,7 @@ Codex:
 $wannabuild I wanna build a user authentication system with OAuth and magic links
 ```
 
-WannaBuild starts with `[WB-START]`, runs the full loop, and creates an isolated workspace/worktree first when the target repo is under git.
+WannaBuild starts with `[WB-START]`, runs discovery and planning in the current checkout, and offers an isolated worktree before implementation when isolation would help.
 
 ### Toolbox usage
 
@@ -290,7 +290,7 @@ Core artifact roles:
 WannaBuild includes a host-neutral daily-use trust harness. It validates the behavior that must hold in both Claude Code and Codex:
 
 - no-task invocation asks for the actual goal instead of inferring from repo state
-- concrete git tasks start in an isolated workspace
+- concrete git tasks do not create worktrees until implementation-time isolation is selected
 - resume, research, implementation, review, QA, and summary gates preserve state
 - failed review or QA evidence blocks completion
 - the golden path demo validates end to end

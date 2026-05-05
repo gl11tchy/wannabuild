@@ -12,7 +12,7 @@
   },
   "required_scenarios": [
     "no-task-invocation",
-    "workspace-bootstrap",
+    "implementation-workspace-selection",
     "resume",
     "research-gate",
     "implementation-gate",
@@ -35,8 +35,8 @@
       ]
     },
     {
-      "id": "workspace-bootstrap",
-      "description": "Concrete tasks in a git repo start in an isolated workspace with resumable .wannabuild state.",
+      "id": "implementation-workspace-selection",
+      "description": "Implementation can use an isolated worktree when selected, while earlier stages stay in the current checkout.",
       "fixture": "workspace-bootstrap-state.json",
       "workspace_fixture": "workspace-bootstrap-workspace.json",
       "branch_prefixes": [

@@ -21,7 +21,7 @@ Use `$wannabuild` for the full loop: Discover -> Control mode -> optional Resear
 For toolbox work, ask for one phase directly, such as "run discovery only", "plan this", "debug this failure", "review this change", "QA this", or "prepare the final handoff".
 
 WannaBuild runs one standard workflow mode. There is no user-facing Full / Light / Spark choice.
-For real work in a git repo, it should create an isolated workspace/worktree before discovery begins.
+For real work in a git repo, discovery and planning run in the current checkout. Isolated worktrees are only for implementation-time isolation when selected.
 
 Optional intro skill:
 

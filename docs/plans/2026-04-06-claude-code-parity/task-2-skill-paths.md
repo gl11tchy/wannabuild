@@ -8,18 +8,18 @@ The skill currently tells Claude to run `../../scripts/wannabuild-workspace.sh` 
 
 Fix: replace every script reference with equivalent inline instructions. The scripts remain as standalone developer utilities but the skill no longer depends on them being findable.
 
-## Step 1: Replace the Mandatory Workspace Bootstrap section
+## Step 1: Replace the Workspace Behavior section
 
 Find this block:
 
 ```text
-## Mandatory Workspace Bootstrap
+## Workspace Behavior
 
 If the current project is a git repo and the user has provided a concrete task:
 
-1. create an isolated workspace before Discover
-2. continue all reads and writes in that workspace only
-3. never continue work in the original checkout
+1. use the current checkout through Discover and Plan
+2. create an isolated worktree only when implementation-time isolation is selected
+3. continue in the chosen checkout/worktree
 
 Use:
 
@@ -29,21 +29,21 @@ Then initialize session state in the new workspace:
 
 `../../scripts/wannabuild-session.sh init <workspace_path>`
 
-Write `.wannabuild/workspace.json` and `.wannabuild/state.json` in the isolated workspace before continuing.
+Write `.wannabuild/state.json` in the active checkout before continuing.
 
-If workspace bootstrap fails, stop and report the failure instead of continuing in-place.
+If implementation-time worktree creation fails, stop and report the failure instead of continuing in a half-created workspace.
 ```
 
 Replace with:
 
 ````markdown
-## Mandatory Workspace Bootstrap
+## Workspace Behavior
 
 If the current project is a git repo and the user has provided a concrete task:
 
-1. Create an isolated workspace before Discover
-2. Continue all reads and writes in that workspace only
-3. Never continue work in the original checkout
+1. Use the current checkout through Discover and Plan
+2. Create an isolated worktree only when implementation-time isolation is selected
+3. Continue in the chosen checkout/worktree
 
 Run these commands from the target project root:
 
@@ -88,7 +88,7 @@ Then write `.wannabuild/state.json`:
 }
 ```
 
-If workspace bootstrap fails, stop and report the failure instead of continuing in-place.
+If implementation-time worktree creation fails, stop and report the failure instead of continuing in a half-created workspace.
 
 > **Note:** If working from the WannaBuild repo directly, you can also run `scripts/wannabuild-workspace.sh --json` from the target project root instead of the inline commands above.
 ````

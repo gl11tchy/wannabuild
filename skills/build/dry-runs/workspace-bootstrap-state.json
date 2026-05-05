@@ -1,5 +1,5 @@
 {
-  "project": "wannabuild-dryrun-workspace-bootstrap",
+  "project": "wannabuild-dryrun-implementation-workspace",
   "mode": "standard",
   "current_phase": "requirements",
   "phase_status": "in_progress",

@@ -40,7 +40,7 @@ If invoked with a concrete task:
    `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
 2. Otherwise emit the start banner and begin Discover immediately.
 
-If the current directory is inside a git repo, create an isolated workspace before Discover (see Mandatory Workspace Bootstrap in the wannabuild skill).
+If implementation-time isolation is selected inside a git repo, create an isolated workspace before implementation (see Workspace Behavior in the wannabuild skill).
 
 Use the `wannabuild` skill for the full workflow contract.
 ````

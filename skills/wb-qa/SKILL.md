@@ -7,15 +7,13 @@ description: Standalone WannaBuild QA toolbox skill for validating acceptance cr
 
 Use this toolbox skill when the user wants QA or final verification only.
 
-## Mandatory Toolbox Bootstrap
+## Toolbox Bootstrap
 
 Before any toolbox phase work:
 
 - If no concrete task exists, ask for the actual goal first.
-- If the current project is a git repo and a concrete task exists, use the same mandatory workspace/worktree bootstrap as `wannabuild` before reading, writing, planning, or editing.
-- If already inside an isolated WannaBuild workspace, resume there.
-- Otherwise create an isolated workspace with `scripts/wannabuild-workspace.sh --json` when available.
-- Continue only in the isolated workspace; never keep working in the original checkout.
+- Work in the current checkout by default.
+- Do not create an isolated worktree for QA.
 
 ## Purpose
 

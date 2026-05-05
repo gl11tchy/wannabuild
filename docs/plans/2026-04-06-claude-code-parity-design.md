@@ -32,7 +32,7 @@ Claude Code and Codex become co-primary. Cursor stays secondary.
 Rewrite to contain the actual workflow entry instructions for Claude Code. Remove the `$wannabuild` Codex syntax. The command should directly instruct Claude to begin the WannaBuild workflow — emit the start banner, check for state.json for resume, and enter Discover.
 
 **`skills/wannabuild/SKILL.md`**
-Replace all `../../scripts/...` invocations with equivalent inline bash commands. The workspace bootstrap, session state writes, gate checks, and stage transitions are all expressible as direct shell commands and Write-tool operations without needing to locate an external script at runtime.
+Replace all `../../scripts/...` invocations with equivalent inline bash commands. Optional implementation worktree creation, session state writes, gate checks, and stage transitions are all expressible as direct shell commands and Write-tool operations without needing to locate an external script at runtime.
 
 Scripts in `scripts/` remain as standalone developer utilities but become optional — the skill no longer depends on them.
 
@@ -91,7 +91,7 @@ Elevate the Claude Code install section to equal prominence with Codex. Marketpl
 ## Success Criteria
 
 1. `/plugin install wannabuild@gl11tchy` installs cleanly and `/wannabuild` starts the workflow
-2. The workspace bootstrap runs correctly without requiring external scripts to be locatable
+2. Optional implementation worktree creation runs correctly without requiring external scripts to be locatable
 3. A Claude Code user following `adapters/claude-code/README.md` can be running in under 5 minutes
 4. No file references Claude Code as "compatibility" or secondary to Codex
 5. Codex install path still works unchanged

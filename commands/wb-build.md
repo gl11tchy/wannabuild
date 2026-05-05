@@ -7,7 +7,7 @@ argument-hint: [task or slice]
 
 Use this toolbox command when the user wants implementation.
 
-Before phase work, enforce Mandatory Toolbox Bootstrap: if this is a concrete task in a git repo and the session is not already inside an isolated WannaBuild workspace, use the `wannabuild` workspace bootstrap contract or `scripts/wannabuild-workspace.sh --json`, then continue only in the isolated workspace.
+Before phase work, use Toolbox Bootstrap: work in the current checkout by default. Create an isolated worktree only when the user asks, selects implementation-time isolation, requests parallel implementation, or the risk justifies separation.
 
 1. Use the `wb-build` skill.
 2. Start or resume `.wannabuild` state.

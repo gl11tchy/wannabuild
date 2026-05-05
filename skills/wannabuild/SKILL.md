@@ -36,51 +36,20 @@ Tell me what you want to build or change.
 
 Only begin Discover after the user provides an actual task.
 
-## Mandatory Workspace Bootstrap
+## Workspace Behavior
 
-If the current project is a git repo and the user has provided a concrete task:
+Use the current checkout for Discover, Control mode, Research, Plan, Review, QA, Summary, and toolbox-only work.
 
-1. Create an isolated workspace before Discover
-2. Continue all reads and writes in that workspace only
-3. Never continue work in the original checkout
+Do not create an isolated workspace/worktree before discovery or planning.
 
-Run these commands from the target project root:
+Before implementation starts from an approved plan, choose the implementation workspace:
 
-```bash
-GIT_ROOT=$(git rev-parse --show-toplevel)
-REPO_NAME=$(basename "$GIT_ROOT")
-CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
-WB_TS=$(date +%Y%m%d%H%M%S)
-WB_RAND=$(python3 -c "import secrets; print(''.join(secrets.choice('abcdefghijklmnopqrstuvwxyz0123456789') for _ in range(6)))")
-WB_ID="${WB_TS}-build-${WB_RAND}"
-WB_PARENT="${GIT_ROOT}/.codex/worktrees/${REPO_NAME}"
-WB_PATH="${WB_PARENT}/${WB_ID}"
-WB_BRANCH="wannabuild/${WB_ID}"
-WB_EXCLUDE=$(git rev-parse --git-path info/exclude)
-mkdir -p "$(dirname "$WB_EXCLUDE")"
-touch "$WB_EXCLUDE"
-grep -Fxq '.codex/worktrees/' "$WB_EXCLUDE" || printf '\n.codex/worktrees/\n' >>"$WB_EXCLUDE"
-mkdir -p "$WB_PARENT"
-git worktree add -b "$WB_BRANCH" "$WB_PATH" HEAD
-mkdir -p "$WB_PATH/.wannabuild"
-```
+1. Continue in the current checkout
+2. Create an isolated worktree under `.codex/worktrees/<repo>/...`
 
-Then write `.wannabuild/workspace.json` in the new workspace:
+Use an isolated worktree only when the user selects it, explicitly asks for isolation, requests parallel implementation, or the implementation risk justifies separation. If an isolated worktree is created, use `scripts/wannabuild-workspace.sh --json` when available and then continue inside the reported `workspace_path`.
 
-(Substitute the actual shell variable values from the commands above, not the placeholder strings.)
-
-```json
-{
-  "workspace_id": "<WB_ID>",
-  "source_repo": "<GIT_ROOT>",
-  "source_branch": "<CURRENT_BRANCH>",
-  "workspace_path": "<WB_PATH>",
-  "branch_name": "<WB_BRANCH>",
-  "dirty_snapshot": false
-}
-```
-
-Then write `.wannabuild/state.json`:
+Initialize `.wannabuild/state.json` in the active checkout before continuing:
 
 ```json
 {
@@ -104,10 +73,6 @@ Then write `.wannabuild/state.json`:
   ]
 }
 ```
-
-If workspace bootstrap fails, delete `$WB_PATH` if it was partially created, then stop and report the error without continuing.
-
-> **Note:** If working from the WannaBuild repo directly, you can also run `scripts/wannabuild-workspace.sh --json` from the target project root instead of the inline commands above.
 
 ## Workflow
 

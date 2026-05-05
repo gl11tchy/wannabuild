@@ -126,7 +126,7 @@ if manifest.get("host_invocations") != expected_hosts:
 
 required = {
     "no-task-invocation",
-    "workspace-bootstrap",
+    "implementation-workspace-selection",
     "resume",
     "research-gate",
     "implementation-gate",

@@ -55,9 +55,9 @@ Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Su
 - Do not infer intent from git diff or uncommitted changes.
 - Do not start planning or implementation without a concrete task.
 - Do not browse externally when no concrete task exists.
-- For concrete tasks in a git repo, create an isolated workspace/worktree first.
-- Initialize `.wannabuild` state in that isolated workspace before continuing.
-- Continue only inside the isolated workspace, never the original checkout.
+- Do not create an isolated workspace/worktree during Discover, Plan, Review, QA, Summary, or ordinary toolbox use.
+- Work in the current checkout by default.
+- Offer or create an isolated worktree only when entering implementation from an approved plan, when the user asks for isolation, or when parallel/risky changes need separation.
 
 ## Step Contract
 

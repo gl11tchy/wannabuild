@@ -19,9 +19,9 @@ Public steps stay compact for the user; internal phases provide rigor.
 ## 2) Non-Negotiables
 
 1. No concrete task: ask for the goal first.
-2. In git repos: create an isolated workspace/worktree first.
+2. In git repos: use the current checkout through discovery and planning.
 3. Initialize `.wannabuild/state.json` in that workspace.
-4. Continue only inside the workspace.
+4. Before implementation, choose current checkout or an isolated worktree.
 5. Integration testing is a hard gate.
 6. Do not emit final summary until Review and QA both pass.
 
@@ -78,7 +78,7 @@ If unclear, stay single-owner.
 
 ## 8) Operational Commands
 
-- Workspace bootstrap: `scripts/wannabuild-workspace.sh --json`
+- Optional implementation worktree: `scripts/wannabuild-workspace.sh --json`
 - Artifact contract validation:
   - `scripts/validate-wannabuild-artifacts.sh <project_root> <target_phase>`
 - Review/QA gate checks:
