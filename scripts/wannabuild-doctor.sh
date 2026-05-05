@@ -61,6 +61,18 @@ check_contains() {
   fi
 }
 
+check_not_contains() {
+  local path="$1"
+  local needle="$2"
+  local label="${3:-$path does not contain $needle}"
+  if [[ -f "$ROOT/$path" ]] && ! grep -Fq "$needle" "$ROOT/$path"; then
+    printf 'PASS  %s\n' "$label"
+  else
+    printf 'FAIL  %s\n' "$label"
+    return 1
+  fi
+}
+
 check_command() {
   local label="$1"
   shift
@@ -190,6 +202,9 @@ check_file "skills/build/dry-runs/summary-complete-state.json" || status=1
 echo
 echo "Host-native invocation surfaces"
 check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
+check_not_contains "commands/wannabuild.md" "[WB-START]" "Claude command leaves start banner to skill" || status=1
+check_not_contains "commands/wannabuild.md" "[WB-RESUME]" "Claude command leaves resume banner to skill" || status=1
+check_not_contains "commands/wannabuild.md" "Respond with exactly" "Claude command does not force direct visible response" || status=1
 check_contains "commands/using-wannabuild.md" "/using-wannabuild" "Claude command exposes /using-wannabuild" || status=1
 check_contains "docs/codex-getting-started.md" "\$wannabuild" "Codex docs expose \$wannabuild" || status=1
 check_contains "docs/codex-getting-started.md" "\$using-wannabuild" "Codex docs expose \$using-wannabuild" || status=1

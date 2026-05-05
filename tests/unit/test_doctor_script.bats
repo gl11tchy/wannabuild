@@ -83,6 +83,14 @@ PY
   [[ "$output" == *"FAIL  README docs expose /wb-build"* ]]
 }
 
+@test "doctor: FAILs when Claude command reintroduces direct banner output" {
+  copy="$(_copy_repo)"
+  printf '\n[WB-START] WannaBuild STARTED | intent=build | mode=standard\n' >> "$copy/commands/wannabuild.md"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Claude command leaves start banner to skill"* ]]
+}
+
 @test "doctor: FAILs when a toolbox skill omits bootstrap" {
   copy="$(_copy_repo)"
   python3 - "$copy/skills/wb-build/SKILL.md" <<'PY'

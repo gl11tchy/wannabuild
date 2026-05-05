@@ -63,9 +63,16 @@ print("".join(secrets.choice(alphabet) for _ in range(6)))
 PY
 )"
 workspace_id="${ts}-${slug}-${rand}"
-parent_dir="$(dirname "$root")/.wannabuild-workspaces/${repo_name}"
+parent_dir="${root}/.codex/worktrees/${repo_name}"
 workspace_path="${parent_dir}/${workspace_id}"
 branch_name="wannabuild/${workspace_id}"
+
+exclude_file="$(git rev-parse --git-path info/exclude)"
+mkdir -p "$(dirname "$exclude_file")"
+touch "$exclude_file"
+if ! grep -Fxq '.codex/worktrees/' "$exclude_file"; then
+  printf '\n.codex/worktrees/\n' >>"$exclude_file"
+fi
 
 mkdir -p "$parent_dir"
 
@@ -81,6 +88,7 @@ if [[ "$dirty" == true ]]; then
     rsync -a --delete \
       --exclude '.git' \
       --exclude '.wannabuild' \
+      --exclude '.codex/worktrees' \
       --exclude 'node_modules' \
       --exclude '.next' \
       --exclude '.turbo' \
@@ -95,6 +103,7 @@ if [[ "$dirty" == true ]]; then
       tar \
         --exclude='.git' \
         --exclude='.wannabuild' \
+        --exclude='.codex/worktrees' \
         --exclude='node_modules' \
         --exclude='.next' \
         --exclude='.turbo' \

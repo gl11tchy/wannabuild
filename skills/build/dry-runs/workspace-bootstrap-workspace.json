@@ -2,7 +2,7 @@
   "workspace_id": "20260429100000-dryrun-bootstrap",
   "source_repo": "/tmp/wannabuild-source",
   "source_branch": "main",
-  "workspace_path": "/tmp/.wannabuild-workspaces/wannabuild/20260429100000-dryrun-bootstrap",
+  "workspace_path": "/tmp/wannabuild-source/.codex/worktrees/wannabuild/20260429100000-dryrun-bootstrap",
   "branch_name": "codex/dryrun-bootstrap",
   "dirty_snapshot": false
 }

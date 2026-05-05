@@ -2,8 +2,8 @@
 #
 # Unit tests for scripts/wannabuild-workspace.sh
 #
-# The script creates a sibling directory:
-#   <repo_parent>/.wannabuild-workspaces/<repo_name>/<workspace_id>/
+# The script creates a Codex-managed worktree directory:
+#   <repo>/.codex/worktrees/<repo_name>/<workspace_id>/
 # We point it at a tmp git repo so we never touch real $HOME or this repo's
 # parent directory.
 
@@ -52,10 +52,14 @@ setup() {
   # Parse workspace_path from output.
   ws_path="$(printf '%s\n' "$output" | awk '/^workspace_path:/{print $2}')"
   [ -n "$ws_path" ]
+  [[ "$ws_path" == *"/.codex/worktrees/repo/"* ]]
   [ -d "$ws_path" ]
   [ -f "$ws_path/.wannabuild/workspace.json" ]
   grep -q '"workspace_id"' "$ws_path/.wannabuild/workspace.json"
   grep -q '"dirty_snapshot": false' "$ws_path/.wannabuild/workspace.json"
+  [ ! -e "$WORKDIR/.wannabuild-workspaces" ]
+  [[ "$(git status --porcelain)" == "" ]]
+  grep -Fxq '.codex/worktrees/' "$(git rev-parse --git-path info/exclude)"
 }
 
 @test "workspace: --json produces a single JSON line" {

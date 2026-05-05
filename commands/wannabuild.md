@@ -5,39 +5,19 @@ argument-hint: [what you want to build]
 
 # /wannabuild
 
-Start the full WannaBuild vision-first, spec-driven development loop:
+Route to the full WannaBuild vision-first, spec-driven development loop:
 
 ```text
 Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
 ```
 
-If invoked with no task or only a question about the workflow:
-
-- do not inspect the repo
-- do not infer the task from git state
-- do not plan or implement anything
-
-Respond with exactly:
-
-```text
-[WB-START] WannaBuild STARTED | intent=build | mode=standard
-
-Tell me what you want to build or change.
-```
-
-If invoked with a concrete task:
-
-1. Check for `.wannabuild/state.json` — if it exists and is recoverable, resume with:
-   `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
-2. Otherwise emit the start banner and begin the vision-first Discover interview.
-   The `wannabuild` skill handles mandatory workspace/worktree bootstrap before phase work.
-
-Deduplication guard:
-
-- Never send the same user-visible line twice in a row.
-- If this command already emitted `[WB-START]` or `[WB-RESUME]` in the current turn, do not emit it again when handing off to the `wannabuild` skill.
-- For guided gates, if the exact gate prompt is already the latest assistant message and no new user answer was provided, wait instead of repeating the same prompt.
-
 Use the `wannabuild` skill for the full workflow contract.
+
+Command-layer constraints:
+
+- Do not emit start or resume banners from this command.
+- Do not ask control, research, implementation, review, QA, or summary gate questions from this command.
+- Do not produce the no-task fallback text from this command.
+- Let the `wannabuild` skill own all user-visible workflow output, workspace bootstrap, state updates, and de-duplication.
 
 For phase-specific toolbox work, prefer `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, or `/wb-ship`.

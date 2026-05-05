@@ -53,9 +53,13 @@ CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
 WB_TS=$(date +%Y%m%d%H%M%S)
 WB_RAND=$(python3 -c "import secrets; print(''.join(secrets.choice('abcdefghijklmnopqrstuvwxyz0123456789') for _ in range(6)))")
 WB_ID="${WB_TS}-build-${WB_RAND}"
-WB_PARENT="$(dirname "$GIT_ROOT")/.wannabuild-workspaces/${REPO_NAME}"
+WB_PARENT="${GIT_ROOT}/.codex/worktrees/${REPO_NAME}"
 WB_PATH="${WB_PARENT}/${WB_ID}"
 WB_BRANCH="wannabuild/${WB_ID}"
+WB_EXCLUDE=$(git rev-parse --git-path info/exclude)
+mkdir -p "$(dirname "$WB_EXCLUDE")"
+touch "$WB_EXCLUDE"
+grep -Fxq '.codex/worktrees/' "$WB_EXCLUDE" || printf '\n.codex/worktrees/\n' >>"$WB_EXCLUDE"
 mkdir -p "$WB_PARENT"
 git worktree add -b "$WB_BRANCH" "$WB_PATH" HEAD
 mkdir -p "$WB_PATH/.wannabuild"

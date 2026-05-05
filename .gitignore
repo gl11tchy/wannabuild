@@ -46,6 +46,7 @@ logs/
 !docs/golden-path-demo/.wannabuild/**
 
 # Local Codex/OMX workspace state
+.codex/worktrees/
 .omx/
 
 # Test coverage

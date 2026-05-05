@@ -199,8 +199,8 @@ for scenario in scenarios:
                 err(f"{sid}: workspace source_repo must be a non-empty string")
             if not isinstance(isolated_path, str) or not isolated_path:
                 err(f"{sid}: workspace workspace_path must be a non-empty string")
-            elif ".wannabuild-workspaces" not in isolated_path:
-                err(f"{sid}: workspace_path must live under a .wannabuild-workspaces root")
+            elif "/.codex/worktrees/" not in isolated_path:
+                err(f"{sid}: workspace_path must live under a .codex/worktrees root")
             if isinstance(source_repo, str) and isinstance(isolated_path, str) and source_repo == isolated_path:
                 err(f"{sid}: workspace_path must differ from source_repo")
             if not isinstance(workspace.get("dirty_snapshot"), bool):
