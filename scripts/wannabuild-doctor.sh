@@ -127,7 +127,7 @@ for skill in "${TOOLBOX_SKILLS[@]}"; do
   check_file "skills/${skill}/SKILL.md" || status=1
   check_file "commands/${skill}.md" || status=1
   check_contains "skills/${skill}/SKILL.md" "Toolbox Bootstrap" "Toolbox skill ${skill} defines bootstrap behavior" || status=1
-  check_contains "commands/${skill}.md" "Toolbox Bootstrap" "Toolbox command /${skill} defines bootstrap behavior" || status=1
+  check_contains "commands/${skill}.md" "Use the \`${skill}\` skill" "Toolbox command /${skill} routes to skill" || status=1
   check_contains ".codex/INSTALL.md" "${skill}" "Codex manual install includes ${skill}" || status=1
   check_contains "README.md" "/${skill}" "README docs expose /${skill}" || status=1
 done

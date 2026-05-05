@@ -129,7 +129,7 @@ required = {
     "implementation-workspace-selection",
     "resume",
     "research-gate",
-    "implementation-gate",
+    "implementation-selection",
     "review-failure",
     "qa-failure",
     "summary-completion",

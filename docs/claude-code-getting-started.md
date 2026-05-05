@@ -66,7 +66,7 @@ Optional intro skill:
 Use `/wannabuild` for the full loop:
 
 ```text
-Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
 Use toolbox commands when you only want one stage:

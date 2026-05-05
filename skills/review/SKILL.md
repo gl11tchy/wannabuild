@@ -228,7 +228,7 @@ This enforces WannaBuild's core principle: **integration tests are non-negotiabl
 
 ## Feedback Aggregation
 
-When any reviewer fails, read the detail files for all failing agents (`.wannabuild/review/[agent]-iter-{N}.json`), then aggregate their issues into consolidated feedback for `wb-implementer-escalated`:
+When any reviewer fails, read the detail files for all failing agents (`.wannabuild/review/[agent]-iter-{N}.json`), then aggregate their actionable issues into consolidated feedback for `wb-implementer-escalated` and fix them automatically:
 
 ```json
 {
@@ -243,7 +243,7 @@ When any reviewer fails, read the detail files for all failing agents (`.wannabu
 }
 ```
 
-This consolidated feedback (not the raw agent files) is passed to `wb-implementer-escalated` for fixes. Then the next review iteration runs the adaptive active reviewer set (impacted reviewers + integration tester; full fallback when impact is ambiguous).
+This consolidated feedback (not the raw agent files) is passed to `wb-implementer-escalated` for fixes. Then the next review iteration runs the adaptive active reviewer set (impacted reviewers + integration tester; full fallback when impact is ambiguous). Stop for user input only when a finding requires product judgment, destructive changes, credentials, paid services, or scope expansion.
 
 ## Loop State
 

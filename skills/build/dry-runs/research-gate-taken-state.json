@@ -5,7 +5,7 @@
   "phase_status": "pending",
   "public_stage": "plan",
   "workflow_status": "in_progress",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "research_summary": ".wannabuild/outputs/research-summary.md"
@@ -24,18 +24,6 @@
       "stage": "discover",
       "status": "complete",
       "timestamp": "2026-03-11T09:12:00Z"
-    },
-    {
-      "stage": "control_mode_decision",
-      "status": "complete",
-      "timestamp": "2026-03-11T09:14:00Z",
-      "decision": "guided"
-    },
-    {
-      "stage": "research_decision",
-      "status": "complete",
-      "timestamp": "2026-03-11T09:20:00Z",
-      "decision": "research"
     },
     {
       "stage": "research",

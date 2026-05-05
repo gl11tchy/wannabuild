@@ -50,11 +50,8 @@
       "type": "string",
       "enum": [
         "discover",
-        "control_mode_decision",
-        "research_decision",
         "research",
         "plan",
-        "implementation_decision",
         "implement",
         "review",
         "qa",
@@ -126,11 +123,8 @@
             "type": "string",
             "enum": [
               "discover",
-              "control_mode_decision",
-              "research_decision",
               "research",
               "plan",
-              "implementation_decision",
               "implement",
               "review",
               "qa",

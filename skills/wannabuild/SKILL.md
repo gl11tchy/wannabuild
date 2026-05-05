@@ -7,9 +7,19 @@ description: Repo-native WannaBuild full-loop workflow, with toolbox routing for
 
 Use this skill when the user wants WannaBuild itself, not generic coding help.
 
+## Skill-First Dispatch
+
+Use WannaBuild skills automatically whenever they plausibly apply. Commands are optional shortcuts, not the source of truth.
+
+- Use `wannabuild` for full-loop requests, broad build requests, or "I want X" product/change requests.
+- Use the smallest matching `wb-*` toolbox skill for focused discovery, planning, implementation, debugging, review, QA, or ship requests.
+- Do not require the user to invoke a command if the intent is clear from natural language.
+- If multiple skills might apply, choose the minimal useful set and continue.
+- Keep behavior in skills; command files should only route.
+
 WannaBuild supports two surfaces:
 
-- **Full-loop mode:** use `wannabuild` for Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary.
+- **Full-loop mode:** use `wannabuild` for Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 - **Toolbox mode:** use `wb-discover`, `wb-plan`, `wb-build`, `wb-debug`, `wb-review`, `wb-qa`, or `wb-ship` when the user asks for one step only.
 
 Toolbox mode still follows WannaBuild principles, but it does not auto-advance across public gates.
@@ -38,7 +48,7 @@ Only begin Discover after the user provides an actual task.
 
 ## Workspace Behavior
 
-Use the current checkout for Discover, Control mode, Research, Plan, Review, QA, Summary, and toolbox-only work.
+Use the current checkout for Discover, Plan, Validate, QA, Summary, and toolbox-only work.
 
 Do not create an isolated workspace/worktree before discovery or planning.
 
@@ -59,7 +69,7 @@ Initialize `.wannabuild/state.json` in the active checkout before continuing:
   "phase_status": "pending",
   "public_stage": "discover",
   "workflow_status": "in_progress",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "started_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
   "updated_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
   "artifacts": {},
@@ -79,21 +89,19 @@ Initialize `.wannabuild/state.json` in the active checkout before continuing:
 Run this condensed workflow:
 
 1. Discover
-2. Control mode gate
-3. Research gate
-4. Plan
-5. Implement
-6. Review
-7. QA
-8. Summary
+2. Plan
+3. Implement
+4. Validate
+5. QA
+6. Summary
 
 ## Defaults
 
 - Discover is a vision-first interview before it is a requirements document.
 - Keep Discover, Plan, QA, and Summary single-lane unless parallel specialists materially improve quality.
-- Default to guided mode until the user explicitly switches to autonomous mode after Discover.
-- Offer optional research before planning when uncertainty is still materially high.
-- Offer implementation shape in guided mode; choose adaptively in autonomous mode.
+- Default to autonomous execution after discovery.
+- Run optional research before planning when uncertainty is materially high.
+- Choose implementation shape adaptively.
 - In toolbox mode, do only the requested step and keep exploratory work bounded to the decision at hand.
 - Scale sub-agents from task evidence, not fixed counts.
 - Choose capability tier and reasoning effort from complexity, coupling, risk, uncertainty, and required expertise; do not name concrete model IDs in core workflow decisions.
@@ -142,49 +150,34 @@ To prevent duplicate user-visible outputs:
 
 - Never emit identical assistant messages back-to-back.
 - If `[WB-START]` or `[WB-RESUME]` was already emitted in the current turn by the command layer, do not emit the same banner again.
-- For guided gates, ask each gate question once per unresolved stage.
-- If the most recent assistant message already contains the exact gate question and the user has not answered yet, do not repeat it; wait for user input.
+- If the user explicitly chooses guided mode, ask each checkpoint question once per unresolved stage.
+- If the most recent assistant message already contains the exact question and the user has not answered yet, do not repeat it; wait for user input.
 - If repetition is necessary for clarity, restate with new wording instead of sending the exact same message text.
 
-## Control Mode Gate
+## Autonomy After Discover
 
-After Discover, ask exactly once:
+After Discover, continue autonomously by default. Do not ask whether to stay guided or switch to autonomous.
 
-1. Continue in guided mode
-2. Switch to autonomous mode
+Use:
 
-Guided mode:
-
-- ask for user preference at each later gate
-- do not advance silently
-
-Autonomous mode:
-
-- continue adaptively through later gates without asking every time
-- still stop for destructive actions, real blockers, or ambiguity that changes scope materially
-
-Persist the choice in `.wannabuild/state.json`:
-
-- `control_mode: "guided"`
 - `control_mode: "autonomous"`
 
-Update `.wannabuild/state.json` — set `public_stage: "control_mode_decision"`, `workflow_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
+Continue through planning, implementation, validation, QA, and summary unless user judgment is required.
 
-Then, once the user chooses:
+Ask only when:
 
-- Guided: Update `.wannabuild/state.json` — set `control_mode: "guided"`.
-- Autonomous: Update `.wannabuild/state.json` — set `control_mode: "autonomous"`.
+- ambiguity changes product direction or scope materially
+- credentials, paid services, production data, or destructive actions are involved
+- merge, push, PR, or direct-to-main strategy is needed
+- the user explicitly requested guided mode
 
-## Research Gate
+If the user requests guided mode, set `control_mode: "guided"` and pause at natural checkpoints.
+
+## Research
 
 After discovery, decide whether research would materially improve planning quality.
 
-If `control_mode` is `guided` and research is warranted, offer the user exactly two paths:
-
-1. Kick off research agents
-2. Move to planning
-
-Ask this only when at least one of these is true:
+Run research only when at least one of these is true:
 
 - architecture direction is still unclear
 - external dependency choice matters
@@ -192,7 +185,7 @@ Ask this only when at least one of these is true:
 - domain or API uncertainty is high
 - risk is high enough that parallel investigation would help
 
-If research is chosen:
+If research is warranted:
 
 - run a bounded research burst using the smallest useful set of specialist agents
 - assign each agent a distinct question, ownership area, capability tier, and reasoning effort
@@ -208,52 +201,38 @@ If research is not warranted:
 - move directly to planning
 - update stage to `plan`
 
-If `control_mode` is `autonomous`, you may choose the better path adaptively.
+Do not ask before research unless it needs external browsing, paid APIs, credentials, or materially changes scope.
 
-## Implementation Gate
+## Implementation
 
 After planning is complete and the approach is verified:
-
-If `control_mode` is `guided`, offer exactly two paths:
-
-1. Use single-owner implementation
-2. Use adaptive parallel implementation for disjoint slices
 
 Default to the smallest shape that can implement the plan well. Use single-owner implementation when tasks are tightly coupled. Use parallel agents only when slices are genuinely independent or when separate expertise materially improves the outcome.
 
 When using adaptive parallel implementation, assign each agent concrete files, risks, acceptance criteria, or questions, and stop adding agents once ownership stops being distinct.
 
-Do not begin implementation in guided mode until the user has selected a path or clearly delegated the choice.
-
-If `control_mode` is `autonomous`, choose adaptively and record:
+Choose adaptively and record:
 
 - why this execution shape was chosen
 - what each agent owns
 - selected capability tier and reasoning effort
 - expected evidence and checkpoint paths
 
-## Review Gate
+## Validate
 
-After implementation completes, move to a distinct Review stage.
+After implementation completes, validate the change.
 
-Choose reviewers as a separate post-implementation gate. The integration tester remains mandatory; other reviewers are selected from changed surfaces, risk, acceptance criteria, and prior failures.
+Choose reviewer hats and checks from changed surfaces, risk, acceptance criteria, and prior failures. Fix actionable bugs, regressions, and missing required tests automatically, then rerun impacted checks.
 
 Write verdicts into `.wannabuild/review/`.
 
 Update `.wannabuild/state.json` — set `public_stage: "review"`, `workflow_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
-Do not treat implementation-time checks as the Review stage.
+Do not stop for validation approval unless a blocker requires user judgment.
 
-If `control_mode` is `guided`, ask before running Review:
+## QA
 
-1. Run review now
-2. Adjust before review
-
-If `control_mode` is `autonomous`, proceed adaptively.
-
-## QA Gate
-
-After Review passes, move to a distinct QA stage.
+After validation passes, move to QA.
 
 QA must:
 
@@ -265,12 +244,7 @@ Update `.wannabuild/state.json` — set `public_stage: "qa"`, `workflow_status: 
 
 Do not collapse QA into implementation verification.
 
-If `control_mode` is `guided`, ask before running QA:
-
-1. Run QA now
-2. Adjust before QA
-
-If `control_mode` is `autonomous`, proceed adaptively.
+Proceed through QA automatically unless it requires user-controlled systems, credentials, paid services, or destructive actions.
 
 ## Summary Guard
 
@@ -286,12 +260,7 @@ If any check fails, block the summary and report what is missing.
 
 Then update `.wannabuild/state.json` — set `public_stage: "summary"`, `workflow_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
-If `control_mode` is `guided`, ask before final summary:
-
-1. Summarize now
-2. Continue working
-
-If `control_mode` is `autonomous`, summarize once gates pass.
+Summarize once validation and QA pass.
 
 ## Output Contract
 
@@ -318,16 +287,13 @@ During Discover, before the user has approved planning:
 Persist and update these public stages in `.wannabuild/state.json`:
 
 1. `discover`
-2. `control_mode_decision`
-3. `research_decision`
-4. `research`
-5. `plan`
-6. `implementation_decision`
-7. `implement`
-8. `review`
-9. `qa`
-10. `summary`
+2. `research` when bounded research is warranted
+3. `plan`
+4. `implement`
+5. `review` for the Validate step
+6. `qa`
+7. `summary`
 
 When entering or completing a stage, update `.wannabuild/state.json` — set `public_stage: "<stage>"`, `workflow_status: "in_progress"` or `workflow_status: "complete"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
-Do not skip stages silently.
+Do not skip required stages silently. Research is optional; omit it when it would not materially improve the plan.

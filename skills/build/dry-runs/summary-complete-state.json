@@ -5,7 +5,7 @@
   "phase_status": "complete",
   "public_stage": "summary",
   "workflow_status": "complete",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "design": ".wannabuild/spec/design.md",
@@ -53,24 +53,9 @@
       "timestamp": "2026-04-29T12:02:00Z"
     },
     {
-      "stage": "control_mode_decision",
-      "status": "complete",
-      "timestamp": "2026-04-29T12:04:00Z"
-    },
-    {
-      "stage": "research_decision",
-      "status": "complete",
-      "timestamp": "2026-04-29T12:06:00Z"
-    },
-    {
       "stage": "plan",
       "status": "complete",
       "timestamp": "2026-04-29T12:18:00Z"
-    },
-    {
-      "stage": "implementation_decision",
-      "status": "complete",
-      "timestamp": "2026-04-29T12:19:00Z"
     },
     {
       "stage": "implement",

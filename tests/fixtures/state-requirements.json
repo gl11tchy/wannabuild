@@ -4,7 +4,7 @@
   "current_phase": "requirements",
   "phase_status": "in_progress",
   "public_stage": "discover",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "workflow_status": "in_progress",
   "artifacts": {},
   "started_at": "2025-01-01T00:00:00Z",

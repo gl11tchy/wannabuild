@@ -104,17 +104,17 @@ PY
   [[ "$output" == *"FAIL  Toolbox skill wb-build defines bootstrap behavior"* ]]
 }
 
-@test "doctor: FAILs when a toolbox command omits bootstrap behavior" {
+@test "doctor: FAILs when a toolbox command stops routing to its skill" {
   copy="$(_copy_repo)"
   python3 - "$copy/commands/wb-build.md" <<'PY'
 from pathlib import Path
 import sys
 path = Path(sys.argv[1])
-path.write_text(path.read_text().replace("Toolbox Bootstrap", "Bootstrap omitted"))
+path.write_text(path.read_text().replace("Use the `wb-build` skill", "Route omitted"))
 PY
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  Toolbox command /wb-build defines bootstrap behavior"* ]]
+  [[ "$output" == *"FAIL  Toolbox command /wb-build routes to skill"* ]]
 }
 
 @test "doctor: FAILs when Codex manual install omits a toolbox skill" {

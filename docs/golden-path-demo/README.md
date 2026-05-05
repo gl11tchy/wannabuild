@@ -12,9 +12,9 @@ scripts/validate-wannabuild-dry-runs.sh
 
 The committed `.wannabuild/` tree represents a completed workflow:
 
-1. Discover and control mode were recorded.
+1. Discover was recorded.
 2. Requirements, design, and tasks were written.
 3. Implementation left checkpoint evidence.
-4. Review produced passing reviewer verdicts.
+4. Validation produced passing reviewer verdicts.
 5. QA produced a summary.
-6. Summary is allowed because Review and QA both passed.
+6. Summary is allowed because validation and QA both passed.

@@ -9,13 +9,11 @@ WannaBuild is a spec-driven orchestration framework that guides work from idea t
 The intended user-facing flow is:
 
 1. Discover
-2. Control mode gate
-3. Research gate
-4. Plan
-5. Implement gate
-6. Review
-7. QA
-8. Summary
+2. Plan
+3. Implement
+4. Validate
+5. QA
+6. Summary
 
 Toolbox mode uses standalone step skills when the user asks for a single slice:
 
@@ -86,12 +84,9 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 | Public Step | Internal Execution Surfaces |
 |---|---|
 | Discover | Requirements |
-| Control mode gate | Guided or autonomous preference |
-| Research gate | Optional research burst using specialist agents |
-| Plan | Design + Tasks |
-| Implement gate | Single agent or parallel implementation choice |
+| Plan | Optional research burst + Design + Tasks |
 | Implement | Implement |
-| Review | Review |
+| Validate | Review |
 | QA | Integration gate + final verification |
 | Summary | Ship/Document/handoff synthesis |
 
@@ -116,35 +111,19 @@ WannaBuild now runs one standard full-loop workflow mode at the top level.
 - proceed into Discover immediately
 - route explicit `wb-*` requests to the matching toolbox skill instead of starting the full loop
 
-## Control Mode Gate
+## Autonomy After Discover
 
-After Discover, ask exactly once:
+After Discover, continue autonomously by default. Do not ask whether to stay guided or switch to autonomous.
 
-1. Continue in guided mode
-2. Switch to autonomous mode
+Use `control_mode: "autonomous"` unless the user explicitly asks for guided mode.
 
-Guided mode:
+Ask only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
 
-- ask for user preference at each later gate
-- do not advance silently
-
-Autonomous mode:
-
-- continue adaptively through later gates without asking every time
-- still stop for destructive actions, real blockers, or ambiguity that changes scope materially
-
-Persist the choice as `control_mode` in `.wannabuild/state.json`.
-
-## Adaptive Research Gate
+## Adaptive Research
 
 After discovery, decide whether more investigation would materially improve planning quality.
 
-When research is warranted, ask the user:
-
-1. Kick off research agents
-2. Move to planning
-
-Use the research gate when one or more of these are true:
+Run bounded research when one or more of these are true:
 
 - architecture direction remains unclear
 - a package, framework, or external dependency decision matters
@@ -152,7 +131,7 @@ Use the research gate when one or more of these are true:
 - domain, API, auth, billing, or infra uncertainty is still high
 - parallel investigation would reduce planning risk
 
-If the user chooses research:
+If research is warranted:
 
 - run a bounded research burst using the smallest useful specialist set
 - choose specialists by uncertainty type, independence, and expected evidence
@@ -162,18 +141,13 @@ If the user chooses research:
 - synthesize findings into `.wannabuild/outputs/research-summary.md`
 - then proceed to planning
 
-If the user chooses planning:
+If research is not warranted:
 
 - move directly to Design + Tasks
 
-## Implementation Gate
+## Implementation Shape
 
-After planning is complete and the approach is verified, ask the user:
-
-1. Use single-owner implementation
-2. Use adaptive parallel implementation for disjoint slices
-
-Default to the smallest execution shape that can do the work well. In guided mode, ask at this gate; in autonomous mode, decide adaptively and record why.
+After planning is complete and the approach is verified, choose the smallest execution shape that can do the work well. Decide adaptively and record why.
 
 ## Model Tiering Defaults
 
@@ -220,7 +194,7 @@ Parallelism is a judgment call, not a ritual.
 - **Do not hard-code agent counts.** A single well-owned task may need no sub-agent; a complex effort may need several.
 - **Assign ownership explicitly:** each agent gets files, concerns, questions, or acceptance criteria it owns.
 - **Record the delegation rationale:** why this shape, why this tier/effort, what each agent owned, and what evidence each produced.
-- **Respect guided mode:** still pause at public gates unless the user chose autonomous mode.
+- **Guided mode:** if the user explicitly requested it, pause at natural checkpoints.
 
 ## Artifact Backbone
 
@@ -247,14 +221,14 @@ Public routing is conversational. The user should mostly experience step-level i
 | User Says | Public Step | Internal Execution |
 |-----------|-------------|--------------------|
 | "I wanna build..." / "I have an idea..." / "build..." | Discover | Requirements |
-| "guided mode" / "autonomous mode" | Control mode gate | Guided or autonomous preference |
-| "Research this first" / "Investigate options" | Research gate | Optional research burst |
+| "guided mode" / "autonomous mode" | Execution preference | Guided or autonomous preference |
+| "Research this first" / "Investigate options" | Plan | Optional research burst before Design + Tasks |
 | "Let's define what we're building" / "What should we build?" | Discover | Requirements |
 | "Let's plan this" / "How should we architect..." / "Break this into tasks" | Plan | Design + Tasks |
 | "Let's build it" / "Start coding" / "Implement" | Implement | Implement |
 | "`wb-discover` / `wb-plan` / `wb-build` / `wb-debug` / `wb-review` / `wb-qa` / `wb-ship`" | Matching toolbox step | Standalone toolbox skill |
-| "Review the code" / "Is this ready?" | Review | Review |
-| "QA this" / "Did we actually cover the requirements?" | QA | Review hard gate + final verification |
+| "Review the code" / "Is this ready?" | Validate | Review |
+| "QA this" / "Did we actually cover the requirements?" | QA | Integration gate + final verification |
 | "Summarize what happened" / "What is left?" | Summary | Ship/Document/handoff synthesis |
 
 **Routing algorithm:**
@@ -528,7 +502,7 @@ Then write `.wannabuild/state.json` with all required fields:
   "phase_status": "pending",
   "public_stage": "discover",
   "workflow_status": "in_progress",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "started_at": "<RFC3339 timestamp>",
   "updated_at": "<RFC3339 timestamp>",
   "artifacts": {},
@@ -554,7 +528,7 @@ requirements → design → tasks → implement → review (loop until all pass)
 ### Public Normal Flow
 
 ```text
-discover → control_mode_decision → research_decision (optional research) → plan → implementation_decision → implement → review → qa → summary
+discover → plan → implement → review → qa → summary
 ```
 
 ### Skip-Phase Logic
@@ -581,10 +555,9 @@ When resuming mid-implementation, continue from the latest checkpoint instead of
 ```text
 User: I wanna build a Stripe payment integration for my SaaS
 
-Orchestrator: Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary
+Orchestrator: Discover -> Plan -> Implement -> Validate -> QA -> Summary
   - Discover: captured goals and constraints
-  - Control mode: guided vs autonomous decision recorded
-  - Research gate: optional investigation chosen (or skipped)
+  - Plan: optional investigation run when needed
   - Plan: plan and architecture verified
   - Implement: checkpoints written
   - Review: adaptive reviewer set passed

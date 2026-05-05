@@ -1,11 +1,11 @@
 ---
 name: wb-ship
-description: Standalone WannaBuild ship toolbox skill for packaging completed work into a concise handoff, commit, or PR-ready summary after verification.
+description: Standalone WannaBuild ship toolbox skill for preparing verified work, asking for delivery mode, executing it, and cleaning up.
 ---
 
 # wb-ship
 
-Use this toolbox skill when the user wants to package verified work for handoff, commit, or pull request.
+Use this toolbox skill when the user wants to ship, merge, push, create a PR, or prepare final delivery.
 
 ## Toolbox Bootstrap
 
@@ -17,24 +17,30 @@ Before any toolbox phase work:
 
 ## Purpose
 
-Turn completed, reviewed, and QA-verified work into a clear ship-ready handoff.
+Turn completed, reviewed, and QA-verified work into a clear ship-ready handoff, then ask for the delivery path.
 
 ## Defaults
 
 - Confirm review and QA evidence before declaring work ready.
 - Do not hide failed or skipped checks.
 - Keep release notes and PR text grounded in actual changes.
-- Avoid extra cleanup or refactoring during ship unless required.
+- Run cleanup after the selected delivery action.
 - Use sub-agents only for distinct release, CI, documentation, or risk ownership.
 
 ## Flow
 
 1. Collect changed files, acceptance evidence, review status, and QA status.
 2. Identify unresolved risks or follow-ups.
-3. Prepare the requested handoff, commit message, PR body, or release note.
-4. Run final lightweight sanity checks when appropriate.
-5. Stop after the requested ship artifact or action.
+3. Prepare commits, release notes, PR body, and final verification evidence as needed.
+4. Ask the user to choose exactly one delivery path:
+   - merge locally
+   - push branch and create a PR
+   - push directly to `origin/main`
+   - stop after local preparation
+5. Execute the selected path.
+6. Run cleanup: prune/remove temporary worktrees when safe, delete local/remote topic branches when appropriate, remove generated transient files, and verify the final git status.
+7. Stop with a concise summary.
 
 ## Output
 
-Return a concise ship summary with changes, verification, risks, and any requested commit or PR details.
+Return a concise ship summary with delivery action, commit/PR/merge details, verification, cleanup performed, risks, and remaining work.

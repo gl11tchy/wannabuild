@@ -78,14 +78,14 @@ Use case:
    - fallback routing recommendation is `full_set`
    - `wb-integration-tester` remains in the active set
 
-## 4) Autonomous control mode — gate advance without prompting
+## 4) Autonomous implementation advance without prompting
 
 Fixture: `skills/build/dry-runs/autonomous-control-mode-state.json`
 
 Expected behavior:
 
-- `control_mode` is `autonomous`, set at `control_mode_decision`.
-- `implementation_decision` shows `autonomous_advance: true` — orchestrator selected single agent mode without waiting for user input.
+- `control_mode` is `autonomous`.
+- The `implement` stage records the selected execution shape without waiting for user input.
 - No guided gate question appears between plan completion and implement start.
 - State is valid to validate as `implement` phase.
 
@@ -101,16 +101,15 @@ Use case:
 3. Verify:
    - no schema failures
    - `control_mode` is `autonomous`
-   - `implementation_decision` stage is `complete` with `autonomous_advance: true`
+   - `implement` stage is `in_progress` with an execution shape
    - `current_phase` is `implement`
 
-## 5) Research gate taken — research burst completed before planning
+## 5) Research burst completed before planning
 
 Fixture: `skills/build/dry-runs/research-gate-taken-state.json`
 
 Expected behavior:
 
-- `research_decision` stage records `decision: "research"`.
 - `research` stage is `complete` with `agents_run` and `output` populated.
 - `artifacts` includes `research_summary` pointing to `.wannabuild/outputs/research-summary.md`.
 - `current_phase` is `design` (pending), indicating research completed and planning is next.
@@ -126,20 +125,18 @@ Use case:
 
 3. Verify:
    - no schema failures
-   - `research_decision.decision` is `research`
    - `research` stage is `complete` with output path recorded
    - `artifacts.research_summary` is present
 
-## 6) Implement gate denied — workflow paused at implementation_decision
+## 6) Implementation selection — workflow advances without a gate
 
 Fixture: `skills/build/dry-runs/implement-gate-denied-state.json`
 
 Expected behavior:
 
-- `public_stage` is `implementation_decision` with `status: "in_progress"`.
-- `gate_response` is `deferred` — user did not proceed to implement.
-- `current_phase` remains `tasks` with `phase_status: "complete"` — internal phase must not advance to `implement` when the public gate is deferred.
-- No implement checkpoint or implement phase entry in `phase_history`.
+- `public_stage` is `implement` with `status: "in_progress"`.
+- The latest implement stage records `execution_shape: "single-owner"`.
+- `current_phase` is `implement` with `phase_status: "in_progress"`.
 
 Use case:
 
@@ -147,14 +144,13 @@ Use case:
 2. Run:
 
    ```bash
-   scripts/validate-wannabuild-artifacts.sh . tasks
+   scripts/validate-wannabuild-artifacts.sh . implement
    ```
 
 3. Verify:
    - no schema failures
-   - `current_phase` is `tasks` (not `implement`)
-   - `implementation_decision` stage is `in_progress`, not `complete`
-   - `phase_history` has no `implement` entry
+   - `current_phase` is `implement`
+   - latest `implement` stage has `execution_shape: "single-owner"`
 
 ## 7) Advisor escalation triggered during implement
 

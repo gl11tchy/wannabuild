@@ -5,7 +5,7 @@
   "phase_status": "in_progress",
   "public_stage": "discover",
   "workflow_status": "in_progress",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "artifacts": {},
   "started_at": "2026-04-29T10:00:00Z",
   "updated_at": "2026-04-29T10:00:00Z",

@@ -8,7 +8,7 @@ WannaBuild is a repo-native, spec-driven workflow for shipping code with explici
 
 Public loop:
 
-`Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary`
+`Discover -> Plan -> Implement -> Validate -> QA -> Summary`
 
 Internal phases:
 
@@ -28,14 +28,11 @@ Public steps stay compact for the user; internal phases provide rigor.
 ## 3) Control Flow
 
 1. **Discover:** interview for vision, audience, desired feel, flows, features, constraints, non-goals, and success signals.
-2. **Control mode gate:** ask once: guided vs autonomous.
-3. **Research gate:** only if uncertainty is still materially high.
-4. **Plan:** produce requirements/design/tasks that are implementation-ready.
-5. **Implement gate:** choose or confirm adaptive execution shape.
-6. **Implement:** execute in micro-steps with checkpoints.
-7. **Review:** run reviewer set (adaptive after iteration 1).
-8. **QA:** verify acceptance criteria and integration behavior.
-9. **Summary:** report changes, passes, risks, remaining work.
+2. **Plan:** run bounded research when useful, then produce requirements/design/tasks that are implementation-ready.
+3. **Implement:** choose the smallest effective execution shape and execute in micro-steps with checkpoints.
+4. **Validate:** run the relevant reviewer set, fix actionable findings, and rerun impacted checks.
+5. **QA:** verify acceptance criteria and integration behavior.
+6. **Summary:** report changes, passes, risks, remaining work.
 
 ## 4) Artifacts (Source of Truth)
 
@@ -61,7 +58,7 @@ Public steps stay compact for the user; internal phases provide rigor.
 
 ## 6) State Machine (Public Stages)
 
-`discover -> control_mode_decision -> research_decision -> research -> plan -> implementation_decision -> implement -> review -> qa -> summary`
+`discover -> research? -> plan -> implement -> review -> qa -> summary`
 
 Each stage transition updates `public_stage`, `workflow_status`, and `updated_at`.
 

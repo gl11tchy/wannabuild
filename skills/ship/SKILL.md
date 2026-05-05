@@ -2,7 +2,7 @@
 
 > "Let's get this merged."
 
-Phase 6 of 7 in the WannaBuild SDD pipeline. Creates a well-structured PR referencing the spec artifacts and monitors CI to ensure all checks pass before merge.
+Phase 6 of 7 in the WannaBuild SDD pipeline. Prepares verified work for delivery, asks the user for the delivery path, executes it, and cleans up.
 
 ## Agents
 
@@ -135,17 +135,18 @@ The CI Guardian specifically verifies that integration tests run in the CI pipel
 - Flags if integration tests were skipped or absent from CI
 - Reports full check status with timing
 
-## Merge Strategy
+## Delivery Strategy
 
-After CI passes, the orchestrator presents merge options to the user:
+After final local verification passes, the orchestrator presents delivery options to the user:
 
-> CI is green. All integration tests passed. How do you want to merge?
+> Checks are green. How do you want to ship?
 >
-> 1. **Squash and merge** (recommended — clean history)
-> 2. **Merge commit** (preserves individual commits)
-> 3. **Rebase and merge** (linear history)
+> 1. **Merge locally**
+> 2. **Push branch and create a PR**
+> 3. **Push directly to `origin/main`**
+> 4. **Stop after local preparation**
 
-The orchestrator executes the user's choice.
+The orchestrator executes only the selected path. After execution, run cleanup: prune/remove temporary worktrees when safe, delete topic branches when appropriate, remove generated transient files, and verify final git status.
 
 ## State Update
 
@@ -164,7 +165,7 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
     "pr_number": 42,
     "pr_url": "https://github.com/user/repo/pull/42",
     "ci_status": "passed",
-    "merge_strategy": "squash"
+    "delivery_strategy": "push_pr"
   },
   "next_phase": "document"
 }
@@ -201,10 +202,10 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 
 - [ ] Checkpoint evidence is complete and reviewable
 - [ ] All changes committed (no dirty working tree)
-- [ ] PR created with spec references
-- [ ] CI checks passed (including integration tests)
-- [ ] Merge strategy confirmed by user
-- [ ] Post-merge cleanup (branch deleted if appropriate)
+- [ ] Delivery path confirmed by user
+- [ ] Selected delivery action completed
+- [ ] CI checks passed when a PR or pushed branch is involved
+- [ ] Post-delivery cleanup completed
 
 ## Contract Validation
 

@@ -15,7 +15,7 @@
     "implementation-workspace-selection",
     "resume",
     "research-gate",
-    "implementation-gate",
+    "implementation-selection",
     "review-failure",
     "qa-failure",
     "summary-completion"
@@ -46,7 +46,7 @@
       "expect": {
         "public_stage": "discover",
         "workflow_status": "in_progress",
-        "control_mode": "guided"
+        "control_mode": "autonomous"
       },
       "required_public_history": [
         "discover"
@@ -64,7 +64,6 @@
       },
       "required_public_history": [
         "discover",
-        "control_mode_decision",
         "plan",
         "implement"
       ]
@@ -79,25 +78,23 @@
       },
       "required_public_history": [
         "discover",
-        "control_mode_decision",
-        "research_decision",
         "research"
       ]
     },
     {
-      "id": "implementation-gate",
-      "description": "A deferred implementation decision pauses at implementation_decision and does not start implementation.",
+      "id": "implementation-selection",
+      "description": "After planning, implementation starts with the selected adaptive execution shape instead of pausing for a gate.",
       "fixture": "implement-gate-denied-state.json",
       "expect": {
-        "current_phase": "tasks",
-        "phase_status": "complete",
-        "public_stage": "implementation_decision",
+        "current_phase": "implement",
+        "phase_status": "in_progress",
+        "public_stage": "implement",
         "workflow_status": "in_progress"
       },
       "latest_public_stage_expect": {
-        "stage": "implementation_decision",
+        "stage": "implement",
         "status": "in_progress",
-        "gate_response": "deferred"
+        "execution_shape": "single-owner"
       }
     },
     {

@@ -8,7 +8,7 @@ argument-hint: [what you want to build]
 Route to the full WannaBuild vision-first, spec-driven development loop:
 
 ```text
-Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
 Use the `wannabuild` skill for the full workflow contract.
@@ -16,7 +16,7 @@ Use the `wannabuild` skill for the full workflow contract.
 Command-layer constraints:
 
 - Do not emit start or resume banners from this command.
-- Do not ask control, research, implementation, review, QA, or summary gate questions from this command.
+- Do not ask workflow gate questions from this command.
 - Do not produce the no-task fallback text from this command.
 - Let the `wannabuild` skill own all user-visible workflow output, workspace behavior, state updates, and de-duplication.
 

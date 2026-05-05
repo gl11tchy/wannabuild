@@ -37,7 +37,7 @@ $using-wannabuild
 Use `$wannabuild` for the full loop:
 
 ```text
-Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
 For toolbox work, ask for one phase directly:

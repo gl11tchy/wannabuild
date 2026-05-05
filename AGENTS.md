@@ -37,16 +37,24 @@ Apply in order of precedence — #1 trumps #2, etc.
 
 Primary operator contract for WannaBuild.
 
+## Skill-First Dispatch
+
+- Skills own behavior. Commands are optional shortcuts only.
+- If there is any plausible chance a WannaBuild skill applies to the request, use the skill automatically.
+- Prefer routing to `wannabuild` or a `wb-*` toolbox skill over restating command instructions.
+- Keep command files thin: describe invocation and route to the matching skill; do not duplicate workflow policy in commands.
+- If multiple skills might apply, choose the smallest set that covers the request and continue.
+
 ## Purpose
 
 WannaBuild is a repo-first, spec-driven development framework with a compact user-facing loop and rigorous internal execution. Codex and Claude Code are co-primary experiences; Cursor is a secondary adapter.
 
-The framework should feel lightweight to the user while still enforcing real planning, verification, and QA gates.
+The framework should feel lightweight to the user while still enforcing real planning, implementation, validation, and QA internally.
 
 ## Golden Path
 
 ```text
-Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Summary
+Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
 ## Non-Negotiables
@@ -64,23 +72,22 @@ Discover -> Control mode -> Research? -> Plan -> Implement -> Review -> QA -> Su
 | Step | Operator obligation | Completion signal |
 |---|---|---|
 | Discover | Interview for vision, audience, desired feel, core flows, features, constraints, scope, and success signals. | A crisp problem brief and synthesized requirements direction exists. |
-| Control mode gate | Ask once whether to stay guided or switch to autonomous. | Mode decision recorded. |
-| Research gate | If uncertainty is high, ask whether to run research agents first. | Research decision recorded. |
-| Plan | Produce a concrete plan and verify architecture/direction. | Plan is actionable and internally consistent. |
+| Plan | Produce a concrete plan, run bounded research when needed, and verify architecture/direction. | Plan is actionable and internally consistent. |
 | Implement | Offer or choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
-| Review | Run reviewer hats that add real signal for this change. | Review verdicts captured with actionable findings. |
+| Validate | Run checks and reviewer hats that add real signal for this change; fix actionable findings autonomously. | Validation evidence is captured and blockers are resolved or reported. |
 | QA | Validate acceptance criteria and integration behavior. | Integration hard gate passes. |
 | Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
 
-## Gate Prompts (Default Phrasing)
+## Autonomy Defaults
 
-Use short, explicit questions at gates:
+After discovery, default to autonomous execution. Do not ask the user to approve every internal gate.
 
-- Control mode: "Continue in guided mode, or switch to autonomous mode?"
-- Research gate: "Uncertainty is still high. Run bounded research agents first, or proceed to planning?"
-- Implement mode: "Use single-owner implementation, or adaptive parallel implementation for disjoint slices?"
+- Ask when scope, product direction, destructive actions, credentials, paid/external services, or merge/push strategy require user judgment.
+- Otherwise plan, implement, validate, QA, and summarize.
+- Choose research, single-owner implementation, parallel implementation, reviewer hats, and validation depth from task evidence.
+- Keep user-facing summaries concise.
 
-Default to guided mode unless the user explicitly opts into autonomous mode.
+If the user explicitly asks for guided mode, pause at natural checkpoints.
 
 ## Parallelization Defaults
 
@@ -104,10 +111,10 @@ Public-to-internal mapping:
 | Public step | Internal execution |
 |---|---|
 | Discover | Requirements |
-| Research gate | Optional research burst using specialist agents |
+| Plan | Optional research burst using specialist agents |
 | Plan | Design + Tasks |
 | Implement | Implement after solo/parallel choice |
-| Review | Review |
+| Validate | Review |
 | QA | Integration hard gate + final verification |
 | Summary | Ship / Document / handoff synthesis |
 

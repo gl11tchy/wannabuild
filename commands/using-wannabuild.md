@@ -9,7 +9,7 @@ Explain WannaBuild briefly, then route to `wannabuild` for the full loop or the 
 Keep the intro short:
 
 - Spec-driven development framework
-- Full loop: Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary
+- Full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary
 - Vision-first discovery interview before planning
 - Adaptive solo-owner or parallel implementation
 - Adaptive review with the right specialists for the change

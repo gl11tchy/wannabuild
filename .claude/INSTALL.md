@@ -16,7 +16,7 @@ Then reload plugins and use:
 /wannabuild
 ```
 
-Use `/wannabuild` for the full loop: Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
+Use `/wannabuild` for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
 Use toolbox commands when you only want one stage:
 

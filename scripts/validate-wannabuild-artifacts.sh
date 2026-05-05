@@ -201,8 +201,7 @@ def validate_state(state):
     if state.get("phase_status") not in {"pending", "in_progress", "complete"}:
         record_error(f"state.json.phase_status invalid: {state.get('phase_status')!r}")
     valid_public_stages = {
-        "discover", "control_mode_decision", "research_decision", "research",
-        "plan", "implementation_decision", "implement", "review", "qa", "summary"
+        "discover", "research", "plan", "implement", "review", "qa", "summary"
     }
     if state.get("public_stage") not in valid_public_stages:
         record_error(f"state.json.public_stage invalid: {state.get('public_stage')!r}")

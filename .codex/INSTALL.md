@@ -16,7 +16,7 @@ Then restart Codex and use:
 $wannabuild
 ```
 
-Use `$wannabuild` for the full loop: Discover -> Control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
+Use `$wannabuild` for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
 For toolbox work, ask for one phase directly, such as "run discovery only", "plan this", "debug this failure", "review this change", "QA this", or "prepare the final handoff".
 

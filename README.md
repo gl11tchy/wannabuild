@@ -4,7 +4,7 @@
 
 Spec-driven development for indie builders.
 
-Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Implement -> Review -> QA -> Summary.
+Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 ![Specialists](https://img.shields.io/badge/specialists-21-blue?style=flat-square)
@@ -24,18 +24,16 @@ Condensed workflow: Discover -> control mode -> optional Research -> Plan -> Imp
 WannaBuild is a repo-native framework for running a disciplined product-development loop with AI agents. The user experience stays conversational and compact:
 
 1. Discover the real vision, flows, feel, and feature priorities
-2. Choose guided or autonomous progression
-3. Decide whether optional research will improve planning
-4. Produce a plan
-5. Verify the approach
-6. Implement with an adaptive solo or parallel shape
-7. Review from the right specialist angles
-8. Run QA against acceptance criteria
-9. Return a concise summary with gaps and remaining work
+2. Produce a plan, with bounded research when needed
+3. Verify the approach
+4. Implement with an adaptive solo or parallel shape
+5. Validate from the right specialist angles and autofix actionable findings
+6. Run QA against acceptance criteria
+7. Return a concise summary with gaps and remaining work
 
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
 Runs start in the current checkout. Worktrees are an implementation-time option for approved plans, parallel slices, or explicitly requested isolation.
-Use `/wannabuild` in Claude Code or `$wannabuild` in Codex for the full loop. Use the Claude Code `/wb-*` toolbox commands, or equivalent Codex phase prompts, when you only want one stage.
+Use `/wannabuild` in Claude Code or `$wannabuild` in Codex for the full loop. Commands are shortcuts; skills own behavior and should be selected automatically when they apply. Use the Claude Code `/wb-*` toolbox commands, or equivalent Codex phase prompts, when you only want one stage.
 
 ## Why
 
@@ -53,7 +51,7 @@ WannaBuild fixes that by making vision, specs, and verification first-class whil
 ## Workflow
 
 ```text
-DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> QA -> SUMMARY
+DISCOVER -> PLAN -> IMPLEMENT -> VALIDATE -> QA -> SUMMARY
 ```
 
 ### Discover
@@ -62,11 +60,11 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 - Infer and synthesize requirements after the interview instead of expecting the user to arrive with everything ready.
 - Derive acceptance criteria and integration scenarios from the clarified vision rather than making tests the center of discovery.
 
-### Control Mode
+### Autonomy
 
-- After Discover, WannaBuild should ask whether to continue in guided mode or switch to autonomous mode.
-- Guided mode asks for preference at each later gate.
-- Autonomous mode continues adaptively after that point.
+- After Discover, WannaBuild continues autonomously by default.
+- It asks only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
+- Guided mode remains available when explicitly requested.
 
 ### Plan
 
@@ -75,8 +73,8 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 
 ### Optional Research
 
-- When uncertainty is still high, WannaBuild can ask whether to kick off bounded research agents or move straight to planning.
-- Research is adaptive and user-approved, not a permanent required phase.
+- When uncertainty is still high, WannaBuild can kick off bounded research agents before planning.
+- Research is adaptive, not a permanent required phase.
 - The orchestrator chooses specialist count, capability tier, and reasoning effort from the uncertainty involved.
 
 ### Implement
@@ -85,10 +83,11 @@ DISCOVER -> CONTROL MODE -> OPTIONAL RESEARCH -> PLAN -> IMPLEMENT -> REVIEW -> 
 - Use parallel agents only when slices have distinct ownership and expected evidence.
 - Use checkpoints so progress, verification, and resume paths stay explicit.
 
-### Review
+### Validate
 
 - Run the right reviewer hats for the change.
 - Keep review adaptive; not every hat needs to run every time.
+- Autofix actionable findings and rerun impacted checks.
 
 ### QA
 
@@ -328,7 +327,7 @@ These specialists power the framework under the hood:
 | Review / QA | `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-integration-tester`, `wb-code-simplifier` |
 | Handoff | `wb-pr-craftsman`, `wb-ci-guardian`, `wb-readme-updater`, `wb-api-doc-generator`, `wb-changelog-writer` |
 
-The specialist system exists to improve output quality, not to force the user through a committee-shaped workflow.
+The specialist system exists to improve output quality, not to force the user through a committee-shaped workflow. WannaBuild is skill-first: commands route requests, while skills carry the real workflow contracts.
 Core workflow docs express model choice as capability tiers and reasoning effort. Host adapters map those tiers to whichever models and controls are available.
 
 ## Portability

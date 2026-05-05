@@ -42,33 +42,15 @@
       "timestamp": "2026-03-10T08:08:00Z"
     },
     {
-      "stage": "control_mode_decision",
-      "status": "complete",
-      "timestamp": "2026-03-10T08:10:00Z",
-      "decision": "autonomous"
-    },
-    {
-      "stage": "research_decision",
-      "status": "complete",
-      "timestamp": "2026-03-10T08:11:00Z",
-      "decision": "skipped"
-    },
-    {
       "stage": "plan",
       "status": "complete",
       "timestamp": "2026-03-10T08:28:00Z"
     },
     {
-      "stage": "implementation_decision",
-      "status": "complete",
-      "timestamp": "2026-03-10T09:02:00Z",
-      "decision": "single_agent",
-      "autonomous_advance": true
-    },
-    {
       "stage": "implement",
       "status": "in_progress",
-      "timestamp": "2026-03-10T09:05:00Z"
+      "timestamp": "2026-03-10T09:05:00Z",
+      "execution_shape": "single-owner"
     }
   ]
 }

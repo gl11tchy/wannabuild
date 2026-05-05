@@ -1,11 +1,11 @@
 ---
 name: wb-review
-description: Standalone WannaBuild review toolbox skill for adaptive code, spec, and risk review without automatically advancing to QA or ship.
+description: Standalone WannaBuild review toolbox skill for adaptive code, spec, and risk review with automatic remediation of actionable findings.
 ---
 
 # wb-review
 
-Use this toolbox skill when the user wants review only.
+Use this toolbox skill when the user wants review.
 
 ## Toolbox Bootstrap
 
@@ -26,16 +26,18 @@ Find correctness, regression, security, testing, architecture, and maintainabili
 - Keep summaries secondary to actionable issues.
 - Select reviewer hats from changed surfaces, risk, and acceptance criteria.
 - Always call out missing verification when it affects confidence.
-- Do not fix issues unless the user asks.
+- Fix actionable bugs, regressions, missing required tests, and clear contract violations by default.
+- Do not fix subjective style notes, scope changes, destructive changes, or product decisions without user confirmation.
 
 ## Flow
 
 1. Identify the change scope and intended behavior.
 2. Inspect relevant diffs, specs, and tests.
 3. Run targeted reviewer hats; add sub-agents only for distinct risk ownership.
-4. Separate blockers from non-blocking notes.
-5. Stop before QA or implementation.
+4. Fix actionable findings automatically.
+5. Rerun impacted checks and reviewer hats.
+6. Stop with findings addressed, remaining non-blocking notes, and verification evidence.
 
 ## Output
 
-Return findings first. If no issues are found, say so and note remaining test gaps or residual risk.
+Return a concise review summary: issues found, fixes applied, checks rerun, and remaining risk. If no issues are found, say so and note remaining test gaps or residual risk.

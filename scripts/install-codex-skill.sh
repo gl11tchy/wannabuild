@@ -10,7 +10,22 @@ installed=()
 
 install_repo_skill() {
   local name="$1"
-  ln -sfn "$ROOT/skills/$name" "$TARGET/$name"
+  local source="$ROOT/skills/$name"
+  local dest="$TARGET/$name"
+  if [[ -L "$dest" ]]; then
+    rm -f "$dest"
+  elif [[ -e "$dest" ]]; then
+    rm -rf "$dest"
+  fi
+  if [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* ]]; then
+    local win_source
+    local win_dest
+    win_source="$(cygpath -w "$source")"
+    win_dest="$(cygpath -w "$dest")"
+    MSYS2_ARG_CONV_EXCL='*' cmd.exe /C "mklink /J \"$win_dest\" \"$win_source\"" >/dev/null
+  else
+    ln -s "$source" "$dest"
+  fi
   installed+=("$TARGET/$name")
 }
 

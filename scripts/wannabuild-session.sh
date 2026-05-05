@@ -15,11 +15,8 @@ Commands:
 
 Stages:
   discover
-  control_mode_decision
-  research_decision
   research
   plan
-  implementation_decision
   implement
   review
   qa
@@ -45,11 +42,8 @@ from datetime import datetime, timezone
 command, project_root, state_file, arg1, arg2 = sys.argv[1:]
 stages = {
     "discover",
-    "control_mode_decision",
-    "research_decision",
     "research",
     "plan",
-    "implementation_decision",
     "implement",
     "review",
     "qa",
@@ -79,7 +73,7 @@ if command == "init":
         "current_phase": "requirements",
         "phase_status": "pending",
         "public_stage": "discover",
-        "control_mode": "guided",
+        "control_mode": "autonomous",
         "workflow_status": "in_progress",
         "started_at": ts,
         "updated_at": ts,

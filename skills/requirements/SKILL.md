@@ -91,8 +91,8 @@ The first user prompt is raw material, not a complete spec. Treat it as the begi
 
    Derive test scenarios after the clarified vision, main flows, and desired behavior are understood.
 
-6. **Present the synthesized requirements.**
-   Show the user the captured vision, scope, assumptions, and verification direction before moving to planning. In guided mode, do not advance silently.
+6. **Present the synthesized requirements when useful.**
+   Show the captured vision, scope, assumptions, and verification direction when it helps clarity. Continue to planning by default unless user judgment is needed.
 
 ## Agent Invocation Pattern
 
@@ -220,15 +220,9 @@ After writing `requirements.md`, update `.wannabuild/state.json`:
 
 ## Handoff
 
-Next public gate: Control mode.
+Next public step: Plan.
 
-Ask exactly once:
-
-```text
-Continue in guided mode, or switch to autonomous mode?
-```
-
-Default remains guided mode unless the user explicitly chooses autonomous.
+Continue autonomously by default. Ask only when unresolved ambiguity changes product direction, scope, or risk.
 
 ## User Interaction
 
@@ -236,8 +230,8 @@ After synthesis, present the requirements to the user:
 
 ```text
 Here's what I've captured so far: the vision, core flows, feature priorities,
-scope boundaries, assumptions, and how we'll verify the work. Tell me what I
-missed or what feels off before we move into planning.
+scope boundaries, assumptions, and how we'll verify the work. I'll continue
+unless something here changes the direction.
 ```
 
 The user can:

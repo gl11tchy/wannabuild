@@ -95,21 +95,18 @@ If implementation-time worktree creation fails, stop and report the failure inst
 
 **Step 2: Replace all `wannabuild-session.sh` references**
 
-Find every line that references `../../scripts/wannabuild-session.sh`. There are several across the Control Mode Gate, Research Gate, Review Gate, QA Gate, and Summary Guard sections. They look like:
+Find every line that references `../../scripts/wannabuild-session.sh`. There are several across the workflow sections. They look like:
 
 ```text
-`../../scripts/wannabuild-session.sh set-stage <workspace_path> control_mode_decision in_progress`
-`../../scripts/wannabuild-session.sh set-control-mode <workspace_path> guided`
+`../../scripts/wannabuild-session.sh set-stage <workspace_path> plan in_progress`
 `../../scripts/wannabuild-session.sh set-stage <workspace_path> review in_progress`
 ```
 
-Replace each with an inline description of what to write. For example, replace the three `wannabuild-session.sh` lines in the Control Mode Gate section with:
+Replace each with an inline description of what to write. For example:
 
 ```text
-Update `.wannabuild/state.json` — set `current_stage: "control_mode_decision"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
+Update `.wannabuild/state.json` — set `current_stage: "plan"`, `stage_status: "in_progress"`, `updated_at: <ISO timestamp>`.
 ```
-
-And after the user answers, set `control_mode` to `"guided"` or `"autonomous"` in the same file.
 
 Apply the same pattern everywhere `wannabuild-session.sh` is referenced — the session script just merges JSON fields into state.json. Claude can do this directly with the Edit or Write tool.
 

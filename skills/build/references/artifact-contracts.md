@@ -21,9 +21,9 @@ Use these with `scripts/validate-wannabuild-artifacts.sh`.
 - `mode` (`standard`): Workflow mode
 - `current_phase` (string): Current internal phase name
 - `phase_status` (`pending` | `in_progress` | `complete`): Current internal phase status
-- `public_stage` (string): Current public-facing stage (`discover` | `control_mode_decision` | `research_decision` | `research` | `plan` | `implementation_decision` | `implement` | `review` | `qa` | `summary`)
+- `public_stage` (string): Current public-facing stage (`discover` | `research` | `plan` | `implement` | `review` | `qa` | `summary`)
 - `workflow_status` (`in_progress` | `complete`): Current public workflow status
-- `control_mode` (`guided` | `autonomous`): User's control mode preference
+- `control_mode` (`guided` | `autonomous`): Execution preference; defaults to `autonomous`
 - `artifacts` (object): Paths to generated artifacts
 - `started_at`, `updated_at` (ISO timestamps)
 - `phase_history` (array): Chronological internal phase status records
@@ -59,7 +59,7 @@ Example:
   "phase_status": "in_progress",
   "public_stage": "review",
   "workflow_status": "in_progress",
-  "control_mode": "guided",
+  "control_mode": "autonomous",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "design": ".wannabuild/spec/design.md",
@@ -73,7 +73,6 @@ Example:
   ],
   "public_stage_history": [
     {"stage": "discover", "status": "complete", "timestamp": "2026-02-21T02:02:00Z"},
-    {"stage": "control_mode_decision", "status": "complete", "timestamp": "2026-02-21T02:04:00Z"},
     {"stage": "plan", "status": "complete", "timestamp": "2026-02-21T02:12:00Z"},
     {"stage": "implement", "status": "complete", "timestamp": "2026-02-21T02:25:00Z"},
     {"stage": "review", "status": "in_progress", "timestamp": "2026-02-21T02:30:00Z"}
