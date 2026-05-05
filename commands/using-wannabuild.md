@@ -16,4 +16,5 @@ Keep the intro short:
 - Hard QA gate before summary
 - One standard workflow mode (no Full/Light/Spark prompt)
 - Works in Claude Code (`/wannabuild`) and Codex (`$wannabuild`)
+- Natural prompts should route automatically; commands are optional shortcuts
 - Claude Code toolbox commands: `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, `/wb-ship`

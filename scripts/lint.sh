@@ -33,6 +33,7 @@ skip_check() {
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+have_runnable_rg() { command -v rg >/dev/null 2>&1 && rg --version >/dev/null 2>&1; }
 
 # 1. shellcheck
 if have shellcheck; then
@@ -84,12 +85,20 @@ run_check "scripts/check-large-files.sh" \
   bash scripts/check-large-files.sh
 
 # 7. dead refs
-run_check "scripts/check-dead-refs.sh" \
-  bash scripts/check-dead-refs.sh
+if have_runnable_rg; then
+  run_check "scripts/check-dead-refs.sh" \
+    bash scripts/check-dead-refs.sh
+else
+  skip_check "scripts/check-dead-refs.sh" "rg not installed or not executable"
+fi
 
 # 8. tech debt
-run_check "scripts/check-tech-debt.sh" \
-  bash scripts/check-tech-debt.sh
+if have_runnable_rg; then
+  run_check "scripts/check-tech-debt.sh" \
+    bash scripts/check-tech-debt.sh
+else
+  skip_check "scripts/check-tech-debt.sh" "rg not installed or not executable"
+fi
 
 echo
 echo "================ lint summary ================"

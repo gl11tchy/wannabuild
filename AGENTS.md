@@ -45,6 +45,13 @@ Primary operator contract for WannaBuild.
 - Keep command files thin: describe invocation and route to the matching skill; do not duplicate workflow policy in commands.
 - If multiple skills might apply, choose the smallest set that covers the request and continue.
 
+## Automatic Wake-Up Contract
+
+- Natural-language prompts like "I want to build...", "add this functionality", "plan this", "debug this failure", "review this change", or "QA this" should trigger the matching WannaBuild skill without asking the user to invoke a command.
+- Use `wannabuild` for broad product, feature, or change requests that should start discovery.
+- Use the focused `wb-*` skill only when the user clearly asks for one stage.
+- Slash commands and `$skill` names are escape hatches for explicit routing, not prerequisites.
+
 ## Purpose
 
 WannaBuild is a repo-first, spec-driven development framework with a compact user-facing loop and rigorous internal execution. Codex and Claude Code are co-primary experiences; Cursor is a secondary adapter.
@@ -61,6 +68,7 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 - If there is no concrete task, ask for the actual goal first.
 - Do not infer intent from git diff or uncommitted changes.
+- Exception: an explicit `wb-review` or `/wb-review` invocation is itself a concrete review task; if no target is named, review the current checkout changes by default and ask only when there is no reviewable diff.
 - Do not start planning or implementation without a concrete task.
 - Do not browse externally when no concrete task exists.
 - Do not create an isolated workspace/worktree during Discover, Plan, Review, QA, Summary, or ordinary toolbox use.

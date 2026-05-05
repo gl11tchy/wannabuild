@@ -1,6 +1,6 @@
 ---
 name: wannabuild
-description: Repo-native WannaBuild full-loop workflow, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps.
+description: Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps.
 ---
 
 # WannaBuild
@@ -14,6 +14,7 @@ Use WannaBuild skills automatically whenever they plausibly apply. Commands are 
 - Use `wannabuild` for full-loop requests, broad build requests, or "I want X" product/change requests.
 - Use the smallest matching `wb-*` toolbox skill for focused discovery, planning, implementation, debugging, review, QA, or ship requests.
 - Do not require the user to invoke a command if the intent is clear from natural language.
+- Treat natural "I want to build/add/change/create..." feature prompts as enough to start discovery automatically.
 - If multiple skills might apply, choose the minimal useful set and continue.
 - Keep behavior in skills; command files should only route.
 

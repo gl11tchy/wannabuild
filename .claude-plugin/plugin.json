@@ -8,5 +8,6 @@
   "homepage": "https://github.com/gl11tchy/wannabuild",
   "repository": "https://github.com/gl11tchy/wannabuild",
   "license": "MIT",
+  "hooks": "./hooks/hooks.json",
   "keywords": ["sdd", "spec-driven", "multi-agent", "code-review", "indie-hacker", "development-framework"]
 }

@@ -13,10 +13,10 @@ From the root of this repository, run:
 Then restart Codex and use:
 
 ```text
-$wannabuild
+I want to build a Stripe billing flow for my SaaS
 ```
 
-Use `$wannabuild` for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
+Natural prompts should route automatically. Use `$wannabuild` only when you want an explicit shortcut for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
 For toolbox work, ask for one phase directly, such as "run discovery only", "plan this", "debug this failure", "review this change", "QA this", or "prepare the final handoff".
 
@@ -53,5 +53,5 @@ Run:
 Then start a new Codex session and invoke:
 
 ```text
-$wannabuild
+I want to build a small onboarding flow
 ```

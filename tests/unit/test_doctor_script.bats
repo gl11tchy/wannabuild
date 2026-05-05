@@ -130,6 +130,19 @@ PY
   [[ "$output" == *"FAIL  Codex manual install includes wb-build"* ]]
 }
 
+@test "doctor: FAILs when wb-review no-target default is removed" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/skills/wb-review/SKILL.md" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("current checkout changes as the review target by default", "ask for the actual goal first"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  wb-review defaults to current checkout changes when target is omitted"* ]]
+}
+
 @test "doctor: WARNs when Codex skill symlink is absent in fake HOME" {
   copy="$(_copy_repo)"
   # with_clean_env redirects HOME to an empty tmp dir, so install symlinks

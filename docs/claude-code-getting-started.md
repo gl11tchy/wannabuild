@@ -49,8 +49,10 @@ Then reload plugins in Claude Code:
 After installation, invoke WannaBuild:
 
 ```text
-/wannabuild
+I want to build a Stripe billing flow for my SaaS
 ```
+
+Claude Code installs a `SessionStart` and `UserPromptSubmit` hook for WannaBuild. Natural feature, planning, debug, review, QA, and ship prompts should route to the matching skill automatically; `/wannabuild` and `/wb-*` are explicit shortcuts.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
 When used in git repositories, it uses the current checkout for discovery and planning. It only creates an isolated worktree when implementation-time isolation is selected.
@@ -63,21 +65,29 @@ Optional intro skill:
 
 ## Usage
 
-Use `/wannabuild` for the full loop:
+Use natural language for the full loop:
+
+```text
+I want to add team billing to this app
+```
+
+That routes into:
 
 ```text
 Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
-Use toolbox commands when you only want one stage:
+Use natural toolbox prompts when you only want one stage:
 
-- `/wb-discover`: discovery and requirements
-- `/wb-plan`: design, tasks, risks, and verification expectations
-- `/wb-build`: implementation
-- `/wb-debug`: diagnosis and targeted fix
-- `/wb-review`: targeted review
-- `/wb-qa`: acceptance and integration validation
-- `/wb-ship`: final handoff
+- "brainstorm the onboarding flow": discovery and requirements
+- "plan this change": design, tasks, risks, and verification expectations
+- "implement the next planned slice": implementation
+- "debug this failing behavior": diagnosis and targeted fix
+- "review this change": targeted review
+- "QA this against the acceptance criteria": acceptance and integration validation
+- "prepare the handoff": final handoff
+
+Command shortcuts remain available: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, and `/wb-ship`.
 
 ## Flow
 

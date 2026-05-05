@@ -9,7 +9,7 @@ Use this skill when the user wants to work with WannaBuild itself or asks how to
 
 ## What To Do
 
-Tell the agent to use `wannabuild` for the full workflow entrypoint, or a `wb-*` toolbox skill for one focused step. Commands are optional shortcuts; skills should be selected automatically when the request plausibly matches.
+Tell the agent to use `wannabuild` for broad natural-language build or change prompts, or a `wb-*` toolbox skill for one focused step. Commands are optional shortcuts; skills should be selected automatically when the request plausibly matches.
 
 WannaBuild runs a vision-first workflow:
 
@@ -32,20 +32,23 @@ Toolbox mode is for lighter, step-level work:
 
 ## Start Prompt
 
-If the user needs a starting point, suggest:
+If the user needs a starting point, suggest natural language first:
 
 ```text
-$wannabuild   (Codex)
-/wannabuild   (Claude Code)
-
 I want to build:
 [describe the feature or project]
 ```
 
-For a single-step toolbox request, use:
+Then mention explicit shortcuts only as fallback:
 
 ```text
-$wb-plan
+$wannabuild   (Codex)
+/wannabuild   (Claude Code)
+```
+
+For a single-step toolbox request, use natural language:
+
+```text
 Plan this change:
 [describe the task]
 ```

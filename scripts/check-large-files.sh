@@ -57,7 +57,7 @@ while IFS= read -r file; do
       fi
       ;;
   esac
-done < <(git ls-files)
+done < <(git -c "safe.directory=${REPO_ROOT}" ls-files)
 
 if ((violations > 0)); then
   echo "check-large-files: ${violations} violation(s)${report}" >&2

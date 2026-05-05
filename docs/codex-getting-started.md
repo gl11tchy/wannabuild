@@ -17,11 +17,13 @@ From the repo root:
 ./scripts/install-codex-skill.sh
 ```
 
-Then restart Codex and invoke:
+Then restart Codex and start with natural language:
 
 ```text
-$wannabuild
+I want to build a Stripe billing flow for my SaaS
 ```
+
+Codex should select the installed WannaBuild skills automatically when natural-language prompts match build, planning, debug, review, QA, or ship intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
 In git repos, it should use the current checkout for discovery and planning. It should only create an isolated worktree when implementation-time isolation is selected.
@@ -34,7 +36,13 @@ $using-wannabuild
 
 ## Usage
 
-Use `$wannabuild` for the full loop:
+Use natural language for the full loop:
+
+```text
+I want to add team billing to this app
+```
+
+That routes into:
 
 ```text
 Discover -> Plan -> Implement -> Validate -> QA -> Summary

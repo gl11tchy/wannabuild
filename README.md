@@ -33,7 +33,7 @@ WannaBuild is a repo-native framework for running a disciplined product-developm
 
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
 Runs start in the current checkout. Worktrees are an implementation-time option for approved plans, parallel slices, or explicitly requested isolation.
-Use `/wannabuild` in Claude Code or `$wannabuild` in Codex for the full loop. Commands are shortcuts; skills own behavior and should be selected automatically when they apply. Use the Claude Code `/wb-*` toolbox commands, or equivalent Codex phase prompts, when you only want one stage.
+After install, start with natural language: "I want to add billing", "plan this", "debug this failure", or "review this change". Commands such as `/wannabuild` in Claude Code and `$wannabuild` in Codex are shortcuts, not requirements.
 
 ## Why
 
@@ -138,10 +138,10 @@ Co-primary path (alongside Codex).
 Restart Claude Code, then:
 
 ```text
-/wannabuild
+I want to build a Stripe billing flow for my SaaS
 ```
 
-For one-stage toolbox work, use `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, or `/wb-ship`.
+Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The installed hook injects routing context at session start and before matching user prompts, so natural feature, planning, debug, review, QA, and ship requests should wake up the right WannaBuild skill automatically.
 
 **From repo:**
 
@@ -172,13 +172,13 @@ Install the Codex skills:
 ./scripts/install-codex-skill.sh
 ```
 
-Then restart Codex and invoke:
+Then restart Codex and start with natural language:
 
 ```text
-$wannabuild
+I want to build a Stripe billing flow for my SaaS
 ```
 
-For toolbox work in Codex, ask for the phase directly, such as "run discovery only" or "QA this against the requirements".
+Codex also supports `$wannabuild` and the installed `wb-*` skills. For toolbox work, ask for the phase directly, such as "run discovery only" or "QA this against the requirements".
 
 ### Cursor
 
@@ -193,9 +193,23 @@ Cursor is supported via the same repo-native contracts and scripts.
 
 ## Usage
 
-### Full loop
+### Automatic Start
 
-Use the main entrypoint when you want WannaBuild to drive the work from discovery through summary.
+Use natural language when you want WannaBuild to drive the work from discovery through summary:
+
+```text
+I want to build a user authentication system with OAuth and magic links
+```
+
+```text
+Add team invitations and roles to this app
+```
+
+WannaBuild should route automatically, emit `[WB-START]`, run discovery and planning in the current checkout, and offer an isolated worktree before implementation when isolation would help.
+
+### Command Shortcuts
+
+Commands remain available when you want to be explicit.
 
 Claude Code:
 
@@ -209,13 +223,19 @@ Codex:
 $wannabuild I wanna build a user authentication system with OAuth and magic links
 ```
 
-WannaBuild starts with `[WB-START]`, runs discovery and planning in the current checkout, and offers an isolated worktree before implementation when isolation would help.
-
 ### Toolbox usage
 
-Use toolbox commands when you want one stage instead of the full loop.
+Use natural toolbox prompts when you want one stage instead of the full loop:
 
-Claude Code commands:
+- "brainstorm the onboarding flow"
+- "plan the architecture"
+- "implement the next planned slice"
+- "debug this failing test"
+- "review this change"
+- "QA this against the acceptance criteria"
+- "prepare the handoff"
+
+Claude Code command shortcuts:
 
 - `/wb-discover`: clarify vision, scope, flows, and acceptance criteria
 - `/wb-plan`: turn requirements into design, tasks, risks, and verification expectations
@@ -230,23 +250,11 @@ In Codex, use the same toolbox intents as plain prompts, such as "run discovery 
 ### Typical prompts
 
 ```text
-/wannabuild I wanna build a Stripe billing flow for my SaaS
-```
-
-```text
-/wb-discover Clarify the onboarding flow before we plan
-```
-
-```text
-/wb-plan Plan the architecture for a collaborative editor
-```
-
-```text
-/wb-build Implement the next planned slice in solo mode
-```
-
-```text
-/wb-qa Validate this against the acceptance criteria
+I wanna build a Stripe billing flow for my SaaS
+Brainstorm the onboarding flow before we plan
+Plan the architecture for a collaborative editor
+Implement the next planned slice in solo mode
+Validate this against the acceptance criteria
 ```
 
 ### Jump in midstream

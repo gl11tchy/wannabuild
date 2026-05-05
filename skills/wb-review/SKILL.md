@@ -11,7 +11,9 @@ Use this toolbox skill when the user wants review.
 
 Before any toolbox phase work:
 
-- If no concrete task exists, ask for the actual goal first.
+- If review is invoked without an explicit target, treat the current checkout changes as the review target by default.
+- Inspect uncommitted changes first; if none exist, inspect the current branch diff against its upstream or main/base branch when discoverable.
+- Ask for clarification only when no explicit target and no reviewable diff can be found.
 - Work in the current checkout by default.
 - Do not create an isolated worktree for review.
 

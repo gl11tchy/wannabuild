@@ -13,12 +13,12 @@ From the root of this repository, run:
 Then reload plugins and use:
 
 ```text
-/wannabuild
+I want to build a Stripe billing flow for my SaaS
 ```
 
-Use `/wannabuild` for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
+Natural prompts should route automatically. Use `/wannabuild` only when you want an explicit shortcut for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
-Use toolbox commands when you only want one stage:
+Use natural toolbox prompts when you only want one stage, for example "plan this", "debug this failure", "review this change", or "QA this against the requirements". Command shortcuts remain available:
 
 ```text
 /wb-discover
@@ -83,13 +83,13 @@ Run:
 ./scripts/wannabuild-doctor.sh
 ```
 
-Then start a new Claude Code session and invoke:
+Then start a new Claude Code session and type a natural feature request:
 
 ```text
-/wannabuild
+I want to build a small onboarding flow
 ```
 
-You should see the startup banner:
+The session-start and prompt-submit hooks should route the prompt to WannaBuild. You should see the startup banner:
 
 ```text
 [WB-START] WannaBuild STARTED | intent=build | mode=standard

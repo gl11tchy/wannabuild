@@ -13,6 +13,32 @@ TOOLBOX_SKILLS=(
   "wb-ship"
 )
 
+resolve_host_home() {
+  if [[ -n "${WANNABUILD_HOST_HOME:-}" ]]; then
+    printf '%s\n' "$WANNABUILD_HOST_HOME"
+  elif [[ -n "${USERPROFILE:-}" && -d "${USERPROFILE:-}" ]]; then
+    printf '%s\n' "$USERPROFILE"
+  elif [[ "$ROOT" =~ ^/mnt/([A-Za-z])/Users/([^/]+)(/|$) ]]; then
+    printf '/mnt/%s/Users/%s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+  elif [[ "$ROOT" =~ ^/([A-Za-z])/Users/([^/]+)(/|$) ]]; then
+    printf '/%s/Users/%s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+  else
+    printf '%s\n' "$HOME"
+  fi
+}
+
+resolve_path() {
+  local path="$1"
+  if command -v realpath >/dev/null 2>&1; then
+    realpath "$path" 2>/dev/null && return 0
+  fi
+  python3 - "$path" <<'PY' 2>/dev/null
+from pathlib import Path
+import sys
+print(Path(sys.argv[1]).resolve())
+PY
+}
+
 check_file() {
   local path="$1"
   if [[ -f "$ROOT/$path" ]]; then
@@ -35,14 +61,15 @@ check_dir() {
 
 check_link_target() {
   local link_path="$1"
-  local expected_prefix="$2"
-  if [[ -L "$link_path" ]]; then
-    local target
-    target="$(readlink "$link_path" || true)"
-    if [[ "$target" == "$expected_prefix"* ]]; then
-      printf 'PASS  %s -> %s\n' "$link_path" "$target"
+  local expected_path="$2"
+  if [[ -e "$link_path" || -L "$link_path" ]]; then
+    local resolved expected
+    resolved="$(resolve_path "$link_path" || true)"
+    expected="$(resolve_path "$expected_path" || true)"
+    if [[ -n "$resolved" && -n "$expected" && "$resolved" == "$expected"* ]]; then
+      printf 'PASS  %s -> %s\n' "$link_path" "$resolved"
     else
-      printf 'WARN  %s -> %s (unexpected target)\n' "$link_path" "${target:-unknown}"
+      printf 'WARN  %s -> %s (unexpected target; expected %s)\n' "$link_path" "${resolved:-unknown}" "$expected_path"
     fi
   else
     printf 'WARN  %s (not installed)\n' "$link_path"
@@ -73,6 +100,19 @@ check_not_contains() {
   fi
 }
 
+check_json_key() {
+  local path="$1"
+  local key="$2"
+  local label="$3"
+  if [[ -f "$path" ]] && grep -Fq "$key" "$path"; then
+    printf 'PASS  %s\n' "$label"
+  elif [[ -f "$path" ]]; then
+    printf 'WARN  %s (missing %s)\n' "$path" "$key"
+  else
+    printf 'WARN  %s (not found)\n' "$path"
+  fi
+}
+
 check_command() {
   local label="$1"
   shift
@@ -87,6 +127,10 @@ check_command() {
 }
 
 status=0
+HOST_HOME="$(resolve_host_home)"
+CODEX_BASE="${CODEX_HOME:-${HOST_HOME}/.codex}"
+CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-${CODEX_BASE}/skills}"
+CLAUDE_HOME_DIR="${CLAUDE_HOME:-${HOST_HOME}/.claude}"
 
 echo "WannaBuild Doctor"
 echo "================="
@@ -101,6 +145,8 @@ check_file "skills/using-wannabuild/SKILL.md" || status=1
 check_file "skills/research/SKILL.md" || status=1
 check_file "commands/wannabuild.md" || status=1
 check_file "commands/using-wannabuild.md" || status=1
+check_file "hooks/hooks.json" || status=1
+check_file "hooks/wannabuild-route.py" || status=1
 check_file "scripts/validate-wannabuild-artifacts.sh" || status=1
 check_file "scripts/validate-wannabuild-dry-runs.sh" || status=1
 check_file "scripts/wannabuild-doctor.sh" || status=1
@@ -131,6 +177,7 @@ for skill in "${TOOLBOX_SKILLS[@]}"; do
   check_contains ".codex/INSTALL.md" "${skill}" "Codex manual install includes ${skill}" || status=1
   check_contains "README.md" "/${skill}" "README docs expose /${skill}" || status=1
 done
+check_contains "skills/wb-review/SKILL.md" "current checkout changes as the review target by default" "wb-review defaults to current checkout changes when target is omitted" || status=1
 check_contains ".codex/INSTALL.md" "toolbox work" "Codex install docs mention toolbox work" || status=1
 echo
 echo "Quality & governance surfaces"
@@ -202,6 +249,12 @@ check_file "skills/build/dry-runs/summary-complete-state.json" || status=1
 echo
 echo "Host-native invocation surfaces"
 check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
+check_contains ".claude-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude plugin declares hooks manifest" || status=1
+check_contains ".claude-plugin/marketplace.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude marketplace declares hooks manifest" || status=1
+check_contains "hooks/hooks.json" "SessionStart" "Claude hooks include SessionStart autoroute context" || status=1
+check_contains "hooks/hooks.json" "UserPromptSubmit" "Claude hooks include UserPromptSubmit autorouter" || status=1
+check_contains "hooks/wannabuild-route.py" "WannaBuild automatic routing is active" "Claude autorouter injects session routing context" || status=1
+check_contains "hooks/wannabuild-route.py" "Do not ask the user to type" "Claude autorouter discourages command handoff" || status=1
 check_not_contains "commands/wannabuild.md" "[WB-START]" "Claude command leaves start banner to skill" || status=1
 check_not_contains "commands/wannabuild.md" "[WB-RESUME]" "Claude command leaves resume banner to skill" || status=1
 check_not_contains "commands/wannabuild.md" "Respond with exactly" "Claude command does not force direct visible response" || status=1
@@ -217,31 +270,25 @@ check_command "golden path summary gate passes" "$ROOT/scripts/wannabuild-gate-c
 check_command "daily-use dry runs pass" "$ROOT/scripts/validate-wannabuild-dry-runs.sh" "$ROOT" || status=1
 echo
 echo "Codex install"
-check_link_target "${HOME}/.codex/skills/wannabuild" "$ROOT/skills/wannabuild"
-check_link_target "${HOME}/.codex/skills/using-wannabuild" "$ROOT/skills/using-wannabuild"
+echo "Target: ${CODEX_SKILLS_DIR}"
+check_link_target "${CODEX_SKILLS_DIR}/wannabuild" "$ROOT/skills/wannabuild"
+check_link_target "${CODEX_SKILLS_DIR}/using-wannabuild" "$ROOT/skills/using-wannabuild"
 for skill in "${TOOLBOX_SKILLS[@]}"; do
-  check_link_target "${HOME}/.codex/skills/${skill}" "$ROOT/skills/${skill}"
+  check_link_target "${CODEX_SKILLS_DIR}/${skill}" "$ROOT/skills/${skill}"
 done
 echo
 echo "Claude install"
-check_link_target "${HOME}/.claude/plugins/cache/gl11tchy/wannabuild/local" "$ROOT"
-if [[ -f "${HOME}/.claude/plugins/installed_plugins.json" ]]; then
-  printf 'PASS  %s\n' "${HOME}/.claude/plugins/installed_plugins.json"
-else
-  printf 'WARN  %s (not found)\n' "${HOME}/.claude/plugins/installed_plugins.json"
-fi
-if [[ -f "${HOME}/.claude/settings.json" ]]; then
-  printf 'PASS  %s\n' "${HOME}/.claude/settings.json"
-else
-  printf 'WARN  %s (not found)\n' "${HOME}/.claude/settings.json"
-fi
+echo "Target: ${CLAUDE_HOME_DIR}"
+check_link_target "${CLAUDE_HOME_DIR}/plugins/cache/gl11tchy/wannabuild/local" "$ROOT"
+check_json_key "${CLAUDE_HOME_DIR}/plugins/installed_plugins.json" "wannabuild@gl11tchy" "Claude installed_plugins.json enables wannabuild@gl11tchy"
+check_json_key "${CLAUDE_HOME_DIR}/settings.json" "wannabuild@gl11tchy" "Claude settings.json enables wannabuild@gl11tchy"
 echo
 if [[ $status -eq 0 ]]; then
   echo "Repo surfaces ready:"
   echo "- Codex + Claude co-primary repo usage is documented"
   echo "- Codex skill install surface exists"
-  echo "- Claude install surface exists"
-echo "- Optional implementation worktree surface exists"
+  echo "- Claude install and autoroute hook surfaces exist"
+  echo "- Optional implementation worktree surface exists"
   echo "- Daily-use trust dry runs pass"
   echo "- Golden path demo validates"
   echo "- Cursor rule surface exists"
@@ -250,8 +297,8 @@ echo "- Optional implementation worktree surface exists"
   echo "Next:"
   echo "- Run ./scripts/install-codex-skill.sh"
   echo "- Run ./scripts/install-claude-skill.sh"
-  echo "- Restart Codex and invoke \$wannabuild"
-  echo "- Reload Claude plugins and invoke /wannabuild"
+  echo "- Restart Codex, then natural feature prompts should route automatically"
+  echo "- Reload Claude plugins, then natural feature prompts should route automatically"
   echo "- In Cursor, load .cursor/rules/wannabuild.mdc"
   exit 0
 fi

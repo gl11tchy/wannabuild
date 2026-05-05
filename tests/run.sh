@@ -12,8 +12,9 @@
 #   BATS_OUTPUT_DIR         Where junit XML is written (default: tests/results).
 #
 # If `bats` is not on PATH, this script clones bats-core and the standard
-# bats-support / bats-assert / bats-file libs into tests/.bats and uses them
-# only for the duration of the run. No system-wide install is performed.
+# bats-support / bats-assert / bats-file libs into a repo-local cache. On
+# Windows-mounted filesystems where git cannot chmod its lock files, it falls
+# back to a temp cache. No system-wide install is performed.
 
 set -euo pipefail
 
@@ -47,14 +48,20 @@ ensure_bats() {
     echo "Using system bats: $(command -v bats)"
     return 0
   fi
-  local bats_dir="${TESTS_DIR}/.bats"
+  local bats_dir="${BATS_LOCAL_DIR:-${TESTS_DIR}/.bats}"
+  local fallback_dir="${TMPDIR:-/tmp}/wannabuild-bats-core"
   if [[ ! -x "${bats_dir}/bin/bats" ]]; then
     echo "bats not found; installing into ${bats_dir} (no system changes)..."
     rm -rf "$bats_dir"
-    git clone --depth 1 https://github.com/bats-core/bats-core.git "$bats_dir" >/dev/null 2>&1 || {
-      echo "ERROR: failed to clone bats-core. Install bats manually (brew install bats-core or npm i -g bats)." >&2
-      return 2
-    }
+    if ! git clone --depth 1 https://github.com/bats-core/bats-core.git "$bats_dir" >/dev/null 2>&1; then
+      echo "WARN: repo-local bats clone failed; trying temp cache ${fallback_dir}"
+      rm -rf "$fallback_dir"
+      git clone --depth 1 https://github.com/bats-core/bats-core.git "$fallback_dir" >/dev/null 2>&1 || {
+        echo "ERROR: failed to clone bats-core. Install bats manually (brew install bats-core or npm i -g bats)." >&2
+        return 2
+      }
+      bats_dir="$fallback_dir"
+    fi
   fi
   export PATH="${bats_dir}/bin:${PATH}"
   echo "Using bundled bats: ${bats_dir}/bin/bats"
@@ -63,12 +70,18 @@ ensure_bats() {
 ensure_bats_libs() {
   # Optional support libraries. We don't depend on them but install for
   # convenience so test files can opt-in via `load`.
-  local libs_dir="${TESTS_DIR}/.bats-libs"
+  local libs_dir="${BATS_LIBS_DIR:-${TESTS_DIR}/.bats-libs}"
+  local fallback_libs_dir="${TMPDIR:-/tmp}/wannabuild-bats-libs"
   mkdir -p "$libs_dir"
   for lib in bats-support bats-assert bats-file; do
     if [[ ! -d "${libs_dir}/${lib}" ]]; then
-      git clone --depth 1 "https://github.com/bats-core/${lib}.git" "${libs_dir}/${lib}" >/dev/null 2>&1 || \
-        echo "WARN: failed to clone ${lib} (non-fatal)"
+      if ! git clone --depth 1 "https://github.com/bats-core/${lib}.git" "${libs_dir}/${lib}" >/dev/null 2>&1; then
+        mkdir -p "$fallback_libs_dir"
+        if [[ ! -d "${fallback_libs_dir}/${lib}" ]]; then
+          git clone --depth 1 "https://github.com/bats-core/${lib}.git" "${fallback_libs_dir}/${lib}" >/dev/null 2>&1 || \
+            echo "WARN: failed to clone ${lib} (non-fatal)"
+        fi
+      fi
     fi
   done
 }

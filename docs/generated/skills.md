@@ -16,7 +16,7 @@ Workflow and phase contracts available to the orchestrator.
 | `ship` | `skills/ship/SKILL.md` | > "Let's get this merged." |
 | `tasks` | `skills/tasks/SKILL.md` | > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests. |
 | `using-wannabuild` | `skills/using-wannabuild/SKILL.md` | Intro skill for starting WannaBuild full-loop mode or a focused toolbox skill in Codex or Claude Code |
-| `wannabuild` | `skills/wannabuild/SKILL.md` | Repo-native WannaBuild full-loop workflow, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps. |
+| `wannabuild` | `skills/wannabuild/SKILL.md` | Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps. |
 | `wb-build` | `skills/wb-build/SKILL.md` | Standalone WannaBuild build toolbox skill for implementing a concrete plan or task with focused verification and adaptive delegation. |
 | `wb-debug` | `skills/wb-debug/SKILL.md` | Standalone WannaBuild debugging toolbox skill for reproducing, diagnosing, fixing, and verifying bugs without broad workflow ceremony. |
 | `wb-discover` | `skills/wb-discover/SKILL.md` | Standalone WannaBuild discovery toolbox skill for clarifying vision, audience, flows, constraints, scope, and success signals without running the full loop. |
@@ -24,4 +24,3 @@ Workflow and phase contracts available to the orchestrator.
 | `wb-qa` | `skills/wb-qa/SKILL.md` | Standalone WannaBuild QA toolbox skill for validating acceptance criteria, integration behavior, and release readiness evidence. |
 | `wb-review` | `skills/wb-review/SKILL.md` | Standalone WannaBuild review toolbox skill for adaptive code, spec, and risk review without automatically advancing to QA or ship. |
 | `wb-ship` | `skills/wb-ship/SKILL.md` | Standalone WannaBuild ship toolbox skill for packaging completed work into a concise handoff, commit, or PR-ready summary after verification. |
-
