@@ -22,5 +22,6 @@ Workflow and phase contracts available to the orchestrator.
 | `wb-discover` | `skills/wb-discover/SKILL.md` | Standalone WannaBuild discovery toolbox skill for clarifying vision, audience, flows, constraints, scope, and success signals without running the full loop. |
 | `wb-plan` | `skills/wb-plan/SKILL.md` | Standalone WannaBuild planning toolbox skill for turning a brief or concrete task into architecture direction, implementation slices, and verification expectations. |
 | `wb-qa` | `skills/wb-qa/SKILL.md` | Standalone WannaBuild QA toolbox skill for validating acceptance criteria, integration behavior, and release readiness evidence. |
-| `wb-review` | `skills/wb-review/SKILL.md` | Standalone WannaBuild review toolbox skill for adaptive code, spec, and risk review without automatically advancing to QA or ship. |
-| `wb-ship` | `skills/wb-ship/SKILL.md` | Standalone WannaBuild ship toolbox skill for packaging completed work into a concise handoff, commit, or PR-ready summary after verification. |
+| `wb-review` | `skills/wb-review/SKILL.md` | Standalone WannaBuild review toolbox skill for adaptive code, spec, and risk review with automatic remediation of actionable findings. |
+| `wb-ship` | `skills/wb-ship/SKILL.md` | Standalone WannaBuild ship toolbox skill for preparing verified work, asking for delivery mode, executing it, and cleaning up. |
+
