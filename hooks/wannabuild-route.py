@@ -15,12 +15,12 @@ from typing import Any
 
 ROUTE_CONTEXT = {
     "wannabuild": (
-        "broad product, feature, or change request",
+        "broad product, feature, change, or open-ended ideation request",
         "Use the `wannabuild` skill and start the full Discover -> Plan -> "
         "Implement -> Validate -> QA -> Summary loop.",
     ),
     "wb-discover": (
-        "discovery, brainstorming, or requirements-only request",
+        "discovery-only, brainstorming-only, or requirements-only request",
         "Use the `wb-discover` skill for a vision-first discovery pass only.",
     ),
     "wb-plan": (
@@ -55,10 +55,10 @@ SESSION_CONTEXT = """WannaBuild automatic routing is active.
 
 Natural-language software requests should route to WannaBuild skills without
 requiring slash commands:
-- Broad product, feature, or "I want to build/add/change" prompts map to the
-  `wannabuild` full-loop skill.
-- Brainstorming, idea clarification, and requirements-only prompts map to
-  `wb-discover`.
+- Broad product, feature, open-ended ideation, or "I want to build/add/change"
+  prompts map to the `wannabuild` full-loop skill.
+- Discovery-only, brainstorming-only, idea clarification-only, and
+  requirements-only prompts map to `wb-discover`.
 - Planning, architecture, and task breakdown prompts map to `wb-plan`.
 - Focused planned implementation prompts map to `wb-build`.
 - Bugs, failures, and regressions map to `wb-debug`.
@@ -120,8 +120,23 @@ def classify(prompt: str) -> tuple[str, str] | None:
     if has(r"\b(plan|planning|architect|architecture|design direction|technical approach|break.*tasks|task breakdown|decompose)\b", text):
         return ("wb-plan", "planning/architecture language")
 
-    if has(r"\b(brainstorm|discover|discovery|requirements|scope|clarify|figure out what|talk through|idea)\b", text):
-        return ("wb-discover", "discovery/requirements language")
+    discovery_terms = r"\b(brainstorm|discover|discovery|requirements|scope|clarify|figure out what|talk through|idea|ideas)\b"
+    discovery_only_terms = (
+        r"\b(requirements-only|discovery-only|brainstorming-only)\b"
+        r"|\b(discovery only|discover only|requirements only|brainstorm only|"
+        r"only brainstorm|only discover|only discovery|only clarify|"
+        r"just brainstorm|just discover|just discovery|just requirements|"
+        r"before we plan|before planning|before we build|before building)\b"
+    )
+
+    if has(discovery_terms, text) and has(discovery_only_terms, text):
+        return ("wb-discover", "discovery-only/requirements language")
+
+    if has(r"\b(work on this|ideas? we could add|what should we add|thinking of (some )?ideas|let's brainstorm|lets brainstorm)\b", text):
+        return ("wannabuild", "open-ended ideation language")
+
+    if has(discovery_terms, text):
+        return ("wannabuild", "open-ended discovery/ideation language")
 
     if has(r"\b(i want|i wanna|i need|we need|i'd like|id like|let's build|lets build|build me|build a|create a|add|new feature|functionality)\b", text):
         return ("wannabuild", "broad feature/change language")

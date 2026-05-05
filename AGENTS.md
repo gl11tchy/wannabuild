@@ -41,6 +41,7 @@ Primary operator contract for WannaBuild.
 
 - Skills own behavior. Commands are optional shortcuts only.
 - If there is any plausible chance a WannaBuild skill applies to the request, use the skill automatically.
+- Do not tell the user to invoke a slash command or `$skill` when a natural-language request already matches a WannaBuild skill.
 - Prefer routing to `wannabuild` or a `wb-*` toolbox skill over restating command instructions.
 - Keep command files thin: describe invocation and route to the matching skill; do not duplicate workflow policy in commands.
 - If multiple skills might apply, choose the smallest set that covers the request and continue.
@@ -48,6 +49,7 @@ Primary operator contract for WannaBuild.
 ## Automatic Wake-Up Contract
 
 - Natural-language prompts like "I want to build...", "add this functionality", "plan this", "debug this failure", "review this change", or "QA this" should trigger the matching WannaBuild skill without asking the user to invoke a command.
+- Exploratory prompts like "I want to work on this some", "I was thinking of ideas", "let's brainstorm this", or "what should we add?" are concrete enough to trigger Discover. Treat them as discovery tasks, not as missing-task invocations.
 - Use `wannabuild` for broad product, feature, or change requests that should start discovery.
 - Use the focused `wb-*` skill only when the user clearly asks for one stage.
 - Slash commands and `$skill` names are escape hatches for explicit routing, not prerequisites.
@@ -66,7 +68,7 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 ## Non-Negotiables
 
-- If there is no concrete task, ask for the actual goal first.
+- If there is no concrete task, stage intent, or exploratory idea intent, ask for the actual goal first.
 - Do not infer intent from git diff or uncommitted changes.
 - Exception: an explicit `wb-review` or `/wb-review` invocation is itself a concrete review task; if no target is named, review the current checkout changes by default and ask only when there is no reviewable diff.
 - Do not start planning or implementation without a concrete task.

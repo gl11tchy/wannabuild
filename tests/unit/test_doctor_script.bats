@@ -91,6 +91,19 @@ PY
   [[ "$output" == *"FAIL  Claude command leaves start banner to skill"* ]]
 }
 
+@test "doctor: FAILs when skill-first handoff guard is removed" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/AGENTS.md" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("Do not tell the user to invoke a slash command", "Command-first guard removed"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Operator contract prevents command-first handoff"* ]]
+}
+
 @test "doctor: FAILs when a toolbox skill omits bootstrap behavior" {
   copy="$(_copy_repo)"
   python3 - "$copy/skills/wb-build/SKILL.md" <<'PY'
@@ -102,6 +115,19 @@ PY
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
   [[ "$output" == *"FAIL  Toolbox skill wb-build defines bootstrap behavior"* ]]
+}
+
+@test "doctor: FAILs when a toolbox skill display label regresses" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/skills/wb-build/agents/openai.yaml" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("Wannabuild: Build", "WB Build"))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Toolbox skill wb-build displays as Wannabuild: Build"* ]]
 }
 
 @test "doctor: FAILs when a toolbox command stops routing to its skill" {

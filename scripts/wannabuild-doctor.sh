@@ -141,7 +141,11 @@ check_file "AGENTS.md" || status=1
 check_file "skills/build/SKILL.md" || status=1
 check_file "skills/build/references/advisor-escalation.md" || status=1
 check_file "skills/wannabuild/SKILL.md" || status=1
+check_file "skills/wannabuild/agents/openai.yaml" || status=1
+check_contains "skills/wannabuild/agents/openai.yaml" "display_name: \"Wannabuild: Full Loop\"" "WannaBuild full-loop skill has UI display label" || status=1
 check_file "skills/using-wannabuild/SKILL.md" || status=1
+check_file "skills/using-wannabuild/agents/openai.yaml" || status=1
+check_contains "skills/using-wannabuild/agents/openai.yaml" "display_name: \"Wannabuild: Guide\"" "Using WannaBuild skill has UI display label" || status=1
 check_file "skills/research/SKILL.md" || status=1
 check_file "commands/wannabuild.md" || status=1
 check_file "commands/using-wannabuild.md" || status=1
@@ -170,7 +174,14 @@ echo "Toolbox surfaces"
 check_dir "skills" || status=1
 check_dir "commands" || status=1
 for skill in "${TOOLBOX_SKILLS[@]}"; do
+  display_label="${skill#wb-}"
+  display_label="${display_label^}"
+  if [[ "$display_label" == "Qa" ]]; then
+    display_label="QA"
+  fi
   check_file "skills/${skill}/SKILL.md" || status=1
+  check_file "skills/${skill}/agents/openai.yaml" || status=1
+  check_contains "skills/${skill}/agents/openai.yaml" "display_name: \"Wannabuild: ${display_label}\"" "Toolbox skill ${skill} displays as Wannabuild: ${display_label}" || status=1
   check_file "commands/${skill}.md" || status=1
   check_contains "skills/${skill}/SKILL.md" "Toolbox Bootstrap" "Toolbox skill ${skill} defines bootstrap behavior" || status=1
   check_contains "commands/${skill}.md" "Use the \`${skill}\` skill" "Toolbox command /${skill} routes to skill" || status=1
@@ -248,6 +259,9 @@ check_file "skills/build/dry-runs/qa-failure-remediation-loop.json" || status=1
 check_file "skills/build/dry-runs/summary-complete-state.json" || status=1
 echo
 echo "Host-native invocation surfaces"
+check_contains "AGENTS.md" "Do not tell the user to invoke a slash command" "Operator contract prevents command-first handoff" || status=1
+check_contains "skills/wannabuild/SKILL.md" "Select the skill and begin the appropriate workflow" "WannaBuild skill starts matching workflows directly" || status=1
+check_contains "commands/using-wannabuild.md" "Commands are optional shortcuts, not the normal path" "Intro command preserves skill-first positioning" || status=1
 check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
 check_contains ".claude-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude plugin declares hooks manifest" || status=1
 check_contains ".claude-plugin/marketplace.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude marketplace declares hooks manifest" || status=1

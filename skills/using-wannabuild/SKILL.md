@@ -9,7 +9,9 @@ Use this skill when the user wants to work with WannaBuild itself or asks how to
 
 ## What To Do
 
-Tell the agent to use `wannabuild` for broad natural-language build or change prompts, or a `wb-*` toolbox skill for one focused step. Commands are optional shortcuts; skills should be selected automatically when the request plausibly matches.
+Tell the agent to use `wannabuild` for broad natural-language build, change, or ideation prompts, or a `wb-*` toolbox skill for one focused step. Commands are optional shortcuts; skills should be selected automatically when the request plausibly matches.
+
+Do not make the user type `$wannabuild`, `/wannabuild`, or a `wb-*` command when their natural-language request already matches a skill.
 
 WannaBuild runs a vision-first workflow:
 
@@ -22,13 +24,13 @@ WannaBuild runs a vision-first workflow:
 
 Toolbox mode is for lighter, step-level work:
 
-- `wb-discover` — clarify vision and requirements direction
-- `wb-plan` — produce design direction and task slices
-- `wb-build` — implement a concrete task or plan
-- `wb-debug` — reproduce, diagnose, fix, and verify a bug
-- `wb-review` — review code or specs without fixing
-- `wb-qa` — validate acceptance and integration behavior
-- `wb-ship` — prepare a verified handoff, commit, or PR summary
+- `Wannabuild: Discover` (`wb-discover`) - clarify vision and requirements direction
+- `Wannabuild: Plan` (`wb-plan`) - produce design direction and task slices
+- `Wannabuild: Build` (`wb-build`) - implement a concrete task or plan
+- `Wannabuild: Debug` (`wb-debug`) - reproduce, diagnose, fix, and verify a bug
+- `Wannabuild: Review` (`wb-review`) - review code or specs without fixing
+- `Wannabuild: QA` (`wb-qa`) - validate acceptance and integration behavior
+- `Wannabuild: Ship` (`wb-ship`) - prepare a verified handoff, commit, or PR summary
 
 ## Start Prompt
 

@@ -100,7 +100,7 @@ bash scripts/apply-rulesets.sh --dry-run
 
 ### Workflow model
 
-Public (user-facing): `Discover → Control Mode Gate → Research Gate → Plan → Implement Gate → Implement → Review → QA → Summary`
+Public (user-facing): `Discover → Plan → Implement → Review → QA → Summary`
 
 Internal (7 execution phases): `Requirements → Design → Tasks → Implement → Review → Ship → Document`
 
@@ -139,8 +139,8 @@ The same core contracts are surfaced three ways:
 
 | Host | Entry point | Install |
 |---|---|---|
-| Claude Code (co-primary) | `/wannabuild` slash command | `scripts/install-claude-skill.sh` or marketplace |
-| Codex (co-primary) | `$wannabuild` | `scripts/install-codex-skill.sh` |
+| Claude Code (co-primary) | Natural-language autorouting; `/wannabuild` as shortcut | `scripts/install-claude-skill.sh` or marketplace |
+| Codex (co-primary) | Natural-language skill selection; `$wannabuild` as shortcut | `scripts/install-codex-skill.sh` |
 | Cursor (secondary) | `.cursor/rules/wannabuild.mdc` | Manual |
 
 Adapter-specific packaging lives under `.claude-plugin/`, `.cursor-plugin/`, and `adapters/`. If a behavior only works via adapter packaging, it is not part of the core architecture.

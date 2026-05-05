@@ -12,6 +12,7 @@
   },
   "required_scenarios": [
     "no-task-invocation",
+    "exploratory-discovery-invocation",
     "implementation-workspace-selection",
     "resume",
     "research-gate",
@@ -33,6 +34,11 @@
         "plan",
         "implement"
       ]
+    },
+    {
+      "id": "exploratory-discovery-invocation",
+      "description": "A rough ideation prompt starts Discover automatically instead of falling back to the no-task response.",
+      "fixture": "exploratory-discovery-invocation.json"
     },
     {
       "id": "implementation-workspace-selection",

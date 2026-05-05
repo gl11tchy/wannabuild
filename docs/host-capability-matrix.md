@@ -67,9 +67,9 @@ Provides:
 
 - Marketplace install: `/plugin install wannabuild@gl11tchy`
 - Repo install: `scripts/install-claude-skill.sh`
-- Full-loop command: `/wannabuild`
-- Toolbox commands: `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, `/wb-ship`
-- Autorouting hooks: `SessionStart` and `UserPromptSubmit` inject routing context so natural feature, planning, debug, review, QA, and ship prompts can select the matching skill without a command
+- Natural-language autorouting for the full loop and toolbox skills
+- Command shortcuts: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, `/wb-ship`
+- Autorouting hooks: `SessionStart` and `UserPromptSubmit` inject routing context so natural feature, ideation, planning, debug, review, QA, and ship prompts can select the matching skill without a command
 - Getting-started: `.claude/INSTALL.md`
 - Full adapter guide: `adapters/claude-code/README.md`
 - read-only advisor subagent fallback; Claude API adapters may map to native `advisor_20260301`
@@ -86,8 +86,8 @@ Provides:
 | Golden path demo | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |
 | Rules files | No | Optional | Yes | Optional |
-| Full-loop invocation | Yes | `$wannabuild` | Prompt/rules | `/wannabuild` |
-| Toolbox usage | Phase contract | Phase prompts | Prompt/rules | `/wb-*` commands |
+| Full-loop invocation | Yes | Natural prompt, `$wannabuild` shortcut | Prompt/rules | Natural prompt, `/wannabuild` shortcut |
+| Toolbox usage | Phase contract | Phase prompts | Prompt/rules | Natural prompt, `/wb-*` shortcuts |
 | Natural-language autorouting | Yes | Skill descriptions | Rules-driven | `SessionStart` + `UserPromptSubmit` hooks |
 | Plugin install path | No | Script symlink | No | Marketplace or script |
 | Repo-only usage | Yes | Yes | Yes | Yes |

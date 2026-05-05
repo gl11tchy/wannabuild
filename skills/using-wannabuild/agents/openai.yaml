@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Guide"
+  short_description: "Explain how to use Wannabuild"
+  default_prompt: "Use $using-wannabuild to explain how Wannabuild works."
+
+policy:
+  allow_implicit_invocation: true

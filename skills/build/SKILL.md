@@ -52,7 +52,7 @@ Examples:
 - `[WB-START] WannaBuild STARTED | intent=build | mode=standard`
 - `[WB-RESUME] WannaBuild RESUME | mode=standard | phase=implement | progress=5/8`
 
-For fresh build intent (`I wanna build`, `build ...`), start discovery immediately.
+For fresh build intent (`I wanna build`, `build ...`) or exploratory idea intent (`I want to work on this some`, `I was thinking of ideas`, `let's brainstorm this`), start discovery immediately.
 
 ### Start/Gate De-duplication Rule
 
@@ -221,6 +221,7 @@ Public routing is conversational. The user should mostly experience step-level i
 | User Says | Public Step | Internal Execution |
 |-----------|-------------|--------------------|
 | "I wanna build..." / "I have an idea..." / "build..." | Discover | Requirements |
+| "I want to work on this some" / "I was thinking of ideas" / "let's brainstorm this" / "what should we add?" | Discover | Requirements |
 | "guided mode" / "autonomous mode" | Execution preference | Guided or autonomous preference |
 | "Research this first" / "Investigate options" | Plan | Optional research burst before Design + Tasks |
 | "Let's define what we're building" / "What should we build?" | Discover | Requirements |
@@ -237,7 +238,7 @@ Public routing is conversational. The user should mostly experience step-level i
 2. Check `.wannabuild/state.json` for current internal context.
 3. Infer the user's public step from conversational cues.
 4. Map the public step to the appropriate internal execution surface.
-5. If ambiguous, ask the user.
+5. If the prompt has no task, stage intent, or exploratory idea intent, ask the user.
 
 Users can still skip around. The orchestrator tracks internal state but should preserve a compact public experience.
 

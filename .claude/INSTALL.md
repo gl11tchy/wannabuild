@@ -49,10 +49,10 @@ To install from the Claude Code marketplace:
 /reload-plugins
 ```
 
-Then invoke:
+Then start with natural language:
 
 ```text
-/wannabuild
+I want to build a small onboarding flow
 ```
 
 ## Manual Install

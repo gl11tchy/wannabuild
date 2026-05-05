@@ -31,11 +31,12 @@ Do not hard-code agent count or force both agents every time.
 Run this phase when:
 
 - the user starts a new build or feature request
+- the user gives an exploratory improvement prompt such as "I want to work on this some", "I was thinking of ideas", "let's brainstorm this", or "what should we add?"
 - the user says they want to define requirements
 - no `.wannabuild/spec/requirements.md` exists
 - existing requirements need to be refreshed because the user's intent changed materially
 
-Do not start this phase without a concrete task. If the user has not given one, ask what they want to build first.
+Do not start this phase without a concrete task, stage intent, or exploratory idea intent. If the user gives a rough or broad idea, interview to make it concrete instead of bouncing the prompt back.
 
 ## Input
 
@@ -53,7 +54,7 @@ The first user prompt is raw material, not a complete spec. Treat it as the begi
 
 1. **Confirm the concrete task.**
    - If the task is missing, ask for the actual goal.
-   - If the task is too broad, keep interviewing before narrowing.
+   - If the task is too broad or exploratory, keep interviewing before narrowing.
 
 2. **Run the vision interview before planning.**
    Explore, in natural language:

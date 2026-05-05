@@ -159,5 +159,5 @@ echo
 echo "Verified Codex skills target:"
 echo "  $TARGET"
 echo
-echo "Restart Codex, then type a natural feature request or invoke:"
-echo "  \$wannabuild"
+echo "Restart Codex, then type a natural feature request."
+echo "Explicit shortcut remains available: \$wannabuild"

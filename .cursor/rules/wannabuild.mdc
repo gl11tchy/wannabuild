@@ -8,21 +8,20 @@ alwaysApply: false
 Use WannaBuild as a condensed workflow:
 
 1. Discover
-2. Control mode gate
-3. Optional research gate
-4. Plan
-5. Implement
-6. Review
-7. QA
-8. Summary
+2. Plan
+3. Implement
+4. Review
+5. QA
+6. Summary
 
 Key rules:
 
 - Treat `AGENTS.md` as the main operator contract.
 - Treat `skills/build/SKILL.md` as the orchestrator spec.
 - Use `.wannabuild/` artifacts as the workflow state source of truth.
-- Create an isolated workspace before real work in a git repo.
-- After Discover, ask once whether to stay guided or switch to autonomous mode.
+- Natural build, change, and open-ended ideation prompts should start Discover automatically.
+- Continue from Discover to Plan automatically once the requirements direction is crisp enough.
+- Use the current checkout for Discover and Plan; create an isolated workspace only when implementation-time isolation is selected or justified.
 - Keep Discover, Plan, QA, and Summary single-lane by default.
 - Use bounded multi-agent research only when it materially improves planning quality.
 - Use parallelism mainly for disjoint implementation slices and reviewer hats.

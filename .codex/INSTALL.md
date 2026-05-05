@@ -50,7 +50,7 @@ Run:
 ./scripts/wannabuild-doctor.sh
 ```
 
-Then start a new Codex session and invoke:
+Then start a new Codex session and type a natural feature request:
 
 ```text
 I want to build a small onboarding flow

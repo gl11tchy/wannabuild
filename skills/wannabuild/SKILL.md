@@ -14,7 +14,9 @@ Use WannaBuild skills automatically whenever they plausibly apply. Commands are 
 - Use `wannabuild` for full-loop requests, broad build requests, or "I want X" product/change requests.
 - Use the smallest matching `wb-*` toolbox skill for focused discovery, planning, implementation, debugging, review, QA, or ship requests.
 - Do not require the user to invoke a command if the intent is clear from natural language.
+- Do not answer a matching natural-language request by explaining which command to run. Select the skill and begin the appropriate workflow.
 - Treat natural "I want to build/add/change/create..." feature prompts as enough to start discovery automatically.
+- Treat exploratory ideation prompts such as "I want to work on this some", "I was thinking of ideas", "let's brainstorm this", or "what should we add?" as enough to start Discover automatically.
 - If multiple skills might apply, choose the minimal useful set and continue.
 - Keep behavior in skills; command files should only route.
 
@@ -27,7 +29,7 @@ Toolbox mode still follows WannaBuild principles, but it does not auto-advance a
 
 ## Invocation Guard
 
-If the user invokes `/wannabuild` or `$wannabuild` with no concrete task or only asks what the workflow is:
+If the user invokes `/wannabuild` or `$wannabuild` with no concrete task, no stage intent, and no exploratory idea intent, or only asks what the workflow is:
 
 - do **not** inspect the repo deeply
 - do **not** infer the task from git diff, branch state, or uncommitted changes
@@ -45,7 +47,7 @@ Use this exact structure:
 Tell me what you want to build or change.
 ```
 
-Only begin Discover after the user provides an actual task.
+Only use this fallback for empty or purely meta invocations. A rough goal, open-ended improvement prompt, or brainstorming prompt is actual work for Discover: start the discovery interview instead of asking the user to restate the goal.
 
 ## Workspace Behavior
 
@@ -95,6 +97,8 @@ Run this condensed workflow:
 4. Validate
 5. QA
 6. Summary
+
+In full-loop mode, Discover should interview until the goal is crisp enough to form requirements, then hand off to Plan automatically unless user judgment is needed.
 
 ## Defaults
 

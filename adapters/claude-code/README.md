@@ -11,10 +11,10 @@ WannaBuild for Claude Code. Supports marketplace install and repo-based local in
 /plugin install wannabuild@gl11tchy
 ```
 
-Restart Claude Code, then:
+Restart Claude Code, then start with natural language:
 
 ```text
-/wannabuild
+I wanna build a Stripe billing flow for my SaaS
 ```
 
 ### From Repo
@@ -23,10 +23,10 @@ Restart Claude Code, then:
 ./scripts/install-claude-skill.sh
 ```
 
-Run `/reload-plugins`, then:
+Run `/reload-plugins`, then start with natural language:
 
 ```text
-/wannabuild
+I wanna build a Stripe billing flow for my SaaS
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ Start with a natural description:
 I wanna build a Stripe billing flow for my SaaS
 ```
 
-WannaBuild responds with the start banner and enters a vision-first Discover interview. The Claude Code plugin declares `SessionStart` and `UserPromptSubmit` hooks so natural feature, planning, debug, review, QA, and ship prompts can route automatically without asking the user to type a slash command.
+WannaBuild responds with the start banner and enters a vision-first Discover interview. The Claude Code plugin declares `SessionStart` and `UserPromptSubmit` hooks so natural feature, planning, debug, review, QA, ship, and open-ended ideation prompts can route automatically without asking the user to type a slash command.
 
 Advisor escalation and delegation are repo-native and model-agnostic in core. Claude Code should map WannaBuild capability tiers and reasoning effort to available host controls; Claude Platform API adapters may map the same contract to the native `advisor_20260301` tool when appropriate.
 

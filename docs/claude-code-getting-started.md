@@ -46,18 +46,19 @@ Then reload plugins in Claude Code:
 /reload-plugins
 ```
 
-After installation, invoke WannaBuild:
+After installation, start with natural language:
 
 ```text
 I want to build a Stripe billing flow for my SaaS
 ```
 
 Claude Code installs a `SessionStart` and `UserPromptSubmit` hook for WannaBuild. Natural feature, planning, debug, review, QA, and ship prompts should route to the matching skill automatically; `/wannabuild` and `/wb-*` are explicit shortcuts.
+Open-ended ideation prompts such as "I want to work on this some" or "let's brainstorm ideas" should start Discover automatically, then continue through the full loop once the goal is crisp enough.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
 When used in git repositories, it uses the current checkout for discovery and planning. It only creates an isolated worktree when implementation-time isolation is selected.
 
-Optional intro skill:
+Optional intro shortcut:
 
 ```text
 /using-wannabuild
@@ -87,7 +88,9 @@ Use natural toolbox prompts when you only want one stage:
 - "QA this against the acceptance criteria": acceptance and integration validation
 - "prepare the handoff": final handoff
 
-Command shortcuts remain available: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, and `/wb-ship`.
+Toolbox skills display as `Wannabuild: <skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
+
+Command shortcuts remain available, but they are fallback entrypoints: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, and `/wb-ship`.
 
 ## Flow
 
@@ -109,7 +112,7 @@ Claude Code and Codex share the same host-neutral trust harness:
 ./scripts/wannabuild-gate-check.sh docs/golden-path-demo summary
 ```
 
-The dry-run validator covers startup, implementation workspace selection, resume, research, implementation, review failure, QA failure, and summary completion.
+The dry-run validator covers startup, exploratory discovery invocation, implementation workspace selection, resume, research, implementation, review failure, QA failure, and summary completion.
 
 ## Key Files
 

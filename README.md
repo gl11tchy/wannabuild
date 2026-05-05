@@ -149,7 +149,7 @@ Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The insta
 ./scripts/install-claude-skill.sh
 ```
 
-Then run `/reload-plugins` and invoke `/wannabuild`.
+Then run `/reload-plugins` and start with a natural feature or ideation prompt.
 
 See [adapters/claude-code/README.md](adapters/claude-code/README.md) and [.claude/INSTALL.md](.claude/INSTALL.md).
 
@@ -206,10 +206,11 @@ Add team invitations and roles to this app
 ```
 
 WannaBuild should route automatically, emit `[WB-START]`, run discovery and planning in the current checkout, and offer an isolated worktree before implementation when isolation would help.
+Open-ended ideation such as "I want to work on this some" or "let's brainstorm ideas" should also route automatically into Discover, then continue through the loop once the goal is crisp enough.
 
 ### Command Shortcuts
 
-Commands remain available when you want to be explicit.
+Commands remain available when you want to be explicit, but natural prompts are the primary interface.
 
 Claude Code:
 
@@ -234,6 +235,8 @@ Use natural toolbox prompts when you want one stage instead of the full loop:
 - "review this change"
 - "QA this against the acceptance criteria"
 - "prepare the handoff"
+
+Toolbox skills display as `Wannabuild: <skill>` in skill UI surfaces, with `wb-*` retained as the stable command/file shortcut.
 
 Claude Code command shortcuts:
 

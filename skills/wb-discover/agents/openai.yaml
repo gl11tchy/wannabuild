@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Discover"
+  short_description: "Shape ideas into requirements"
+  default_prompt: "Use $wb-discover to clarify this idea."
+
+policy:
+  allow_implicit_invocation: true

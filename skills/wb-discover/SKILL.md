@@ -11,7 +11,7 @@ Use this toolbox skill when the user wants discovery only, not the full WannaBui
 
 Before any toolbox phase work:
 
-- If no concrete task exists, ask for the actual goal first.
+- If no concrete task or exploratory idea intent exists, ask for the actual goal first.
 - Work in the current checkout by default.
 - Do not create an isolated worktree for discovery.
 
@@ -25,7 +25,7 @@ Turn a rough idea or unclear request into a crisp problem brief and requirements
 - Ask only for missing information that changes scope, design, or acceptance.
 - Use bounded repo reconnaissance only when the codebase materially affects discovery.
 - Do not infer intent from git diff or uncommitted changes.
-- Do not proceed to planning unless the user asks.
+- In standalone toolbox mode, do not proceed to planning unless the user asks. In full-loop `wannabuild` mode, Discover hands off to Plan after the requirements direction is crisp enough.
 - Use sub-agents only for distinct discovery perspectives that materially improve the brief.
 
 ## Flow

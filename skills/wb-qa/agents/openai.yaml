@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: QA"
+  short_description: "Validate acceptance behavior"
+  default_prompt: "Use $wb-qa to validate acceptance behavior."
+
+policy:
+  allow_implicit_invocation: true

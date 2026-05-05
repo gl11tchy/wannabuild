@@ -126,6 +126,7 @@ if manifest.get("host_invocations") != expected_hosts:
 
 required = {
     "no-task-invocation",
+    "exploratory-discovery-invocation",
     "implementation-workspace-selection",
     "resume",
     "research-gate",
@@ -176,6 +177,35 @@ for scenario in scenarios:
         for item in {"inspect_repo", "infer_git_diff", "plan", "implement"}:
             if item not in forbidden:
                 err(f"no-task-invocation must forbid {item}")
+
+    if sid == "exploratory-discovery-invocation":
+        discovery_contract = payload if isinstance(payload, dict) else scenario
+        if discovery_contract.get("prompt_has_concrete_task") is not True:
+            err("exploratory-discovery-invocation must be concrete enough to start Discover")
+        if discovery_contract.get("prompt_kind") != "exploratory_build_intent":
+            err("exploratory-discovery-invocation prompt_kind must be exploratory_build_intent")
+        if discovery_contract.get("expected_skill") != "wannabuild":
+            err("exploratory-discovery-invocation must use the full wannabuild skill")
+        if discovery_contract.get("expected_loop") != "full":
+            err("exploratory-discovery-invocation must continue through the full loop after Discover")
+        if discovery_contract.get("expected_banner") != "[WB-START] WannaBuild STARTED | intent=build | mode=standard":
+            err("exploratory-discovery-invocation expected banner changed")
+        if discovery_contract.get("expected_public_step") != "discover":
+            err("exploratory-discovery-invocation must route to Discover")
+        if discovery_contract.get("expected_next_action") != "start_discovery_interview":
+            err("exploratory-discovery-invocation must start the discovery interview")
+        forbidden = set(discovery_contract.get("must_not", []))
+        for item in {"no_task_fallback", "ask_user_to_invoke_skill", "plan_before_discovery", "implement_before_plan"}:
+            if item not in forbidden:
+                err(f"exploratory-discovery-invocation must forbid {item}")
+        examples = discovery_contract.get("prompt_examples", [])
+        if not isinstance(examples, list) or not examples:
+            err("exploratory-discovery-invocation must include prompt_examples")
+        else:
+            joined = " ".join(str(item).lower() for item in examples)
+            for phrase in ["work on this", "brainstorm", "what should we add"]:
+                if phrase not in joined:
+                    err(f"exploratory-discovery-invocation examples must cover {phrase!r}")
 
     workspace_fixture = scenario.get("workspace_fixture")
     if workspace_fixture:

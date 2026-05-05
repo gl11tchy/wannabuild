@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Full Loop"
+  short_description: "Run the complete workflow"
+  default_prompt: "Use $wannabuild to run the full workflow for this idea."
+
+policy:
+  allow_implicit_invocation: true

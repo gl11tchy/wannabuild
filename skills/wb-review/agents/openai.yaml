@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Review"
+  short_description: "Review changes against scope"
+  default_prompt: "Use $wb-review to review this change."
+
+policy:
+  allow_implicit_invocation: true

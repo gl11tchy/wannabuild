@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Plan"
+  short_description: "Turn requirements into tasks"
+  default_prompt: "Use $wb-plan to turn this brief into a plan."
+
+policy:
+  allow_implicit_invocation: true

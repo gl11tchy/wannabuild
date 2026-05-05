@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Ship"
+  short_description: "Prepare verified handoffs"
+  default_prompt: "Use $wb-ship to prepare the final handoff."
+
+policy:
+  allow_implicit_invocation: true

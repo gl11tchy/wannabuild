@@ -21,13 +21,26 @@ run_hook() {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I want to add Stripe billing to my SaaS"}'
   [ "$status" -eq 0 ]
   [[ "$output" == *'`wannabuild`'* ]]
-  [[ "$output" == *'broad product, feature, or change request'* ]]
+  [[ "$output" == *'broad product, feature, change, or open-ended ideation request'* ]]
 }
 
 @test "hook: brainstorming request routes to discovery" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"Brainstorm the onboarding flow before we build"}'
   [ "$status" -eq 0 ]
   [[ "$output" == *'`wb-discover`'* ]]
+}
+
+@test "hook: open-ended ideation routes to full WannaBuild loop" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I want to work on this some, I was thinking of some ideas we could add"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+  [[ "$output" == *'open-ended ideation request'* ]]
+}
+
+@test "hook: casual idea wording still routes to full loop" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I just had an idea for adding invite links"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
 }
 
 @test "hook: planning request routes to plan" {

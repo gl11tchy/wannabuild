@@ -18,7 +18,7 @@ Public steps stay compact for the user; internal phases provide rigor.
 
 ## 2) Non-Negotiables
 
-1. No concrete task: ask for the goal first.
+1. No concrete task, stage intent, or exploratory idea intent: ask for the goal first.
 2. In git repos: use the current checkout through discovery and planning.
 3. Initialize `.wannabuild/state.json` in that workspace.
 4. Before implementation, choose current checkout or an isolated worktree.

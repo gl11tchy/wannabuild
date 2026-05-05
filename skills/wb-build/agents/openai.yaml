@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Build"
+  short_description: "Implement planned work slices"
+  default_prompt: "Use $wb-build to implement the next planned slice."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Wannabuild: Debug"
+  short_description: "Diagnose and fix failures"
+  default_prompt: "Use $wb-debug to diagnose and fix this failure."
+
+policy:
+  allow_implicit_invocation: true

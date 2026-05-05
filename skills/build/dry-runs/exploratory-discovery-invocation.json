@@ -1,0 +1,21 @@
+{
+  "scenario": "exploratory-discovery-invocation",
+  "prompt_kind": "exploratory_build_intent",
+  "prompt_examples": [
+    "I want to work on this some, I was thinking of some ideas we could add",
+    "Let's brainstorm ideas for this project",
+    "What should we add?"
+  ],
+  "prompt_has_concrete_task": true,
+  "expected_skill": "wannabuild",
+  "expected_loop": "full",
+  "expected_banner": "[WB-START] WannaBuild STARTED | intent=build | mode=standard",
+  "expected_public_step": "discover",
+  "expected_next_action": "start_discovery_interview",
+  "must_not": [
+    "no_task_fallback",
+    "ask_user_to_invoke_skill",
+    "plan_before_discovery",
+    "implement_before_plan"
+  ]
+}

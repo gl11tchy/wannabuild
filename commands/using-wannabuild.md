@@ -15,6 +15,7 @@ Keep the intro short:
 - Adaptive review with the right specialists for the change
 - Hard QA gate before summary
 - One standard workflow mode (no Full/Light/Spark prompt)
-- Works in Claude Code (`/wannabuild`) and Codex (`$wannabuild`)
-- Natural prompts should route automatically; commands are optional shortcuts
+- Natural prompts should route automatically in Claude Code and Codex
+- Commands are optional shortcuts, not the normal path
+- Do not ask the user to type a command when their current prompt already matches a skill
 - Claude Code toolbox commands: `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, `/wb-ship`
