@@ -340,13 +340,36 @@ Requirements: bash, awk, sed, sort, jq.
 
 Path: `scripts/install-claude-skill.sh`
 
+### Functions
+
+- `create_plugin_link`
+- `is_windows_mount_path`
+- `json_path_for_host`
+- `ps_literal`
+- `resolve_host_home`
+- `safe_remove_existing`
+- `to_windows_path`
+- `windows_powershell`
+
 ### CLI flags / options observed
 
+- `-C`
+- `-F`
+- `-I`
 - `-L`
+- `-N`
+- `-P`
+- `-R`
+- `-T`
+- `-d`
 - `-e`
+- `-f`
+- `-n`
 - `-p`
 - `-r`
 - `-s`
+- `-v`
+- `-w`
 
 ## `install-codex-skill.sh`
 
@@ -354,17 +377,36 @@ Path: `scripts/install-codex-skill.sh`
 
 ### Functions
 
+- `create_skill_link`
 - `install_repo_skill`
+- `is_windows_mount_path`
+- `ps_literal`
+- `resolve_host_home`
+- `safe_remove_existing`
+- `to_windows_path`
+- `windows_powershell`
 
 ### CLI flags / options observed
 
+- `-C`
+- `-F`
+- `-I`
+- `-L`
+- `-N`
+- `-P`
+- `-R`
+- `-T`
 - `-d`
 - `-e`
+- `-f`
 - `-m`
+- `-n`
 - `-p`
 - `-r`
 - `-s`
 - `-t`
+- `-v`
+- `-w`
 
 ## `lint.sh`
 
@@ -382,12 +424,14 @@ then exits non-zero if any check failed.
 ### Functions
 
 - `have`
+- `have_runnable_rg`
 - `run_check`
 - `skip_check`
 
 ### CLI flags / options observed
 
 - `--severity`
+- `--version`
 - `--yes`
 - `-a`
 - `-b`
@@ -482,7 +526,11 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_contains`
 - `check_dir`
 - `check_file`
+- `check_json_key`
 - `check_link_target`
+- `check_not_contains`
+- `resolve_host_home`
+- `resolve_path`
 
 ### CLI flags / options observed
 
@@ -491,6 +539,8 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-d`
 - `-e`
 - `-f`
+- `-n`
+- `-v`
 
 ## `wannabuild-gate-check.sh`
 
@@ -535,6 +585,7 @@ Path: `scripts/wannabuild-workspace.sh`
 
 - `--delete`
 - `--exclude`
+- `--git-path`
 - `--help`
 - `--is-inside-work-tree`
 - `--json`
@@ -542,6 +593,7 @@ Path: `scripts/wannabuild-workspace.sh`
 - `--porcelain`
 - `--show-current`
 - `--show-toplevel`
+- `-F`
 - `-a`
 - `-b`
 - `-c`
