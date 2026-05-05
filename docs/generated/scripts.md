@@ -358,13 +358,16 @@ Path: `scripts/install-codex-skill.sh`
 
 ### CLI flags / options observed
 
+- `-L`
 - `-d`
 - `-e`
+- `-f`
 - `-m`
 - `-p`
 - `-r`
 - `-s`
 - `-t`
+- `-w`
 
 ## `lint.sh`
 
@@ -483,6 +486,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_dir`
 - `check_file`
 - `check_link_target`
+- `check_not_contains`
 
 ### CLI flags / options observed
 
@@ -535,6 +539,7 @@ Path: `scripts/wannabuild-workspace.sh`
 
 - `--delete`
 - `--exclude`
+- `--git-path`
 - `--help`
 - `--is-inside-work-tree`
 - `--json`
@@ -542,6 +547,7 @@ Path: `scripts/wannabuild-workspace.sh`
 - `--porcelain`
 - `--show-current`
 - `--show-toplevel`
+- `-F`
 - `-a`
 - `-b`
 - `-c`
