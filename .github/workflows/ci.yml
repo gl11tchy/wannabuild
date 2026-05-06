@@ -189,6 +189,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends jq
       - name: Run wannabuild-doctor
         run: bash scripts/wannabuild-doctor.sh
+      - name: Validate Claude marketplace contract
+        run: bash scripts/validate-claude-marketplace.sh
       - name: Validate dry-run fixtures
         run: |
           set -euo pipefail
