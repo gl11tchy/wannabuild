@@ -241,6 +241,22 @@ TASKS
   [ "$codex_pause" = "$cursor_pause" ]
   [[ "$cursor_required" == *"assert-plan-ready"* ]]
 
+  # Factory is a fourth supported host. The runtime treats it via the
+  # wildcard branch of normalize_host(); this assertion pins that the
+  # context computed for it stays identical to the explicitly-named hosts
+  # so a future refactor can't quietly diverge.
+  run "$WB_RUNTIME_BIN" adapter context --project "$TARGET" --host factory --event bootstrap
+  [ "$status" -eq 0 ]
+  factory_action="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["allowed_next_action"])' <<<"$output")"
+  factory_required="$(python3 -c 'import json,sys; print(",".join(json.load(sys.stdin)["required_gates"]))' <<<"$output")"
+  factory_forbidden="$(python3 -c 'import json,sys; print(",".join(json.load(sys.stdin)["forbidden_actions"]))' <<<"$output")"
+  factory_pause="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["pause_required"])' <<<"$output")"
+
+  [ "$claude_action" = "$factory_action" ]
+  [ "$claude_required" = "$factory_required" ]
+  [ "$claude_forbidden" = "$factory_forbidden" ]
+  [ "$claude_pause" = "$factory_pause" ]
+
   run "$WB_RUNTIME_BIN" adapter route --project "$TARGET" --host cursor --prompt "I want to add billing"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"route": "wannabuild"'* ]]
