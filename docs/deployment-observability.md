@@ -60,8 +60,8 @@ Every deploy should annotate every relevant dashboard. A spike in errors
 is meaningless without knowing what shipped.
 
 - **Datadog**: `events.post` with tag `source:deploy` — Datadog dashboards
-  show vertical lines automatically. Or use Datadog's
-  [deploy markers integration](https://docs.datadoghq.com/integrations/guide/marker-events-tutorial/).
+  show vertical lines automatically. See the
+  [Events API](https://docs.datadoghq.com/api/latest/events/).
 - **Grafana**: dashboard annotations via the
   [Annotations API](https://grafana.com/docs/grafana/latest/developers/http_api/annotations/).
 - **New Relic**: deploy markers via the v2 API (POST to
