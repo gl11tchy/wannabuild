@@ -11,6 +11,7 @@ Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 ![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
 ![Codex](https://img.shields.io/badge/codex-supported-111827?style=flat-square)
 ![Claude Code](https://img.shields.io/badge/claude--code-supported-5B21B6?style=flat-square)
+![Droid](https://img.shields.io/badge/droid-supported-0ea5e9?style=flat-square)
 ![Cursor](https://img.shields.io/badge/cursor-supported-0f766e?style=flat-square)
 
 [Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts) · [Trust Harness](#trust-harness)
@@ -34,6 +35,7 @@ WannaBuild is a repo-native framework for running a disciplined product-developm
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
 Runs start in the current checkout. Worktrees are an implementation-time option for approved plans, parallel slices, or explicitly requested isolation.
 Claude Code installs a lightweight hook runtime that reinjects active `.wannabuild/state.json` phase state on session start and prompt submit. It also forbids implementation until the Plan gate is satisfied.
+Factory Droid installs a plugin surface plus generated `wb-*` droids so the same natural-language routing and specialist workflow are available in Droid.
 After install, start with natural language: "I want to add billing", "plan this", "debug this failure", or "review this change". Commands such as `/wannabuild` in Claude Code and `$wannabuild` in Codex are shortcuts, not requirements.
 
 ## Why
@@ -182,6 +184,17 @@ I want to build a Stripe billing flow for my SaaS
 
 Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`.
 
+### Factory / Droid
+
+Install the Factory plugin and generated Droid specialists from this repo:
+
+```bash
+./scripts/install-factory-plugin.sh
+```
+
+The installer registers the local marketplace/plugin, links `adapters/factory` into Factory's plugin cache, and writes the generated `wb-*` droids to `~/.factory/droids/`.
+Restart Droid, then start with a natural feature, planning, debug, review, QA, or ship request. Explicit plugin commands and skills remain available as shortcuts.
+
 ### Cursor
 
 Cursor is supported via the same repo-native contracts and scripts.
@@ -224,6 +237,12 @@ Codex:
 
 ```text
 $wannabuild I wanna build a user authentication system with OAuth and magic links
+```
+
+Droid:
+
+```text
+I wanna build a user authentication system with OAuth and magic links
 ```
 
 ### Phase Skill Usage
@@ -348,6 +367,7 @@ Core workflow docs express model choice as capability tiers and reasoning effort
 WannaBuild is being aligned as:
 
 - Codex + Claude Code co-primary
+- Factory Droid-supported
 - Cursor-supported
 
 The portability contract lives in [docs/host-capability-matrix.md](docs/host-capability-matrix.md).
