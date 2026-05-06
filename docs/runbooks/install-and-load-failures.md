@@ -187,6 +187,57 @@ clone. The script writes all three config files idempotently.
 
 ---
 
+## How to verify your install is working
+
+After `/plugin install wannabuild@gl11tchy` (or running an install script),
+confirm the install actually took.
+
+**1. Plugin registered in installed_plugins.json:**
+
+```bash
+jq '.plugins | keys[]' ~/.claude/plugins/installed_plugins.json | grep wannabuild
+```
+
+You should see `"wannabuild@gl11tchy"`.
+
+**2. Plugin enabled in settings.json:**
+
+```bash
+jq '.enabledPlugins."wannabuild@gl11tchy"' ~/.claude/settings.json
+```
+
+You should see `true`.
+
+**3. Plugin cache layout is intact:**
+
+```bash
+ls ~/.claude/plugins/cache/gl11tchy/wannabuild/*/
+```
+
+You should see `.claude-plugin/`, `hooks/`, and `skills/` (among others).
+
+**4. Hooks file parses correctly:**
+
+```bash
+python3 -c '
+import json,sys
+for f in sys.argv[1:]:
+    d=json.load(open(f))
+    assert "hooks" not in d, f"{f}: double-wrapped"
+    assert isinstance(d.get("SessionStart"),list), f"{f}: SessionStart missing"
+    print(f"{f}: OK")
+' ~/.claude/plugins/cache/gl11tchy/wannabuild/*/hooks/hooks.json
+```
+
+If all four checks pass, run `/reload-plugins` in Claude Code and type a
+natural feature prompt — you should see the WannaBuild routing context
+injected into the next response.
+
+If any check fails, find the matching entry above (e.g.,
+`/reload-plugins` crash points to the hooks shape entry) for the fix.
+
+---
+
 ## Adding a new entry
 
 When a user reports a failure that isn't here:
