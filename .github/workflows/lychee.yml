@@ -24,7 +24,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: lychee-${{ github.ref }}
@@ -35,6 +34,9 @@ jobs:
     name: lychee
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Harden runner (audit)
         # step-security/harden-runner v2.19.1
