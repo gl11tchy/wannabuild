@@ -24,13 +24,13 @@ WannaBuild runs a vision-first workflow:
 
 Toolbox mode is for lighter, step-level work:
 
-- `Wannabuild: Discover` (`wb-discover`) - clarify vision and requirements direction
-- `Wannabuild: Plan` (`wb-plan`) - produce design direction and task slices
-- `Wannabuild: Build` (`wb-build`) - implement a concrete task or plan
-- `Wannabuild: Debug` (`wb-debug`) - reproduce, diagnose, fix, and verify a bug
-- `Wannabuild: Review` (`wb-review`) - review code or specs without fixing
-- `Wannabuild: QA` (`wb-qa`) - validate acceptance and integration behavior
-- `Wannabuild: Ship` (`wb-ship`) - prepare a verified handoff, commit, or PR summary
+- `WannaBuild: Discover` (`wb-discover`) - clarify vision and requirements direction
+- `WannaBuild: Plan` (`wb-plan`) - produce design direction and task slices
+- `WannaBuild: Build` (`wb-build`) - implement a concrete task or plan
+- `WannaBuild: Debug` (`wb-debug`) - reproduce, diagnose, fix, and verify a bug
+- `WannaBuild: Review` (`wb-review`) - review code or specs without fixing
+- `WannaBuild: QA` (`wb-qa`) - validate acceptance and integration behavior
+- `WannaBuild: Ship` (`wb-ship`) - prepare a verified handoff, commit, or PR summary
 
 ## Start Prompt
 

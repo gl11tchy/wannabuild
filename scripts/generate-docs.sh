@@ -97,6 +97,24 @@ extract_frontmatter() {
   ' "$file"
 }
 
+extract_skill_display_name() {
+  local skill_file="$1"
+  local skill_dir metadata_file
+  skill_dir="$(dirname "$skill_file")"
+  metadata_file="${skill_dir}/agents/openai.yaml"
+  if [[ ! -f "${metadata_file}" ]]; then
+    return 0
+  fi
+  awk '
+    /^[[:space:]]*display_name[[:space:]]*:/ {
+      sub(/^[[:space:]]*display_name[[:space:]]*:[[:space:]]*/, "")
+      gsub(/^[\"\047]|[\"\047][[:space:]]*$/, "")
+      print
+      exit
+    }
+  ' "${metadata_file}"
+}
+
 # Extract first non-empty paragraph after the first H1 heading. Used as a
 # fallback description when frontmatter description is missing.
 extract_first_paragraph() {
@@ -117,6 +135,24 @@ extract_first_paragraph() {
 
 md_escape() {
   sed -e 's/|/\\|/g' -e 's/`/\\`/g'
+}
+
+print_limited_markdown_items() {
+  local items="$1"
+  local limit="$2"
+  local total count item
+  total="$(printf '%s\n' "${items}" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')"
+  count=0
+  while IFS= read -r item; do
+    [ -z "${item}" ] && continue
+    count=$((count + 1))
+    if ((count <= limit)); then
+      printf -- '- `%s`\n' "${item}"
+    fi
+  done <<<"${items}"
+  if ((total > limit)); then
+    printf -- '- _%s more omitted._\n' "$((total - limit))"
+  fi
 }
 
 # ---------- scripts.md ----------
@@ -155,10 +191,7 @@ generate_scripts_md() {
       functions="$(extract_shell_functions "${filepath}" || true)"
       if [ -n "${functions}" ]; then
         printf '### Functions\n\n'
-        while IFS= read -r fn; do
-          [ -z "${fn}" ] && continue
-          printf -- '- `%s`\n' "${fn}"
-        done <<<"${functions}"
+        print_limited_markdown_items "${functions}" 12
         printf '\n'
       fi
 
@@ -166,10 +199,7 @@ generate_scripts_md() {
       flags="$(extract_shell_flags "${filepath}" || true)"
       if [ -n "${flags}" ]; then
         printf '### CLI flags / options observed\n\n'
-        while IFS= read -r flag; do
-          [ -z "${flag}" ] && continue
-          printf -- '- `%s`\n' "${flag}"
-        done <<<"${flags}"
+        print_limited_markdown_items "${flags}" 12
         printf '\n'
       fi
     done <<<"${sources}"
@@ -214,7 +244,6 @@ generate_agents_md() {
         "$(printf '%s' "${model}" | md_escape)" \
         "$(printf '%s' "${desc}" | md_escape)"
     done <<<"${sources}"
-    printf '\n'
   } >"${out}"
 }
 
@@ -236,28 +265,30 @@ generate_skills_md() {
       return 0
     fi
 
-    printf '| Skill | Path | Description |\n'
-    printf '|---|---|---|\n'
+    printf '| Skill | Display Name | Path | Description |\n'
+    printf '|---|---|---|---|\n'
 
     while IFS= read -r relpath; do
       [ -z "${relpath}" ] && continue
       local filepath="${ROOT_DIR}/${relpath}"
-      local skill_name desc
+      local skill_name display_name desc
       skill_name="$(extract_frontmatter "${filepath}" name)"
       if [ -z "${skill_name}" ]; then
         skill_name="$(dirname "${relpath}" | awk -F/ '{print $NF}')"
       fi
+      display_name="$(extract_skill_display_name "${filepath}")"
+      [ -z "${display_name}" ] && display_name="—"
       desc="$(extract_frontmatter "${filepath}" description)"
       if [ -z "${desc}" ]; then
         desc="$(extract_first_paragraph "${filepath}")"
       fi
       [ -z "${desc}" ] && desc="—"
-      printf '| `%s` | `%s` | %s |\n' \
+      printf '| `%s` | %s | `%s` | %s |\n' \
         "$(printf '%s' "${skill_name}" | md_escape)" \
+        "$(printf '%s' "${display_name}" | md_escape)" \
         "$(printf '%s' "${relpath}" | md_escape)" \
         "$(printf '%s' "${desc}" | md_escape)"
     done <<<"${sources}"
-    printf '\n'
   } >"${out}"
 }
 

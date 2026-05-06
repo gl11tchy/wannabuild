@@ -166,13 +166,16 @@ for scenario in scenarios:
             err(f"{sid}: missing fixture {fixture}")
         else:
             payload = load_json(fixture_path)
+    for contract in [scenario, payload if isinstance(payload, dict) else None]:
+        if isinstance(contract, dict) and "expected_banner" in contract:
+            err(f"{sid}: must not require a visible machine banner")
 
     if sid == "no-task-invocation":
         no_task_contract = payload if isinstance(payload, dict) else scenario
         if no_task_contract.get("prompt_has_concrete_task") is not False:
             err("no-task-invocation must explicitly model a missing concrete task")
-        if no_task_contract.get("expected_banner") != "[WB-START] WannaBuild STARTED | intent=build | mode=standard":
-            err("no-task-invocation expected banner changed")
+        if no_task_contract.get("next_prompt") != "Tell me what you want to build or change.":
+            err("no-task-invocation next prompt changed")
         forbidden = set(no_task_contract.get("must_not", []))
         for item in {"inspect_repo", "infer_git_diff", "plan", "implement"}:
             if item not in forbidden:
@@ -188,8 +191,6 @@ for scenario in scenarios:
             err("exploratory-discovery-invocation must use the full wannabuild skill")
         if discovery_contract.get("expected_loop") != "full":
             err("exploratory-discovery-invocation must continue through the full loop after Discover")
-        if discovery_contract.get("expected_banner") != "[WB-START] WannaBuild STARTED | intent=build | mode=standard":
-            err("exploratory-discovery-invocation expected banner changed")
         if discovery_contract.get("expected_public_step") != "discover":
             err("exploratory-discovery-invocation must route to Discover")
         if discovery_contract.get("expected_next_action") != "start_discovery_interview":

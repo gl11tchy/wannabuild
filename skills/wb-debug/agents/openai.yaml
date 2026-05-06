@@ -1,7 +1,7 @@
 interface:
-  display_name: "Wannabuild: Debug"
-  short_description: "Diagnose and fix failures"
-  default_prompt: "Use $wb-debug to diagnose and fix this failure."
-
+  display_name: "WannaBuild: Debug"
+  short_description: "Reproduce, fix, and verify bugs"
+  default_prompt: "Use $wb-debug to investigate and fix this failure."
+  brand_color: "#111827"
 policy:
   allow_implicit_invocation: true

@@ -27,7 +27,7 @@
       "description": "A bare /wannabuild or $wannabuild invocation asks for the concrete task and does not inspect or infer from git state.",
       "fixture": "no-task-invocation.json",
       "prompt_has_concrete_task": false,
-      "expected_banner": "[WB-START] WannaBuild STARTED | intent=build | mode=standard",
+      "next_prompt": "Tell me what you want to build or change.",
       "must_not": [
         "inspect_repo",
         "infer_git_diff",

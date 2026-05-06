@@ -141,7 +141,7 @@ Restart Claude Code, then:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The installed hook injects routing context at session start and before matching user prompts, so natural feature, planning, debug, review, QA, and ship requests should wake up the right WannaBuild skill automatically.
+Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The installed hook injects routing context at session start and before matching user prompts, so natural feature, planning, debug, review, QA, and ship requests should wake up the right WannaBuild skill automatically. Downloaded skill metadata uses friendly UI names such as `WannaBuild: Review` and `WannaBuild: Ship` where the host supports skill display names.
 
 **From repo:**
 
@@ -178,7 +178,7 @@ Then restart Codex and start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Codex also supports `$wannabuild` and the installed `wb-*` skills. For toolbox work, ask for the phase directly, such as "run discovery only" or "QA this against the requirements".
+Codex also supports `$wannabuild` and the installed `wb-*` skills. For toolbox work, ask for the phase directly, such as "run discovery only" or "QA this against the requirements". In Codex skill lists and chips, the toolbox skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`.
 
 ### Cursor
 
@@ -205,7 +205,7 @@ I want to build a user authentication system with OAuth and magic links
 Add team invitations and roles to this app
 ```
 
-WannaBuild should route automatically, emit `[WB-START]`, run discovery and planning in the current checkout, and offer an isolated worktree before implementation when isolation would help.
+WannaBuild should route automatically, keep startup output plain, run discovery and planning in the current checkout, and offer an isolated worktree before implementation when isolation would help.
 Open-ended ideation such as "I want to work on this some" or "let's brainstorm ideas" should also route automatically into Discover, then continue through the loop once the goal is crisp enough.
 
 ### Command Shortcuts
@@ -236,7 +236,7 @@ Use natural toolbox prompts when you want one stage instead of the full loop:
 - "QA this against the acceptance criteria"
 - "prepare the handoff"
 
-Toolbox skills display as `Wannabuild: <skill>` in skill UI surfaces, with `wb-*` retained as the stable command/file shortcut.
+Toolbox skills display as `WannaBuild: <Skill>` in skill UI surfaces, with `wb-*` retained as the stable command/file shortcut.
 
 Claude Code command shortcuts:
 

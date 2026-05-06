@@ -9,7 +9,6 @@
   "prompt_has_concrete_task": true,
   "expected_skill": "wannabuild",
   "expected_loop": "full",
-  "expected_banner": "[WB-START] WannaBuild STARTED | intent=build | mode=standard",
   "expected_public_step": "discover",
   "expected_next_action": "start_discovery_interview",
   "must_not": [

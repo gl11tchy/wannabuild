@@ -1,7 +1,7 @@
 interface:
-  display_name: "Wannabuild: Guide"
-  short_description: "Explain how to use Wannabuild"
-  default_prompt: "Use $using-wannabuild to explain how Wannabuild works."
-
+  display_name: "WannaBuild: Guide"
+  short_description: "Learn how to start and route work"
+  default_prompt: "Use $using-wannabuild to show me how to start with WannaBuild."
+  brand_color: "#111827"
 policy:
   allow_implicit_invocation: true

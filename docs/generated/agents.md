@@ -27,4 +27,3 @@ Specialist agent prompts, derived from YAML frontmatter and headings.
 | `wb-tech-advisor` | — | Evaluates technology choices for WannaBuild design phase. Analyzes tech stack options, build-vs-buy decisions, and integration points. |
 | `wb-testing-reviewer` | — | Reviews test quality and coverage in WannaBuild review phase. Validates that tests are meaningful, well-structured, and cover the right scenarios. |
 | `wb-ux-perspective` | — | Provides UX analysis for WannaBuild requirements discovery. Synthesizes audience, desired feel, flows, experience risks, and testable behavior from the vision interview. |
-

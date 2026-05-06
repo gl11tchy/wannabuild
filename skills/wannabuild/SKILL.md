@@ -39,11 +39,9 @@ If the user invokes `/wannabuild` or `$wannabuild` with no concrete task, no sta
 
 Instead, respond with a short start prompt and ask for the actual goal.
 
-Use this exact structure:
+Use this exact plain prompt:
 
 ```text
-[WB-START] WannaBuild STARTED | intent=build | mode=standard
-
 Tell me what you want to build or change.
 ```
 
@@ -139,13 +137,16 @@ Use these contracts as needed. If installed via the Claude Code marketplace, the
 
 ## Startup
 
-Use:
+Do not emit machine-readable start or resume banners in user-visible output.
+Keep startup text plain and brief.
 
-`[WB-START] WannaBuild STARTED | intent=build | mode=standard`
+If starting without a concrete task, ask:
 
-If resuming from `.wannabuild/state.json`, use:
+```text
+Tell me what you want to build or change.
+```
 
-`[WB-RESUME] WannaBuild RESUME | mode=standard | phase=<current_phase> | progress=<done>/<total>`
+If resuming from `.wannabuild/state.json`, say that WannaBuild is resuming from the current phase in ordinary prose.
 
 Do not ask the user to choose between Full, Light, or Spark. Run one standard full-loop workflow unless the user explicitly invokes a toolbox step.
 
@@ -154,7 +155,7 @@ Do not ask the user to choose between Full, Light, or Spark. Run one standard fu
 To prevent duplicate user-visible outputs:
 
 - Never emit identical assistant messages back-to-back.
-- If `[WB-START]` or `[WB-RESUME]` was already emitted in the current turn by the command layer, do not emit the same banner again.
+- If a startup or resume note was already emitted in the current turn by the command layer, do not emit the same note again.
 - If the user explicitly chooses guided mode, ask each checkpoint question once per unresolved stage.
 - If the most recent assistant message already contains the exact question and the user has not answered yet, do not repeat it; wait for user input.
 - If repetition is necessary for clarity, restate with new wording instead of sending the exact same message text.

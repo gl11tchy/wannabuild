@@ -1,7 +1,7 @@
 interface:
-  display_name: "Wannabuild: Ship"
-  short_description: "Prepare verified handoffs"
-  default_prompt: "Use $wb-ship to prepare the final handoff."
-
+  display_name: "WannaBuild: Ship"
+  short_description: "Prepare handoff, commit, or PR"
+  default_prompt: "Use $wb-ship to prepare this completed work for delivery."
+  brand_color: "#111827"
 policy:
   allow_implicit_invocation: true

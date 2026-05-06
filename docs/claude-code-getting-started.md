@@ -88,9 +88,9 @@ Use natural toolbox prompts when you only want one stage:
 - "QA this against the acceptance criteria": acceptance and integration validation
 - "prepare the handoff": final handoff
 
-Toolbox skills display as `Wannabuild: <skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
+Toolbox skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
 
-Command shortcuts remain available, but they are fallback entrypoints: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, and `/wb-ship`.
+Command shortcuts remain available as fallback entrypoints: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, and `/wb-ship`.
 
 ## Flow
 

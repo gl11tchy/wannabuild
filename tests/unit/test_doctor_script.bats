@@ -83,12 +83,12 @@ PY
   [[ "$output" == *"FAIL  README docs expose /wb-build"* ]]
 }
 
-@test "doctor: FAILs when Claude command reintroduces direct banner output" {
+@test "doctor: FAILs when Claude command reintroduces start banner output" {
   copy="$(_copy_repo)"
   printf '\n[WB-START] WannaBuild STARTED | intent=build | mode=standard\n' >> "$copy/commands/wannabuild.md"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  Claude command leaves start banner to skill"* ]]
+  [[ "$output" == *"FAIL  Claude command avoids start banner output"* ]]
 }
 
 @test "doctor: FAILs when skill-first handoff guard is removed" {
@@ -123,11 +123,19 @@ PY
 from pathlib import Path
 import sys
 path = Path(sys.argv[1])
-path.write_text(path.read_text().replace("Wannabuild: Build", "WB Build"))
+path.write_text(path.read_text().replace("WannaBuild: Build", "WB Build"))
 PY
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  Toolbox skill wb-build displays as Wannabuild: Build"* ]]
+  [[ "$output" == *"FAIL  Skill UI metadata exposes WannaBuild: Build"* ]]
+}
+
+@test "doctor: FAILs when a toolbox skill omits UI display metadata" {
+  copy="$(_copy_repo)"
+  rm -f "$copy/skills/wb-ship/agents/openai.yaml"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  skills/wb-ship/agents/openai.yaml"* ]]
 }
 
 @test "doctor: FAILs when a toolbox command stops routing to its skill" {

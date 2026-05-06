@@ -1,7 +1,7 @@
 interface:
-  display_name: "Wannabuild: Discover"
-  short_description: "Shape ideas into requirements"
-  default_prompt: "Use $wb-discover to clarify this idea."
-
+  display_name: "WannaBuild: Discover"
+  short_description: "Clarify goals, users, and scope"
+  default_prompt: "Use $wb-discover to clarify this idea before planning."
+  brand_color: "#111827"
 policy:
   allow_implicit_invocation: true

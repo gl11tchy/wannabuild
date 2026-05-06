@@ -23,7 +23,7 @@ Then restart Codex and start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Codex should select the installed WannaBuild skills automatically when natural-language prompts match build, planning, debug, review, QA, or ship intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts.
+Codex should select the installed WannaBuild skills automatically when natural-language prompts match build, planning, debug, review, QA, or ship intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts. In skill UI surfaces, packaged metadata presents the toolbox skills as `WannaBuild: Build`, `WannaBuild: Debug`, `WannaBuild: Review`, `WannaBuild: Ship`, and the matching phase names.
 Open-ended ideation prompts such as "I want to work on this some" or "let's brainstorm ideas" should start Discover automatically, then continue through the full loop once the goal is crisp enough.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
@@ -59,7 +59,7 @@ For toolbox work, ask for one phase directly:
 - `QA this against the acceptance criteria`
 - `Prepare the final handoff`
 
-Toolbox skills display as `Wannabuild: <skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
+Toolbox skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
 
 ## Flow
 

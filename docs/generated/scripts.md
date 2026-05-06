@@ -50,12 +50,7 @@ Examples:
 - `-f`
 - `-g`
 - `-h`
-- `-n`
-- `-s`
-- `-t`
-- `-u`
-- `-v`
-- `-z`
+- _6 more omitted._
 
 ## `check-complexity.sh`
 
@@ -115,10 +110,7 @@ Two checks:
 - `-d`
 - `-e`
 - `-g`
-- `-q`
-- `-r`
-- `-v`
-- `-z`
+- _4 more omitted._
 
 ## `check-large-files.sh`
 
@@ -313,40 +305,61 @@ Requirements: bash, awk, sed, sort, jq.
 - `extract_shell_flags`
 - `extract_shell_functions`
 - `extract_shell_header`
+- `extract_skill_display_name`
 - `generate_agents_md`
 - `generate_index_md`
 - `generate_schemas_md`
 - `generate_scripts_md`
 - `generate_skills_md`
 - `main`
-- `md_escape`
+- _2 more omitted._
 
 ### CLI flags / options observed
 
 - `--flag`
 - `-E`
 - `-F`
+- `-d`
 - `-e`
 - `-f`
+- `-l`
 - `-n`
 - `-p`
 - `-r`
 - `-t`
 - `-u`
-- `-v`
-- `-z`
+- _2 more omitted._
 
 ## `install-claude-skill.sh`
 
 Path: `scripts/install-claude-skill.sh`
 
+### Functions
+
+- `create_plugin_link`
+- `is_windows_mount_path`
+- `json_path_for_host`
+- `ps_literal`
+- `resolve_host_home`
+- `safe_remove_existing`
+- `to_windows_path`
+- `windows_powershell`
+
 ### CLI flags / options observed
 
+- `-C`
+- `-F`
+- `-I`
 - `-L`
+- `-N`
+- `-P`
+- `-R`
+- `-T`
+- `-d`
 - `-e`
-- `-p`
-- `-r`
-- `-s`
+- `-f`
+- `-n`
+- _5 more omitted._
 
 ## `install-codex-skill.sh`
 
@@ -354,17 +367,30 @@ Path: `scripts/install-codex-skill.sh`
 
 ### Functions
 
+- `create_skill_link`
 - `install_repo_skill`
+- `is_windows_mount_path`
+- `ps_literal`
+- `resolve_host_home`
+- `safe_remove_existing`
+- `to_windows_path`
+- `windows_powershell`
 
 ### CLI flags / options observed
 
+- `-C`
+- `-F`
+- `-I`
+- `-L`
+- `-N`
+- `-P`
+- `-R`
+- `-T`
 - `-d`
 - `-e`
+- `-f`
 - `-m`
-- `-p`
-- `-r`
-- `-s`
-- `-t`
+- _7 more omitted._
 
 ## `lint.sh`
 
@@ -382,12 +408,14 @@ then exits non-zero if any check failed.
 ### Functions
 
 - `have`
+- `have_runnable_rg`
 - `run_check`
 - `skip_check`
 
 ### CLI flags / options observed
 
 - `--severity`
+- `--version`
 - `--yes`
 - `-a`
 - `-b`
@@ -482,7 +510,12 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_contains`
 - `check_dir`
 - `check_file`
+- `check_json_key`
 - `check_link_target`
+- `check_not_contains`
+- `resolve_host_home`
+- `resolve_path`
+- `skill_display_name`
 
 ### CLI flags / options observed
 
@@ -491,6 +524,8 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-d`
 - `-e`
 - `-f`
+- `-n`
+- `-v`
 
 ## `wannabuild-gate-check.sh`
 
@@ -535,6 +570,7 @@ Path: `scripts/wannabuild-workspace.sh`
 
 - `--delete`
 - `--exclude`
+- `--git-path`
 - `--help`
 - `--is-inside-work-tree`
 - `--json`
@@ -542,17 +578,9 @@ Path: `scripts/wannabuild-workspace.sh`
 - `--porcelain`
 - `--show-current`
 - `--show-toplevel`
+- `-F`
 - `-a`
-- `-b`
-- `-c`
-- `-e`
-- `-g`
-- `-h`
-- `-n`
-- `-p`
-- `-v`
-- `-x`
-- `-z`
+- _10 more omitted._
 
 ## `wb-log.sh`
 
@@ -677,10 +705,7 @@ Failures to POST never fail the script — they emit a warning via wb_log_warn
 - `-e`
 - `-f`
 - `-h`
-- `-n`
-- `-t`
-- `-v`
-- `-z`
+- _4 more omitted._
 
 ## `wb-trace.sh`
 
@@ -737,13 +762,5 @@ nesting in the emitted lines.
 - `-c`
 - `-d`
 - `-e`
-- `-f`
-- `-h`
-- `-n`
-- `-p`
-- `-q`
-- `-s`
-- `-t`
-- `-v`
-- `-z`
+- _9 more omitted._
 

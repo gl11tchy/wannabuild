@@ -30,6 +30,8 @@ Use natural toolbox prompts when you only want one stage, for example "plan this
 /wb-ship
 ```
 
+Packaged skill metadata uses friendly display names such as `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship` in hosts that read skill UI metadata; `/wb-*` remains the stable Claude Code command shortcut.
+
 WannaBuild runs one standard workflow mode. There is no user-facing Full / Light / Spark choice.
 For real work in a git repo, discovery and planning run in the current checkout. Isolated worktrees are only for implementation-time isolation when selected.
 
@@ -89,11 +91,7 @@ Then start a new Claude Code session and type a natural feature request:
 I want to build a small onboarding flow
 ```
 
-The session-start and prompt-submit hooks should route the prompt to WannaBuild. You should see the startup banner:
-
-```text
-[WB-START] WannaBuild STARTED | intent=build | mode=standard
-```
+The session-start and prompt-submit hooks should route the prompt to WannaBuild with plain startup text.
 
 If the banner appears, WannaBuild is correctly installed and ready to use.
 

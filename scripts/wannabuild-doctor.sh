@@ -13,6 +13,27 @@ TOOLBOX_SKILLS=(
   "wb-ship"
 )
 
+UI_SKILLS=(
+  "wannabuild"
+  "using-wannabuild"
+  "${TOOLBOX_SKILLS[@]}"
+)
+
+skill_display_name() {
+  case "$1" in
+    wannabuild) printf 'WannaBuild: Full Loop\n' ;;
+    using-wannabuild) printf 'WannaBuild: Guide\n' ;;
+    wb-build) printf 'WannaBuild: Build\n' ;;
+    wb-debug) printf 'WannaBuild: Debug\n' ;;
+    wb-discover) printf 'WannaBuild: Discover\n' ;;
+    wb-plan) printf 'WannaBuild: Plan\n' ;;
+    wb-qa) printf 'WannaBuild: QA\n' ;;
+    wb-review) printf 'WannaBuild: Review\n' ;;
+    wb-ship) printf 'WannaBuild: Ship\n' ;;
+    *) return 1 ;;
+  esac
+}
+
 resolve_host_home() {
   if [[ -n "${WANNABUILD_HOST_HOME:-}" ]]; then
     printf '%s\n' "$WANNABUILD_HOST_HOME"
@@ -141,11 +162,7 @@ check_file "AGENTS.md" || status=1
 check_file "skills/build/SKILL.md" || status=1
 check_file "skills/build/references/advisor-escalation.md" || status=1
 check_file "skills/wannabuild/SKILL.md" || status=1
-check_file "skills/wannabuild/agents/openai.yaml" || status=1
-check_contains "skills/wannabuild/agents/openai.yaml" "display_name: \"Wannabuild: Full Loop\"" "WannaBuild full-loop skill has UI display label" || status=1
 check_file "skills/using-wannabuild/SKILL.md" || status=1
-check_file "skills/using-wannabuild/agents/openai.yaml" || status=1
-check_contains "skills/using-wannabuild/agents/openai.yaml" "display_name: \"Wannabuild: Guide\"" "Using WannaBuild skill has UI display label" || status=1
 check_file "skills/research/SKILL.md" || status=1
 check_file "commands/wannabuild.md" || status=1
 check_file "commands/using-wannabuild.md" || status=1
@@ -173,15 +190,13 @@ echo
 echo "Toolbox surfaces"
 check_dir "skills" || status=1
 check_dir "commands" || status=1
-for skill in "${TOOLBOX_SKILLS[@]}"; do
-  display_label="${skill#wb-}"
-  display_label="${display_label^}"
-  if [[ "$display_label" == "Qa" ]]; then
-    display_label="QA"
-  fi
-  check_file "skills/${skill}/SKILL.md" || status=1
+for skill in "${UI_SKILLS[@]}"; do
+  display_name="$(skill_display_name "${skill}")"
   check_file "skills/${skill}/agents/openai.yaml" || status=1
-  check_contains "skills/${skill}/agents/openai.yaml" "display_name: \"Wannabuild: ${display_label}\"" "Toolbox skill ${skill} displays as Wannabuild: ${display_label}" || status=1
+  check_contains "skills/${skill}/agents/openai.yaml" "display_name: \"${display_name}\"" "Skill UI metadata exposes ${display_name}" || status=1
+done
+for skill in "${TOOLBOX_SKILLS[@]}"; do
+  check_file "skills/${skill}/SKILL.md" || status=1
   check_file "commands/${skill}.md" || status=1
   check_contains "skills/${skill}/SKILL.md" "Toolbox Bootstrap" "Toolbox skill ${skill} defines bootstrap behavior" || status=1
   check_contains "commands/${skill}.md" "Use the \`${skill}\` skill" "Toolbox command /${skill} routes to skill" || status=1
@@ -269,8 +284,8 @@ check_contains "hooks/hooks.json" "SessionStart" "Claude hooks include SessionSt
 check_contains "hooks/hooks.json" "UserPromptSubmit" "Claude hooks include UserPromptSubmit autorouter" || status=1
 check_contains "hooks/wannabuild-route.py" "WannaBuild automatic routing is active" "Claude autorouter injects session routing context" || status=1
 check_contains "hooks/wannabuild-route.py" "Do not ask the user to type" "Claude autorouter discourages command handoff" || status=1
-check_not_contains "commands/wannabuild.md" "[WB-START]" "Claude command leaves start banner to skill" || status=1
-check_not_contains "commands/wannabuild.md" "[WB-RESUME]" "Claude command leaves resume banner to skill" || status=1
+check_not_contains "commands/wannabuild.md" "[WB-START]" "Claude command avoids start banner output" || status=1
+check_not_contains "commands/wannabuild.md" "[WB-RESUME]" "Claude command avoids resume banner output" || status=1
 check_not_contains "commands/wannabuild.md" "Respond with exactly" "Claude command does not force direct visible response" || status=1
 check_contains "commands/using-wannabuild.md" "/using-wannabuild" "Claude command exposes /using-wannabuild" || status=1
 check_contains "docs/codex-getting-started.md" "\$wannabuild" "Codex docs expose \$wannabuild" || status=1
