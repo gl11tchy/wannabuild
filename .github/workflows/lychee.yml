@@ -41,8 +41,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Restore lychee cache
-        # actions/cache v4.0.2
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        # actions/cache v4.2.3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: .lycheecache
           key: lychee-${{ runner.os }}-${{ github.sha }}
