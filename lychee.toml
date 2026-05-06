@@ -14,7 +14,7 @@ exclude_path = [
 ]
 
 # Treat fragment links (#section) as part of the check so anchors stay accurate.
-include_fragments = "full"
+include_fragments = true
 
 # Network behavior: keep timeouts short enough that flakey hosts fail loud,
 # but high enough that slow third-party sites don't false-fail.
