@@ -134,6 +134,16 @@ check_json_key() {
   fi
 }
 
+check_optional_user_file() {
+  local path="$1"
+  local label="$2"
+  if [[ -f "$path" ]]; then
+    printf 'PASS  %s\n' "$label"
+  else
+    printf 'WARN  %s (not installed)\n' "$path"
+  fi
+}
+
 check_command() {
   local label="$1"
   shift
@@ -152,6 +162,7 @@ HOST_HOME="$(resolve_host_home)"
 CODEX_BASE="${CODEX_HOME:-${HOST_HOME}/.codex}"
 CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-${CODEX_BASE}/skills}"
 CLAUDE_HOME_DIR="${CLAUDE_HOME:-${HOST_HOME}/.claude}"
+FACTORY_HOME_DIR="${FACTORY_HOME:-${HOST_HOME}/.factory}"
 
 echo "WannaBuild Doctor"
 echo "================="
@@ -173,38 +184,49 @@ check_file "scripts/validate-wannabuild-dry-runs.sh" || status=1
 check_file "scripts/wannabuild-doctor.sh" || status=1
 check_file "scripts/install-codex-skill.sh" || status=1
 check_file "scripts/install-claude-skill.sh" || status=1
+check_file "scripts/install-factory-plugin.sh" || status=1
 check_file "scripts/wannabuild-workspace.sh" || status=1
 check_file "scripts/wannabuild-session.sh" || status=1
 check_file "scripts/wannabuild-gate-check.sh" || status=1
+check_contains "hooks/wannabuild-route.py" "WannaBuild runtime state is active" "Claude hook injects active workflow runtime state" || status=1
+check_contains "hooks/wannabuild-route.py" "FORBIDDEN: do not implement or edit code" "Claude hook enforces implementation-before-plan guard" || status=1
+check_contains "scripts/wannabuild-session.sh" "assert-plan-ready" "Session helper exposes hard planning gate" || status=1
+check_contains "skills/wb-build/SKILL.md" "assert-plan-ready" "wb-build requires hard planning gate before editing" || status=1
 echo
 echo "Adapters"
 check_dir "adapters" || status=1
 check_file "adapters/codex/README.md" || status=1
 check_file "adapters/cursor/README.md" || status=1
 check_file "adapters/claude-code/README.md" || status=1
+check_dir "adapters/factory" || status=1
 check_file ".cursor-plugin/plugin.json" || status=1
 check_file ".factory/droids/wb-advisor.md" || status=1
+check_file ".factory-plugin/marketplace.json" || status=1
+check_file "adapters/factory/.factory-plugin/plugin.json" || status=1
+check_file "adapters/factory/commands/wannabuild.md" || status=1
+check_file "adapters/factory/hooks/hooks.json" || status=1
 check_file ".claude-plugin/plugin.json" || status=1
 check_file ".claude-plugin/marketplace.json" || status=1
 echo
-echo "Toolbox surfaces"
+echo "Phase skill surfaces"
 check_dir "skills" || status=1
 check_dir "commands" || status=1
 for skill in "${UI_SKILLS[@]}"; do
   display_name="$(skill_display_name "${skill}")"
   check_file "skills/${skill}/agents/openai.yaml" || status=1
   check_contains "skills/${skill}/agents/openai.yaml" "display_name: \"${display_name}\"" "Skill UI metadata exposes ${display_name}" || status=1
+  check_file "adapters/factory/skills/${skill}/SKILL.md" || status=1
 done
 for skill in "${TOOLBOX_SKILLS[@]}"; do
   check_file "skills/${skill}/SKILL.md" || status=1
   check_file "commands/${skill}.md" || status=1
-  check_contains "skills/${skill}/SKILL.md" "Toolbox Bootstrap" "Toolbox skill ${skill} defines bootstrap behavior" || status=1
-  check_contains "commands/${skill}.md" "Use the \`${skill}\` skill" "Toolbox command /${skill} routes to skill" || status=1
+  check_contains "skills/${skill}/SKILL.md" "Phase Bootstrap" "Phase skill ${skill} defines bootstrap behavior" || status=1
+  check_contains "commands/${skill}.md" "Use the \`${skill}\` skill" "Phase command /${skill} routes to skill" || status=1
   check_contains ".codex/INSTALL.md" "${skill}" "Codex manual install includes ${skill}" || status=1
   check_contains "README.md" "/${skill}" "README docs expose /${skill}" || status=1
 done
 check_contains "skills/wb-review/SKILL.md" "current checkout changes as the review target by default" "wb-review defaults to current checkout changes when target is omitted" || status=1
-check_contains ".codex/INSTALL.md" "toolbox work" "Codex install docs mention toolbox work" || status=1
+check_contains ".codex/INSTALL.md" "phase entrypoints" "Codex install docs mention phase entrypoints" || status=1
 echo
 echo "Quality & governance surfaces"
 check_file ".pre-commit-config.yaml" || status=1
@@ -280,6 +302,8 @@ check_contains "commands/using-wannabuild.md" "Commands are optional shortcuts, 
 check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
 check_contains ".claude-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude plugin declares hooks manifest" || status=1
 check_contains ".claude-plugin/marketplace.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude marketplace declares hooks manifest" || status=1
+check_contains ".factory-plugin/marketplace.json" "\"source\": \"./adapters/factory\"" "Factory marketplace routes to Factory adapter" || status=1
+check_contains "adapters/factory/.factory-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Factory plugin declares hooks manifest" || status=1
 check_contains "hooks/hooks.json" "SessionStart" "Claude hooks include SessionStart autoroute context" || status=1
 check_contains "hooks/hooks.json" "UserPromptSubmit" "Claude hooks include UserPromptSubmit autorouter" || status=1
 check_contains "hooks/wannabuild-route.py" "WannaBuild automatic routing is active" "Claude autorouter injects session routing context" || status=1
@@ -312,11 +336,21 @@ check_link_target "${CLAUDE_HOME_DIR}/plugins/cache/gl11tchy/wannabuild/local" "
 check_json_key "${CLAUDE_HOME_DIR}/plugins/installed_plugins.json" "wannabuild@gl11tchy" "Claude installed_plugins.json enables wannabuild@gl11tchy"
 check_json_key "${CLAUDE_HOME_DIR}/settings.json" "wannabuild@gl11tchy" "Claude settings.json enables wannabuild@gl11tchy"
 echo
+echo "Factory install"
+echo "Target: ${FACTORY_HOME_DIR}"
+check_link_target "${FACTORY_HOME_DIR}/plugins/cache/wannabuild/wannabuild/local" "$ROOT/adapters/factory"
+check_json_key "${FACTORY_HOME_DIR}/plugins/known_marketplaces.json" "\"path\": \"$ROOT\"" "Factory known_marketplaces.json registers local WannaBuild marketplace"
+check_json_key "${FACTORY_HOME_DIR}/plugins/installed_plugins.json" "wannabuild@wannabuild" "Factory installed_plugins.json enables wannabuild@wannabuild"
+check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-architect.md" "Factory droid wb-architect installed"
+check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-integration-tester.md" "Factory droid wb-integration-tester installed"
+check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-advisor.md" "Factory droid wb-advisor installed"
+echo
 if [[ $status -eq 0 ]]; then
   echo "Repo surfaces ready:"
   echo "- Codex + Claude co-primary repo usage is documented"
   echo "- Codex skill install surface exists"
   echo "- Claude install and autoroute hook surfaces exist"
+  echo "- Factory plugin, skills, and droid surfaces exist"
   echo "- Optional implementation worktree surface exists"
   echo "- Daily-use trust dry runs pass"
   echo "- Golden path demo validates"
@@ -326,8 +360,10 @@ if [[ $status -eq 0 ]]; then
   echo "Next:"
   echo "- Run ./scripts/install-codex-skill.sh"
   echo "- Run ./scripts/install-claude-skill.sh"
+  echo "- Run ./scripts/install-factory-plugin.sh"
   echo "- Restart Codex, then natural feature prompts should route automatically"
   echo "- Reload Claude plugins, then natural feature prompts should route automatically"
+  echo "- Restart Droid, then natural feature prompts should route automatically"
   echo "- In Cursor, load .cursor/rules/wannabuild.mdc"
   exit 0
 fi

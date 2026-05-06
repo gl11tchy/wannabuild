@@ -52,7 +52,8 @@ After installation, start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Claude Code installs a `SessionStart` and `UserPromptSubmit` hook for WannaBuild. Natural feature, planning, debug, review, QA, and ship prompts should route to the matching skill automatically; `/wannabuild` and `/wb-*` are explicit shortcuts.
+Claude Code installs a `SessionStart` and `UserPromptSubmit` hook for WannaBuild. Natural feature, planning, debug, review, QA, and ship prompts should route to the matching skill automatically; `/wannabuild` and `/wb-*` are explicit shortcuts and phase entrypoints into the full loop by default.
+The hook also injects active `.wannabuild/state.json` runtime state across turns and marks implementation as forbidden until the planning gate passes.
 Open-ended ideation prompts such as "I want to work on this some" or "let's brainstorm ideas" should start Discover automatically, then continue through the full loop once the goal is crisp enough.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
@@ -78,7 +79,7 @@ That routes into:
 Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
-Use natural toolbox prompts when you only want one stage:
+Use natural phase prompts to enter or resume the loop at a specific stage:
 
 - "brainstorm the onboarding flow": discovery and requirements
 - "plan this change": design, tasks, risks, and verification expectations
@@ -88,7 +89,7 @@ Use natural toolbox prompts when you only want one stage:
 - "QA this against the acceptance criteria": acceptance and integration validation
 - "prepare the handoff": final handoff
 
-Toolbox skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
+Phase skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths. They stop after one stage only when the user explicitly asks for "discovery only", "plan only", "do not implement", "QA only", or equivalent.
 
 Command shortcuts remain available as fallback entrypoints: `/wannabuild`, `/wb-discover`, `/wb-plan`, `/wb-build`, `/wb-debug`, `/wb-review`, `/wb-qa`, and `/wb-ship`.
 

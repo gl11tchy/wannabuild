@@ -1,0 +1,15 @@
+{
+  "name": "wannabuild",
+  "description": "WannaBuild Droid plugins",
+  "owner": {
+    "name": "gl11tchy"
+  },
+  "plugins": [
+    {
+      "name": "wannabuild",
+      "description": "Spec-Driven Development framework with 21 specialist AI agents. Talk naturally, ship professionally.",
+      "source": "./adapters/factory",
+      "category": "development"
+    }
+  ]
+}

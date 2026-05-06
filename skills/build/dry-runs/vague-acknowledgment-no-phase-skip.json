@@ -1,0 +1,20 @@
+{
+  "scenario": "vague-acknowledgment-no-phase-skip",
+  "active_workflow": true,
+  "workflow_status": "in_progress",
+  "current_phase": "design",
+  "public_stage": "plan",
+  "prompt_examples": [
+    "ok",
+    "uh ok",
+    "sounds good"
+  ],
+  "expected_next_action": "continue_current_phase",
+  "phase_limit_requires_explicit_user_text": true,
+  "must_not": [
+    "treat_as_approval_to_skip_plan",
+    "start_implementation_without_plan",
+    "stop_workflow",
+    "ask_user_to_invoke_next_phase"
+  ]
+}

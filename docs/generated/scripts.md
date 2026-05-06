@@ -392,6 +392,37 @@ Path: `scripts/install-codex-skill.sh`
 - `-m`
 - _7 more omitted._
 
+## `install-factory-plugin.sh`
+
+Path: `scripts/install-factory-plugin.sh`
+
+### Functions
+
+- `create_link`
+- `is_windows_mount_path`
+- `json_path_for_host`
+- `ps_literal`
+- `resolve_host_home`
+- `safe_remove_existing`
+- `to_windows_path`
+- `windows_powershell`
+
+### CLI flags / options observed
+
+- `--short`
+- `-C`
+- `-F`
+- `-I`
+- `-L`
+- `-N`
+- `-P`
+- `-R`
+- `-T`
+- `-d`
+- `-e`
+- `-f`
+- _6 more omitted._
+
 ## `lint.sh`
 
 Path: `scripts/lint.sh`
@@ -513,6 +544,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_json_key`
 - `check_link_target`
 - `check_not_contains`
+- `check_optional_user_file`
 - `resolve_host_home`
 - `resolve_path`
 - `skill_display_name`

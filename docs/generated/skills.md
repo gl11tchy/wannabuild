@@ -15,12 +15,12 @@ Workflow and phase contracts available to the orchestrator.
 | `review` | — | `skills/review/SKILL.md` | > "Does the code match the spec?" |
 | `ship` | — | `skills/ship/SKILL.md` | > "Let's get this merged." |
 | `tasks` | — | `skills/tasks/SKILL.md` | > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests. |
-| `using-wannabuild` | WannaBuild: Guide | `skills/using-wannabuild/SKILL.md` | Intro skill for starting WannaBuild full-loop mode or a focused toolbox skill in Codex or Claude Code |
-| `wannabuild` | WannaBuild: Full Loop | `skills/wannabuild/SKILL.md` | Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps. |
-| `wb-build` | WannaBuild: Build | `skills/wb-build/SKILL.md` | Standalone WannaBuild build toolbox skill for implementing a concrete plan or task with focused verification and adaptive delegation. |
-| `wb-debug` | WannaBuild: Debug | `skills/wb-debug/SKILL.md` | Standalone WannaBuild debugging toolbox skill for reproducing, diagnosing, fixing, and verifying bugs without broad workflow ceremony. |
-| `wb-discover` | WannaBuild: Discover | `skills/wb-discover/SKILL.md` | Standalone WannaBuild discovery toolbox skill for clarifying vision, audience, flows, constraints, scope, and success signals without running the full loop. |
-| `wb-plan` | WannaBuild: Plan | `skills/wb-plan/SKILL.md` | Standalone WannaBuild planning toolbox skill for turning a brief or concrete task into architecture direction, implementation slices, and verification expectations. |
-| `wb-qa` | WannaBuild: QA | `skills/wb-qa/SKILL.md` | Standalone WannaBuild QA toolbox skill for validating acceptance criteria, integration behavior, and release readiness evidence. |
-| `wb-review` | WannaBuild: Review | `skills/wb-review/SKILL.md` | Standalone WannaBuild review toolbox skill for adaptive code, spec, and risk review with automatic remediation of actionable findings. |
-| `wb-ship` | WannaBuild: Ship | `skills/wb-ship/SKILL.md` | Standalone WannaBuild ship toolbox skill for preparing verified work, asking for delivery mode, executing it, and cleaning up. |
+| `using-wannabuild` | WannaBuild: Guide | `skills/using-wannabuild/SKILL.md` | Intro skill for starting or continuing the WannaBuild full-loop workflow from natural language or any phase skill entrypoint. |
+| `wannabuild` | WannaBuild: Full Loop | `skills/wannabuild/SKILL.md` | Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts and any WannaBuild phase skill entrypoint. |
+| `wb-build` | WannaBuild: Build | `skills/wb-build/SKILL.md` | WannaBuild implementation phase entrypoint for implementing a concrete plan or task with focused verification and adaptive delegation. |
+| `wb-debug` | WannaBuild: Debug | `skills/wb-debug/SKILL.md` | WannaBuild debugging implementation entrypoint for reproducing, diagnosing, fixing, and verifying bugs within the full loop. |
+| `wb-discover` | WannaBuild: Discover | `skills/wb-discover/SKILL.md` | WannaBuild discovery phase entrypoint for clarifying vision, audience, flows, constraints, scope, and success signals before continuing the full loop. |
+| `wb-plan` | WannaBuild: Plan | `skills/wb-plan/SKILL.md` | WannaBuild planning phase entrypoint for turning a brief or concrete task into architecture direction, implementation slices, and verification expectations. |
+| `wb-qa` | WannaBuild: QA | `skills/wb-qa/SKILL.md` | WannaBuild QA phase entrypoint for validating acceptance criteria, integration behavior, and release readiness evidence. |
+| `wb-review` | WannaBuild: Review | `skills/wb-review/SKILL.md` | WannaBuild review phase entrypoint for adaptive code, spec, and risk review with automatic remediation of actionable findings. |
+| `wb-ship` | WannaBuild: Ship | `skills/wb-ship/SKILL.md` | WannaBuild ship/summary phase entrypoint for preparing verified work, asking for delivery mode, executing it, and cleaning up. |

@@ -1,6 +1,6 @@
 ---
 name: wannabuild
-description: Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts, with toolbox routing for focused wb-discover, wb-plan, wb-build, wb-debug, wb-review, wb-qa, and wb-ship steps.
+description: Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts and any WannaBuild phase skill entrypoint.
 ---
 
 # WannaBuild
@@ -12,20 +12,23 @@ Use this skill when the user wants WannaBuild itself, not generic coding help.
 Use WannaBuild skills automatically whenever they plausibly apply. Commands are optional shortcuts, not the source of truth.
 
 - Use `wannabuild` for full-loop requests, broad build requests, or "I want X" product/change requests.
-- Use the smallest matching `wb-*` toolbox skill for focused discovery, planning, implementation, debugging, review, QA, or ship requests.
+- Treat any explicit `wannabuild:*`, `wb-*`, or host UI WannaBuild skill invocation as a workflow entrypoint, not a one-turn command.
+- Start or resume the full WannaBuild loop at the invoked phase by default, preserving `.wannabuild/` state across turns until the workflow is complete or the user explicitly exits or stops.
+- Use the smallest matching `wb-*` phase skill for focused discovery, planning, implementation, debugging, review, QA, or ship entry, then continue through the natural next phases.
 - Do not require the user to invoke a command if the intent is clear from natural language.
 - Do not answer a matching natural-language request by explaining which command to run. Select the skill and begin the appropriate workflow.
 - Treat natural "I want to build/add/change/create..." feature prompts as enough to start discovery automatically.
 - Treat exploratory ideation prompts such as "I want to work on this some", "I was thinking of ideas", "let's brainstorm this", or "what should we add?" as enough to start Discover automatically.
+- Stop at a single phase only when the user explicitly says "discovery only", "plan only", "do not implement", "QA only", "review only", or equivalent.
+- Never treat vague acknowledgments like "ok", "uh ok", or "sounds good" as permission to skip required phases.
 - If multiple skills might apply, choose the minimal useful set and continue.
 - Keep behavior in skills; command files should only route.
 
-WannaBuild supports two surfaces:
+WannaBuild has one default surface:
 
-- **Full-loop mode:** use `wannabuild` for Discover -> Plan -> Implement -> Validate -> QA -> Summary.
-- **Toolbox mode:** use `wb-discover`, `wb-plan`, `wb-build`, `wb-debug`, `wb-review`, `wb-qa`, or `wb-ship` when the user asks for one step only.
+- **Full-loop mode:** use `wannabuild`, `wannabuild:*`, or `wb-*` entrypoints for Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
-Toolbox mode still follows WannaBuild principles, but it does not auto-advance across public gates.
+`wb-*` skills are phase entrypoints into that loop. They behave as one-phase tools only when the user explicitly limits the request to one phase.
 
 ## Invocation Guard
 
@@ -49,7 +52,7 @@ Only use this fallback for empty or purely meta invocations. A rough goal, open-
 
 ## Workspace Behavior
 
-Use the current checkout for Discover, Plan, Validate, QA, Summary, and toolbox-only work.
+Use the current checkout for Discover, Plan, Validate, QA, Summary, and explicitly phase-limited work.
 
 Do not create an isolated workspace/worktree before discovery or planning.
 
@@ -105,7 +108,7 @@ In full-loop mode, Discover should interview until the goal is crisp enough to f
 - Default to autonomous execution after discovery.
 - Run optional research before planning when uncertainty is materially high.
 - Choose implementation shape adaptively.
-- In toolbox mode, do only the requested step and keep exploratory work bounded to the decision at hand.
+- For explicit phase-limited work, do only the requested step and keep exploratory work bounded to the decision at hand.
 - Scale sub-agents from task evidence, not fixed counts.
 - Choose capability tier and reasoning effort from complexity, coupling, risk, uncertainty, and required expertise; do not name concrete model IDs in core workflow decisions.
 - Record delegation rationale in `.wannabuild/decisions.md` or checkpoints.
@@ -118,13 +121,13 @@ Use these contracts as needed. If installed via the Claude Code marketplace, the
 
 - `AGENTS.md` (repo root) — primary operator contract
 - `skills/build/SKILL.md` — full orchestrator contract
-- `skills/wb-discover/SKILL.md` — standalone discovery toolbox skill
-- `skills/wb-plan/SKILL.md` — standalone planning toolbox skill
-- `skills/wb-build/SKILL.md` — standalone implementation toolbox skill
-- `skills/wb-debug/SKILL.md` — standalone debugging toolbox skill
-- `skills/wb-review/SKILL.md` — standalone review toolbox skill
-- `skills/wb-qa/SKILL.md` — standalone QA toolbox skill
-- `skills/wb-ship/SKILL.md` — standalone ship toolbox skill
+- `skills/wb-discover/SKILL.md` — discovery phase entrypoint
+- `skills/wb-plan/SKILL.md` — planning phase entrypoint
+- `skills/wb-build/SKILL.md` — implementation phase entrypoint
+- `skills/wb-debug/SKILL.md` — debugging implementation entrypoint
+- `skills/wb-review/SKILL.md` — review phase entrypoint
+- `skills/wb-qa/SKILL.md` — QA phase entrypoint
+- `skills/wb-ship/SKILL.md` — ship/summary phase entrypoint
 - `skills/requirements/SKILL.md`
 - `skills/design/SKILL.md`
 - `skills/tasks/SKILL.md`
@@ -148,7 +151,7 @@ Tell me what you want to build or change.
 
 If resuming from `.wannabuild/state.json`, say that WannaBuild is resuming from the current phase in ordinary prose.
 
-Do not ask the user to choose between Full, Light, or Spark. Run one standard full-loop workflow unless the user explicitly invokes a toolbox step.
+Do not ask the user to choose between Full, Light, or Spark. Run one standard full-loop workflow unless the user explicitly limits the request to one phase.
 
 ## Message De-duplication Guard
 
@@ -169,6 +172,8 @@ Use:
 - `control_mode: "autonomous"`
 
 Continue through planning, implementation, validation, QA, and summary unless user judgment is required.
+
+If the user invoked a `wb-*` phase skill, continue from that phase into the next natural phase once its completion signal is met. A vague acknowledgment is not an exit, approval to skip planning, or instruction to stop.
 
 Ask only when:
 
@@ -214,6 +219,8 @@ Do not ask before research unless it needs external browsing, paid APIs, credent
 After planning is complete and the approach is verified:
 
 Default to the smallest shape that can implement the plan well. Use single-owner implementation when tasks are tightly coupled. Use parallel agents only when slices are genuinely independent or when separate expertise materially improves the outcome.
+
+Use the WannaBuild implementation path (`wb-build` and the implement contract) for implementation. Do not fall back to generic coding behavior, and do not implement before Plan has completed or been invoked to completion.
 
 When using adaptive parallel implementation, assign each agent concrete files, risks, acceptance criteria, or questions, and stop adding agents once ownership stops being distinct.
 

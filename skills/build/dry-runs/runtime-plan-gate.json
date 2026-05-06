@@ -1,0 +1,20 @@
+{
+  "scenario": "runtime-plan-gate",
+  "active_workflow": true,
+  "workflow_status": "in_progress",
+  "current_phase": "design",
+  "public_stage": "plan",
+  "prompt_examples": [
+    "ok",
+    "Implement the next planned slice"
+  ],
+  "expected_runtime_context": true,
+  "expected_next_action": "complete_plan_before_implementation",
+  "required_gate_command": "scripts/wannabuild-session.sh assert-plan-ready <project_root>",
+  "must_not": [
+    "implement_before_plan",
+    "edit_code_before_plan_gate",
+    "treat_vague_ack_as_approval",
+    "generic_codex_implementation"
+  ]
+}

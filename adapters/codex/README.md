@@ -23,7 +23,7 @@ Then restart Codex and start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Codex should select the installed WannaBuild skill automatically when natural-language prompts match build, planning, debug, review, QA, ship, or open-ended ideation intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts.
+Codex should select the installed WannaBuild skill automatically when natural-language prompts match build, planning, debug, review, QA, ship, or open-ended ideation intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts and phase entrypoints into the full loop by default. Codex does not currently install the Claude hook runtime; it relies on the skill contract plus the `scripts/wannabuild-session.sh assert-plan-ready <project_root>` hard gate before implementation.
 
 Verify the repo-native contract:
 

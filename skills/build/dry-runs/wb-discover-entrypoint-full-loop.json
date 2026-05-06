@@ -1,0 +1,31 @@
+{
+  "scenario": "wb-discover-entrypoint-full-loop",
+  "prompt_kind": "concrete_product_change",
+  "invoked_skill": "wb-discover",
+  "prompt_examples": [
+    "[$wannabuild:wb-discover] Add saved dashboard filters to the reporting page",
+    "/wb-discover Add keyboard shortcuts to the command palette"
+  ],
+  "prompt_has_concrete_task": true,
+  "expected_skill": "wb-discover",
+  "expected_loop": "full",
+  "expected_public_step": "discover",
+  "expected_next_action": "produce_requirements_then_plan",
+  "expected_phase_progression": [
+    "discover",
+    "plan",
+    "implement",
+    "review",
+    "qa",
+    "ship",
+    "summary"
+  ],
+  "phase_limit_requires_explicit_user_text": true,
+  "must_not": [
+    "stop_after_discovery",
+    "ask_user_to_invoke_wb_plan",
+    "ask_user_to_invoke_wb_build",
+    "generic_codex_implementation",
+    "implement_before_plan"
+  ]
+}

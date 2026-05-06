@@ -37,7 +37,7 @@ Start with a natural description:
 I wanna build a Stripe billing flow for my SaaS
 ```
 
-WannaBuild responds with the start banner and enters a vision-first Discover interview. The Claude Code plugin declares `SessionStart` and `UserPromptSubmit` hooks so natural feature, planning, debug, review, QA, ship, and open-ended ideation prompts can route automatically without asking the user to type a slash command.
+WannaBuild enters a vision-first Discover interview. The Claude Code plugin declares `SessionStart` and `UserPromptSubmit` hooks so natural feature, planning, debug, review, QA, ship, and open-ended ideation prompts can route automatically without asking the user to type a slash command. The same hook reinjects active `.wannabuild/state.json` runtime state across turns and forbids implementation until the Plan gate is satisfied. `/wb-*` shortcuts are phase entrypoints into the full loop by default.
 
 Advisor escalation and delegation are repo-native and model-agnostic in core. Claude Code should map WannaBuild capability tiers and reasoning effort to available host controls; Claude Platform API adapters may map the same contract to the native `advisor_20260301` tool when appropriate.
 

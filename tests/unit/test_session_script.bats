@@ -76,6 +76,45 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
+@test "session: assert-plan-ready fails before plan is complete" {
+  run_script wannabuild-session.sh init "$TARGET"
+  run_script wannabuild-session.sh assert-plan-ready "$TARGET"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Plan gate failed"* ]]
+}
+
+@test "session: assert-plan-ready passes with plan artifacts" {
+  mkdir -p "$TARGET/.wannabuild/spec"
+  printf 'design\n' >"$TARGET/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$TARGET/.wannabuild/spec/tasks.md"
+  run_script wannabuild-session.sh assert-plan-ready "$TARGET"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Plan gate OK"* ]]
+}
+
+@test "session: assert-plan-ready passes with completed plan marker" {
+  mkdir -p "$TARGET/.wannabuild"
+  cat >"$TARGET/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "implement",
+  "phase_status": "in_progress",
+  "public_stage": "implement",
+  "workflow_status": "in_progress",
+  "control_mode": "autonomous",
+  "public_stage_history": [
+    {"stage": "discover", "status": "complete", "timestamp": "2026-05-06T10:00:00Z"},
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": []
+}
+JSON
+  run_script wannabuild-session.sh assert-plan-ready "$TARGET"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"public_stage_history.plan"* ]]
+}
+
 @test "session: show fails before init" {
   run_script wannabuild-session.sh show "$TARGET"
   [ "$status" -ne 0 ]

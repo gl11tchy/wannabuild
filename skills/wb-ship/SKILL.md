@@ -1,15 +1,15 @@
 ---
 name: wb-ship
-description: Standalone WannaBuild ship toolbox skill for preparing verified work, asking for delivery mode, executing it, and cleaning up.
+description: WannaBuild ship/summary phase entrypoint for preparing verified work, asking for delivery mode, executing it, and cleaning up.
 ---
 
 # wb-ship
 
-Use this toolbox skill when the user wants to ship, merge, push, create a PR, or prepare final delivery.
+Use this phase skill when the user wants to ship, merge, push, create a PR, or prepare final delivery. A `wb-ship` or `wannabuild:wb-ship` invocation starts or resumes the full WannaBuild loop; if review or QA evidence is missing, resume the missing phase before declaring the work ready.
 
-## Toolbox Bootstrap
+## Phase Bootstrap
 
-Before any toolbox phase work:
+Before any ship/summary phase work:
 
 - If no concrete task exists, ask for the actual goal first.
 - Work in the current checkout by default.
@@ -26,6 +26,7 @@ Turn completed, reviewed, and QA-verified work into a clear ship-ready handoff, 
 - Keep release notes and PR text grounded in actual changes.
 - Run cleanup after the selected delivery action.
 - Use sub-agents only for distinct release, CI, documentation, or risk ownership.
+- Preserve active WannaBuild workflow state across turns until the task is complete or the user explicitly exits or stops.
 
 ## Flow
 

@@ -17,6 +17,61 @@ run_hook() {
   [[ "$output" == *'Commands are optional shortcuts'* ]]
 }
 
+@test "hook: active workflow injects runtime state for vague acknowledgments" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "design",
+  "phase_status": "in_progress",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "autonomous",
+  "public_stage_history": [
+    {"stage": "discover", "status": "complete", "timestamp": "2026-05-06T10:00:00Z"},
+    {"stage": "plan", "status": "in_progress", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": []
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"ok","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'WannaBuild runtime state is active'* ]]
+  [[ "$output" == *'vague_acknowledgment'* ]]
+  [[ "$output" == *'FORBIDDEN: do not implement or edit code'* ]]
+}
+
+@test "hook: build route carries hard plan gate when plan is incomplete" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "design",
+  "phase_status": "in_progress",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "autonomous",
+  "public_stage_history": [
+    {"stage": "discover", "status": "complete", "timestamp": "2026-05-06T10:00:00Z"},
+    {"stage": "plan", "status": "in_progress", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": []
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"Implement the next planned slice","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wb-build`'* ]]
+  [[ "$output" == *'before_build'* ]]
+  [[ "$output" == *'assert-plan-ready'* ]]
+  [[ "$output" == *'FORBIDDEN: do not implement or edit code'* ]]
+}
+
 @test "hook: broad feature request routes to full WannaBuild loop" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I want to add Stripe billing to my SaaS"}'
   [ "$status" -eq 0 ]
@@ -49,7 +104,7 @@ run_hook() {
   [[ "$output" == *'`wb-plan`'* ]]
 }
 
-@test "hook: planned implementation request routes to build toolbox" {
+@test "hook: planned implementation request routes to build phase" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"Implement the next planned slice from the plan"}'
   [ "$status" -eq 0 ]
   [[ "$output" == *'`wb-build`'* ]]

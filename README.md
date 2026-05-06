@@ -33,6 +33,7 @@ WannaBuild is a repo-native framework for running a disciplined product-developm
 
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
 Runs start in the current checkout. Worktrees are an implementation-time option for approved plans, parallel slices, or explicitly requested isolation.
+Claude Code installs a lightweight hook runtime that reinjects active `.wannabuild/state.json` phase state on session start and prompt submit. It also forbids implementation until the Plan gate is satisfied.
 After install, start with natural language: "I want to add billing", "plan this", "debug this failure", or "review this change". Commands such as `/wannabuild` in Claude Code and `$wannabuild` in Codex are shortcuts, not requirements.
 
 ## Why
@@ -178,7 +179,7 @@ Then restart Codex and start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Codex also supports `$wannabuild` and the installed `wb-*` skills. For toolbox work, ask for the phase directly, such as "run discovery only" or "QA this against the requirements". In Codex skill lists and chips, the toolbox skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`.
+Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`.
 
 ### Cursor
 
@@ -224,9 +225,9 @@ Codex:
 $wannabuild I wanna build a user authentication system with OAuth and magic links
 ```
 
-### Toolbox usage
+### Phase Skill Usage
 
-Use natural toolbox prompts when you want one stage instead of the full loop:
+Use natural phase prompts to enter or resume the loop at a specific phase:
 
 - "brainstorm the onboarding flow"
 - "plan the architecture"
@@ -236,7 +237,7 @@ Use natural toolbox prompts when you want one stage instead of the full loop:
 - "QA this against the acceptance criteria"
 - "prepare the handoff"
 
-Toolbox skills display as `WannaBuild: <Skill>` in skill UI surfaces, with `wb-*` retained as the stable command/file shortcut.
+Phase skills display as `WannaBuild: <Skill>` in skill UI surfaces, with `wb-*` retained as the stable command/file shortcut. They stop after one phase only when the user explicitly limits the request.
 
 Claude Code command shortcuts:
 
@@ -248,7 +249,7 @@ Claude Code command shortcuts:
 - `/wb-qa`: validate acceptance criteria and integration behavior
 - `/wb-ship`: prepare the final handoff after review and QA
 
-In Codex, use the same toolbox intents as plain prompts, such as "run discovery only" or "review this change".
+In Codex, use the same phase intents as plain prompts. Use explicit limits such as "run discovery only" when you want a single phase.
 
 ### Typical prompts
 

@@ -13,6 +13,9 @@
   "required_scenarios": [
     "no-task-invocation",
     "exploratory-discovery-invocation",
+    "wb-discover-entrypoint-full-loop",
+    "vague-acknowledgment-no-phase-skip",
+    "runtime-plan-gate",
     "implementation-workspace-selection",
     "resume",
     "research-gate",
@@ -39,6 +42,21 @@
       "id": "exploratory-discovery-invocation",
       "description": "A rough ideation prompt starts Discover automatically instead of falling back to the no-task response.",
       "fixture": "exploratory-discovery-invocation.json"
+    },
+    {
+      "id": "wb-discover-entrypoint-full-loop",
+      "description": "A concrete wb-discover invocation starts at Discover, produces requirements, and continues through Plan, Build, Review, QA, Ship, and Summary unless explicitly limited.",
+      "fixture": "wb-discover-entrypoint-full-loop.json"
+    },
+    {
+      "id": "vague-acknowledgment-no-phase-skip",
+      "description": "A vague acknowledgment during an active workflow continues the current phase and is not treated as permission to skip planning or stop the loop.",
+      "fixture": "vague-acknowledgment-no-phase-skip.json"
+    },
+    {
+      "id": "runtime-plan-gate",
+      "description": "Runtime context injects active workflow state and forbids implementation until the planning gate passes.",
+      "fixture": "runtime-plan-gate.json"
     },
     {
       "id": "implementation-workspace-selection",

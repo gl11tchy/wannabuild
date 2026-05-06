@@ -1,6 +1,6 @@
 ---
 name: using-wannabuild
-description: Intro skill for starting WannaBuild full-loop mode or a focused toolbox skill in Codex or Claude Code
+description: Intro skill for starting or continuing the WannaBuild full-loop workflow from natural language or any phase skill entrypoint.
 ---
 
 # Using WannaBuild
@@ -9,9 +9,11 @@ Use this skill when the user wants to work with WannaBuild itself or asks how to
 
 ## What To Do
 
-Tell the agent to use `wannabuild` for broad natural-language build, change, or ideation prompts, or a `wb-*` toolbox skill for one focused step. Commands are optional shortcuts; skills should be selected automatically when the request plausibly matches.
+Tell the agent to use `wannabuild` for broad natural-language build, change, or ideation prompts, and to treat any `wb-*` / `wannabuild:*` skill invocation as a phase entrypoint into the same full loop by default. Commands are optional shortcuts; skills should be selected automatically when the request plausibly matches.
 
 Do not make the user type `$wannabuild`, `/wannabuild`, or a `wb-*` command when their natural-language request already matches a skill.
+
+Stop after one phase only when the user explicitly says "discovery only", "plan only", "do not implement", "QA only", or equivalent. Vague acknowledgments like "ok" or "uh ok" continue the active workflow; they are not permission to skip phases.
 
 WannaBuild runs a vision-first workflow:
 
@@ -22,7 +24,7 @@ WannaBuild runs a vision-first workflow:
 5. QA
 6. Summary
 
-Toolbox mode is for lighter, step-level work:
+Phase skills are entrypoints into the active loop:
 
 - `WannaBuild: Discover` (`wb-discover`) - clarify vision and requirements direction
 - `WannaBuild: Plan` (`wb-plan`) - produce design direction and task slices
@@ -48,9 +50,9 @@ $wannabuild   (Codex)
 /wannabuild   (Claude Code)
 ```
 
-For a single-step toolbox request, use natural language:
+For a single-phase request, make the limit explicit:
 
 ```text
-Plan this change:
+Plan only; do not implement:
 [describe the task]
 ```

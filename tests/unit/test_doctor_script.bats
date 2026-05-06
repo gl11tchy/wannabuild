@@ -55,7 +55,7 @@ _copy_repo() {
   [[ "$output" == *"missing"* ]] || [[ "$output" == *"Missing"* ]]
 }
 
-@test "doctor: FAILs when a required toolbox skill is removed" {
+@test "doctor: FAILs when a required phase skill is removed" {
   copy="$(_copy_repo)"
   rm -f "$copy/skills/wb-build/SKILL.md"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
@@ -63,7 +63,7 @@ _copy_repo() {
   [[ "$output" == *"FAIL  skills/wb-build/SKILL.md"* ]]
 }
 
-@test "doctor: FAILs when a required toolbox command is removed" {
+@test "doctor: FAILs when a required phase command is removed" {
   copy="$(_copy_repo)"
   rm -f "$copy/commands/wb-build.md"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
@@ -71,7 +71,7 @@ _copy_repo() {
   [[ "$output" == *"FAIL  commands/wb-build.md"* ]]
 }
 
-@test "doctor: FAILs when required toolbox docs are removed" {
+@test "doctor: FAILs when required phase docs are removed" {
   copy="$(_copy_repo)"
   python3 - "$copy/README.md" <<'PY'
 from pathlib import Path
@@ -104,20 +104,20 @@ PY
   [[ "$output" == *"FAIL  Operator contract prevents command-first handoff"* ]]
 }
 
-@test "doctor: FAILs when a toolbox skill omits bootstrap behavior" {
+@test "doctor: FAILs when a phase skill omits bootstrap behavior" {
   copy="$(_copy_repo)"
   python3 - "$copy/skills/wb-build/SKILL.md" <<'PY'
 from pathlib import Path
 import sys
 path = Path(sys.argv[1])
-path.write_text(path.read_text().replace("Toolbox Bootstrap", "Bootstrap omitted"))
+path.write_text(path.read_text().replace("Phase Bootstrap", "Bootstrap omitted"))
 PY
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  Toolbox skill wb-build defines bootstrap behavior"* ]]
+  [[ "$output" == *"FAIL  Phase skill wb-build defines bootstrap behavior"* ]]
 }
 
-@test "doctor: FAILs when a toolbox skill display label regresses" {
+@test "doctor: FAILs when a phase skill display label regresses" {
   copy="$(_copy_repo)"
   python3 - "$copy/skills/wb-build/agents/openai.yaml" <<'PY'
 from pathlib import Path
@@ -130,7 +130,7 @@ PY
   [[ "$output" == *"FAIL  Skill UI metadata exposes WannaBuild: Build"* ]]
 }
 
-@test "doctor: FAILs when a toolbox skill omits UI display metadata" {
+@test "doctor: FAILs when a phase skill omits UI display metadata" {
   copy="$(_copy_repo)"
   rm -f "$copy/skills/wb-ship/agents/openai.yaml"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
@@ -138,7 +138,7 @@ PY
   [[ "$output" == *"FAIL  skills/wb-ship/agents/openai.yaml"* ]]
 }
 
-@test "doctor: FAILs when a toolbox command stops routing to its skill" {
+@test "doctor: FAILs when a phase command stops routing to its skill" {
   copy="$(_copy_repo)"
   python3 - "$copy/commands/wb-build.md" <<'PY'
 from pathlib import Path
@@ -148,10 +148,10 @@ path.write_text(path.read_text().replace("Use the `wb-build` skill", "Route omit
 PY
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  Toolbox command /wb-build routes to skill"* ]]
+  [[ "$output" == *"FAIL  Phase command /wb-build routes to skill"* ]]
 }
 
-@test "doctor: FAILs when Codex manual install omits a toolbox skill" {
+@test "doctor: FAILs when Codex manual install omits a phase skill" {
   copy="$(_copy_repo)"
   python3 - "$copy/.codex/INSTALL.md" <<'PY'
 from pathlib import Path
@@ -186,7 +186,7 @@ PY
   [[ "$output" == *".codex/skills/wannabuild"* ]]
 }
 
-@test "doctor: WARNs when Codex toolbox skill symlink is absent in fake HOME" {
+@test "doctor: WARNs when Codex phase skill symlink is absent in fake HOME" {
   copy="$(_copy_repo)"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [[ "$output" == *"WARN"* ]]

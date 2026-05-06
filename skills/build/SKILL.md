@@ -2,7 +2,7 @@
 
 > "What do you wanna build?"
 
-WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts. It supports both full-loop mode and focused toolbox mode.
+WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts. It supports the full loop from natural language and from any phase skill entrypoint.
 
 ## Public Workflow Model
 
@@ -15,7 +15,7 @@ The intended user-facing flow is:
 5. QA
 6. Summary
 
-Toolbox mode uses standalone step skills when the user asks for a single slice:
+Phase skills enter or resume the same full loop at a specific public stage:
 
 - `wb-discover`
 - `wb-plan`
@@ -25,7 +25,7 @@ Toolbox mode uses standalone step skills when the user asks for a single slice:
 - `wb-qa`
 - `wb-ship`
 
-Each toolbox skill stops at its public step boundary unless the user explicitly asks to continue.
+Each phase skill continues to the next natural public stage by default. Stop at one public step only when the user explicitly asks for "discovery only", "plan only", "do not implement", "QA only", or equivalent.
 
 Internally, the orchestrator uses finer-grained phases and artifacts to keep the workflow rigorous. Those phases are execution detail; the external experience should stay compact.
 

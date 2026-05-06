@@ -42,7 +42,9 @@ Primary operator contract for WannaBuild.
 - Skills own behavior. Commands are optional shortcuts only.
 - If there is any plausible chance a WannaBuild skill applies to the request, use the skill automatically.
 - Do not tell the user to invoke a slash command or `$skill` when a natural-language request already matches a WannaBuild skill.
-- Prefer routing to `wannabuild` or a `wb-*` toolbox skill over restating command instructions.
+- Prefer routing to `wannabuild` or a `wb-*` phase skill over restating command instructions.
+- Treat any explicit `wannabuild:*`, `wb-*`, or host UI WannaBuild skill invocation as a workflow entrypoint, not a one-turn command.
+- Preserve active WannaBuild workflow state across turns until the task is complete or the user explicitly exits/stops.
 - Keep command files thin: describe invocation and route to the matching skill; do not duplicate workflow policy in commands.
 - If multiple skills might apply, choose the smallest set that covers the request and continue.
 
@@ -51,7 +53,9 @@ Primary operator contract for WannaBuild.
 - Natural-language prompts like "I want to build...", "add this functionality", "plan this", "debug this failure", "review this change", or "QA this" should trigger the matching WannaBuild skill without asking the user to invoke a command.
 - Exploratory prompts like "I want to work on this some", "I was thinking of ideas", "let's brainstorm this", or "what should we add?" are concrete enough to trigger Discover. Treat them as discovery tasks, not as missing-task invocations.
 - Use `wannabuild` for broad product, feature, or change requests that should start discovery.
-- Use the focused `wb-*` skill only when the user clearly asks for one stage.
+- Use the focused `wb-*` phase skill as the entrypoint for the matching phase, then continue the full loop by default.
+- Stop at a single phase only when the user explicitly says "discovery only", "plan only", "do not implement", "QA only", or equivalent.
+- Never treat vague acknowledgments like "ok" or "uh ok" as permission to skip phases.
 - Slash commands and `$skill` names are escape hatches for explicit routing, not prerequisites.
 
 ## Purpose
@@ -72,8 +76,10 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 - Do not infer intent from git diff or uncommitted changes.
 - Exception: an explicit `wb-review` or `/wb-review` invocation is itself a concrete review task; if no target is named, review the current checkout changes by default and ask only when there is no reviewable diff.
 - Do not start planning or implementation without a concrete task.
+- Do not start implementation until Plan is complete.
+- Before implementation edits, run `scripts/wannabuild-session.sh assert-plan-ready .` when available. If it fails, return to Plan and do not edit implementation files.
 - Do not browse externally when no concrete task exists.
-- Do not create an isolated workspace/worktree during Discover, Plan, Review, QA, Summary, or ordinary toolbox use.
+- Do not create an isolated workspace/worktree during Discover, Plan, Review, QA, Summary, or explicitly phase-limited use.
 - Work in the current checkout by default.
 - Offer or create an isolated worktree only when entering implementation from an approved plan, when the user asks for isolation, or when parallel/risky changes need separation.
 

@@ -14,6 +14,7 @@
     "**/node_modules/**",
     "**/.git/**",
     "**/.factory/**",
+    "**/adapters/factory/**",
     "**/dry-runs/**",
     "**/.jscpd-report/**",
     "LICENSE"

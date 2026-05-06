@@ -23,7 +23,8 @@ Then restart Codex and start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Codex should select the installed WannaBuild skills automatically when natural-language prompts match build, planning, debug, review, QA, or ship intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts. In skill UI surfaces, packaged metadata presents the toolbox skills as `WannaBuild: Build`, `WannaBuild: Debug`, `WannaBuild: Review`, `WannaBuild: Ship`, and the matching phase names.
+Codex should select the installed WannaBuild skills automatically when natural-language prompts match build, planning, debug, review, QA, or ship intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts and phase entrypoints into the full loop by default. In skill UI surfaces, packaged metadata presents the phase skills as `WannaBuild: Build`, `WannaBuild: Debug`, `WannaBuild: Review`, `WannaBuild: Ship`, and the matching phase names.
+Codex does not currently install the Claude hook runtime; before implementation, use the same hard planning gate through `scripts/wannabuild-session.sh assert-plan-ready <project_root>` when available.
 Open-ended ideation prompts such as "I want to work on this some" or "let's brainstorm ideas" should start Discover automatically, then continue through the full loop once the goal is crisp enough.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.
@@ -49,7 +50,7 @@ That routes into:
 Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
-For toolbox work, ask for one phase directly:
+For phase-specific entry, ask for the phase directly:
 
 - `Run discovery only for this idea`
 - `Plan this from the requirements`
@@ -59,7 +60,7 @@ For toolbox work, ask for one phase directly:
 - `QA this against the acceptance criteria`
 - `Prepare the final handoff`
 
-Toolbox skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths.
+Phase skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` names remain stable shortcuts and install paths. They stop after one phase only when the user explicitly asks for "discovery only", "plan only", "do not implement", "QA only", or equivalent.
 
 ## Flow
 

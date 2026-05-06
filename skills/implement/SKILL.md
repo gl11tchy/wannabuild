@@ -51,13 +51,14 @@ Advisor escalation may assist the implementer when the path is materially uncert
 
 The implementer reads all three spec artifacts before writing any code.
 
-Before writing any code, run:
+Before writing any code, run the hard planning gate and artifact validator:
 
 ```bash
+scripts/wannabuild-session.sh assert-plan-ready .
 scripts/validate-wannabuild-artifacts.sh . implement
 ```
 
-Pause and resolve contract violations before proceeding.
+Pause and resolve contract violations before proceeding. If the planning gate fails, return to Plan; do not edit implementation files.
 
 ## Execution Flow
 

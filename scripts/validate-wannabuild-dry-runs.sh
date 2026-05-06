@@ -127,6 +127,9 @@ if manifest.get("host_invocations") != expected_hosts:
 required = {
     "no-task-invocation",
     "exploratory-discovery-invocation",
+    "wb-discover-entrypoint-full-loop",
+    "vague-acknowledgment-no-phase-skip",
+    "runtime-plan-gate",
     "implementation-workspace-selection",
     "resume",
     "research-gate",
@@ -207,6 +210,66 @@ for scenario in scenarios:
             for phrase in ["work on this", "brainstorm", "what should we add"]:
                 if phrase not in joined:
                     err(f"exploratory-discovery-invocation examples must cover {phrase!r}")
+
+    if sid == "wb-discover-entrypoint-full-loop":
+        entry_contract = payload if isinstance(payload, dict) else scenario
+        if entry_contract.get("prompt_has_concrete_task") is not True:
+            err("wb-discover-entrypoint-full-loop must model a concrete change request")
+        if entry_contract.get("invoked_skill") != "wb-discover":
+            err("wb-discover-entrypoint-full-loop must model wb-discover as the invoked entrypoint")
+        if entry_contract.get("expected_loop") != "full":
+            err("wb-discover-entrypoint-full-loop must continue the full loop")
+        if entry_contract.get("expected_public_step") != "discover":
+            err("wb-discover-entrypoint-full-loop must start at Discover")
+        if entry_contract.get("expected_next_action") != "produce_requirements_then_plan":
+            err("wb-discover-entrypoint-full-loop must transition from requirements to planning")
+        progression = entry_contract.get("expected_phase_progression", [])
+        for stage in ["discover", "plan", "implement", "review", "qa", "ship", "summary"]:
+            if stage not in progression:
+                err(f"wb-discover-entrypoint-full-loop must include {stage!r} in expected_phase_progression")
+        forbidden = set(entry_contract.get("must_not", []))
+        for item in {"stop_after_discovery", "ask_user_to_invoke_wb_plan", "ask_user_to_invoke_wb_build", "generic_codex_implementation", "implement_before_plan"}:
+            if item not in forbidden:
+                err(f"wb-discover-entrypoint-full-loop must forbid {item}")
+
+    if sid == "vague-acknowledgment-no-phase-skip":
+        ack_contract = payload if isinstance(payload, dict) else scenario
+        if ack_contract.get("active_workflow") is not True:
+            err("vague-acknowledgment-no-phase-skip must model an active workflow")
+        if ack_contract.get("workflow_status") != "in_progress":
+            err("vague-acknowledgment-no-phase-skip must keep workflow_status in_progress")
+        if ack_contract.get("expected_next_action") != "continue_current_phase":
+            err("vague-acknowledgment-no-phase-skip must continue the current phase")
+        if ack_contract.get("phase_limit_requires_explicit_user_text") is not True:
+            err("vague-acknowledgment-no-phase-skip must require explicit text for phase limits")
+        examples = ack_contract.get("prompt_examples", [])
+        joined = " ".join(str(item).lower() for item in examples)
+        for phrase in ["ok", "uh ok"]:
+            if phrase not in joined:
+                err(f"vague-acknowledgment-no-phase-skip examples must cover {phrase!r}")
+        forbidden = set(ack_contract.get("must_not", []))
+        for item in {"treat_as_approval_to_skip_plan", "start_implementation_without_plan", "stop_workflow", "ask_user_to_invoke_next_phase"}:
+            if item not in forbidden:
+                err(f"vague-acknowledgment-no-phase-skip must forbid {item}")
+
+    if sid == "runtime-plan-gate":
+        gate_contract = payload if isinstance(payload, dict) else scenario
+        if gate_contract.get("active_workflow") is not True:
+            err("runtime-plan-gate must model an active workflow")
+        if gate_contract.get("workflow_status") != "in_progress":
+            err("runtime-plan-gate must keep workflow_status in_progress")
+        if gate_contract.get("public_stage") != "plan":
+            err("runtime-plan-gate must model the plan stage")
+        if gate_contract.get("expected_runtime_context") is not True:
+            err("runtime-plan-gate must require runtime context injection")
+        if gate_contract.get("expected_next_action") != "complete_plan_before_implementation":
+            err("runtime-plan-gate must require Plan completion before implementation")
+        if gate_contract.get("required_gate_command") != "scripts/wannabuild-session.sh assert-plan-ready <project_root>":
+            err("runtime-plan-gate must require the assert-plan-ready gate command")
+        forbidden = set(gate_contract.get("must_not", []))
+        for item in {"implement_before_plan", "edit_code_before_plan_gate", "treat_vague_ack_as_approval", "generic_codex_implementation"}:
+            if item not in forbidden:
+                err(f"runtime-plan-gate must forbid {item}")
 
     workspace_fixture = scenario.get("workspace_fixture")
     if workspace_fixture:

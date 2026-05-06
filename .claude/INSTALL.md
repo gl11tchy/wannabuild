@@ -18,7 +18,8 @@ I want to build a Stripe billing flow for my SaaS
 
 Natural prompts should route automatically. Use `/wannabuild` only when you want an explicit shortcut for the full loop: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
-Use natural toolbox prompts when you only want one stage, for example "plan this", "debug this failure", "review this change", or "QA this against the requirements". Command shortcuts remain available:
+The installed `/wb-*` commands are phase entrypoints into the full loop by default. Use explicit one-stage prompts such as "plan only; do not implement", "debug only", or "QA only" when you want to stop after one phase. Command shortcuts remain available:
+The Claude hook runtime reinjects active `.wannabuild/state.json` workflow state across turns and forbids implementation until `scripts/wannabuild-session.sh assert-plan-ready <project_root>` passes.
 
 ```text
 /wb-discover

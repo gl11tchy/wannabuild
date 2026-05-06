@@ -1,15 +1,15 @@
 ---
 name: wb-qa
-description: Standalone WannaBuild QA toolbox skill for validating acceptance criteria, integration behavior, and release readiness evidence.
+description: WannaBuild QA phase entrypoint for validating acceptance criteria, integration behavior, and release readiness evidence.
 ---
 
 # wb-qa
 
-Use this toolbox skill when the user wants QA or final verification only.
+Use this phase skill when the user wants QA or the active WannaBuild workflow is in QA. A `wb-qa` or `wannabuild:wb-qa` invocation starts or resumes the full WannaBuild loop unless the user explicitly says QA only.
 
-## Toolbox Bootstrap
+## Phase Bootstrap
 
-Before any toolbox phase work:
+Before any QA phase work:
 
 - If no concrete task exists, ask for the actual goal first.
 - Work in the current checkout by default.
@@ -27,6 +27,7 @@ Validate that the implemented behavior satisfies the acceptance criteria and int
 - Keep exploratory checks bounded and evidence-driven.
 - Use sub-agents only for independent platforms, flows, or risk classes.
 - Do not ship or summarize as complete while QA is failing.
+- Preserve active WannaBuild workflow state across turns until the task is complete or the user explicitly exits or stops.
 
 ## Flow
 
@@ -34,8 +35,8 @@ Validate that the implemented behavior satisfies the acceptance criteria and int
 2. Select the smallest check set that covers the risk.
 3. Run automated tests, manual flows, or environment checks as appropriate.
 4. Record pass/fail evidence and blockers.
-5. Stop before ship unless the user asks to continue.
+5. Hand off to ship/summary unless the user explicitly requested QA only.
 
 ## Output
 
-Report checks run, results, failures, residual risk, and whether the integration gate passed.
+Report checks run, results, failures, residual risk, and whether the integration gate passed. In full-loop mode, continue to ship/summary after QA passes unless user judgment is required.
