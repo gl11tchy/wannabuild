@@ -3,6 +3,29 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Color the PASS/WARN/FAIL prefixes when stdout is a TTY. When output is
+# captured (e.g., in tests via `run`, or in CI logs), these expand to empty
+# strings so the substring assertions in test_doctor_script.bats keep
+# matching the literal "PASS  README.md" / "FAIL  ..." / "WARN  ..." text.
+if [[ -t 1 ]]; then
+  COLOR_GREEN=$'\033[32m'
+  COLOR_YELLOW=$'\033[33m'
+  COLOR_RED=$'\033[31m'
+  COLOR_BOLD=$'\033[1m'
+  COLOR_RESET=$'\033[0m'
+else
+  COLOR_GREEN=""
+  COLOR_YELLOW=""
+  COLOR_RED=""
+  COLOR_BOLD=""
+  COLOR_RESET=""
+fi
+
+# Counts populated by the check_* helpers; printed in the final summary.
+DOCTOR_PASS_COUNT=0
+DOCTOR_WARN_COUNT=0
+DOCTOR_FAIL_COUNT=0
+
 TOOLBOX_SKILLS=(
   "wb-build"
   "wb-debug"
@@ -60,12 +83,27 @@ print(Path(sys.argv[1]).resolve())
 PY
 }
 
+_pass() {
+  printf '%s%s%s\n' "$COLOR_GREEN" "$1" "$COLOR_RESET"
+  DOCTOR_PASS_COUNT=$((DOCTOR_PASS_COUNT + 1))
+}
+
+_warn() {
+  printf '%s%s%s\n' "$COLOR_YELLOW" "$1" "$COLOR_RESET"
+  DOCTOR_WARN_COUNT=$((DOCTOR_WARN_COUNT + 1))
+}
+
+_fail() {
+  printf '%s%s%s\n' "$COLOR_RED" "$1" "$COLOR_RESET"
+  DOCTOR_FAIL_COUNT=$((DOCTOR_FAIL_COUNT + 1))
+}
+
 check_file() {
   local path="$1"
   if [[ -f "$ROOT/$path" ]]; then
-    printf 'PASS  %s\n' "$path"
+    _pass "PASS  $path"
   else
-    printf 'FAIL  %s\n' "$path"
+    _fail "FAIL  $path"
     return 1
   fi
 }
@@ -73,9 +111,9 @@ check_file() {
 check_dir() {
   local path="$1"
   if [[ -d "$ROOT/$path" ]]; then
-    printf 'PASS  %s/\n' "$path"
+    _pass "PASS  $path/"
   else
-    printf 'FAIL  %s/\n' "$path"
+    _fail "FAIL  $path/"
     return 1
   fi
 }
@@ -88,12 +126,12 @@ check_link_target() {
     resolved="$(resolve_path "$link_path" || true)"
     expected="$(resolve_path "$expected_path" || true)"
     if [[ -n "$resolved" && -n "$expected" && "$resolved" == "$expected"* ]]; then
-      printf 'PASS  %s -> %s\n' "$link_path" "$resolved"
+      _pass "PASS  $link_path -> $resolved"
     else
-      printf 'WARN  %s -> %s (unexpected target; expected %s)\n' "$link_path" "${resolved:-unknown}" "$expected_path"
+      _warn "WARN  $link_path -> ${resolved:-unknown} (unexpected target; expected $expected_path)"
     fi
   else
-    printf 'WARN  %s (not installed)\n' "$link_path"
+    _warn "WARN  $link_path (not installed)"
   fi
 }
 
@@ -102,9 +140,9 @@ check_contains() {
   local needle="$2"
   local label="${3:-$path contains $needle}"
   if [[ -f "$ROOT/$path" ]] && grep -Fq "$needle" "$ROOT/$path"; then
-    printf 'PASS  %s\n' "$label"
+    _pass "PASS  $label"
   else
-    printf 'FAIL  %s\n' "$label"
+    _fail "FAIL  $label"
     return 1
   fi
 }
@@ -114,9 +152,9 @@ check_not_contains() {
   local needle="$2"
   local label="${3:-$path does not contain $needle}"
   if [[ -f "$ROOT/$path" ]] && ! grep -Fq "$needle" "$ROOT/$path"; then
-    printf 'PASS  %s\n' "$label"
+    _pass "PASS  $label"
   else
-    printf 'FAIL  %s\n' "$label"
+    _fail "FAIL  $label"
     return 1
   fi
 }
@@ -126,11 +164,11 @@ check_json_key() {
   local key="$2"
   local label="$3"
   if [[ -f "$path" ]] && grep -Fq "$key" "$path"; then
-    printf 'PASS  %s\n' "$label"
+    _pass "PASS  $label"
   elif [[ -f "$path" ]]; then
-    printf 'WARN  %s (missing %s)\n' "$path" "$key"
+    _warn "WARN  $path (missing $key)"
   else
-    printf 'WARN  %s (not found)\n' "$path"
+    _warn "WARN  $path (not found)"
   fi
 }
 
@@ -138,9 +176,9 @@ check_optional_user_file() {
   local path="$1"
   local label="$2"
   if [[ -f "$path" ]]; then
-    printf 'PASS  %s\n' "$label"
+    _pass "PASS  $label"
   else
-    printf 'WARN  %s (not installed)\n' "$path"
+    _warn "WARN  $path (not installed)"
   fi
 }
 
@@ -149,9 +187,9 @@ check_command() {
   shift
   local output
   if output="$("$@" 2>&1)"; then
-    printf 'PASS  %s\n' "$label"
+    _pass "PASS  $label"
   else
-    printf 'FAIL  %s\n' "$label"
+    _fail "FAIL  $label"
     printf '%s\n' "$output"
     return 1
   fi
@@ -350,6 +388,8 @@ check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-architect.md" "Factory d
 check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-integration-tester.md" "Factory droid wb-integration-tester installed"
 check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-advisor.md" "Factory droid wb-advisor installed"
 echo
+printf '%s%d pass · %d warn · %d fail%s\n\n' \
+  "$COLOR_BOLD" "$DOCTOR_PASS_COUNT" "$DOCTOR_WARN_COUNT" "$DOCTOR_FAIL_COUNT" "$COLOR_RESET"
 if [[ $status -eq 0 ]]; then
   echo "Repo surfaces ready:"
   echo "- Codex + Claude co-primary repo usage is documented"
