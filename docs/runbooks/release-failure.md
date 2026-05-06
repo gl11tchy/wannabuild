@@ -49,6 +49,7 @@ likely the workflow's token or environment, not the config.
 | Branch protection blocks PR | release-please PR can't merge automatically. | Either grant a bypass for the bot account or merge manually after status checks pass. See [`../branch-protection.md`](../branch-protection.md). |
 | Conflicting release-please config | Workflow errors with "no release config found" or invalid schema. | Validate `release-please-config.json` against the [official schema](https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json). |
 | Two release PRs open | release-please opened a duplicate. | Close one; rebase the keeper. |
+| `GitHub Actions is not permitted to create or approve pull requests` | The release-please workflow log shows this exact error and no release PR is opened. | One-time repo setting. Owner / Settings → Actions → General → "Workflow permissions" → enable **Allow GitHub Actions to create and approve pull requests** AND select **Read and write permissions**. Equivalent API call: `gh api -X PUT repos/<owner>/<repo>/actions/permissions/workflow --field can_approve_pull_request_reviews=true --field default_workflow_permissions=write`. Re-run the workflow after enabling. |
 
 ## Manual release fallback
 
