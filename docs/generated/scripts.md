@@ -536,6 +536,9 @@ Path: `scripts/wannabuild-doctor.sh`
 
 ### Functions
 
+- `_fail`
+- `_pass`
+- `_warn`
 - `check_command`
 - `check_contains`
 - `check_dir`
@@ -545,8 +548,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_not_contains`
 - `check_optional_user_file`
 - `resolve_host_home`
-- `resolve_path`
-- `skill_display_name`
+- _2 more omitted._
 
 ### CLI flags / options observed
 
@@ -556,6 +558,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-e`
 - `-f`
 - `-n`
+- `-t`
 - `-v`
 
 ## `wannabuild-gate-check.sh`
