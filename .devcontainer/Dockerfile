@@ -1,4 +1,6 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+# mcr.microsoft.com/devcontainers/base:ubuntu-24.04 pinned by digest.
+# Dependabot will refresh both the tag and digest together.
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04@sha256:d94c97dd9cacf183d0a6fd12a8e87b526e9e928307674ae9c94139139c0c6eae
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     shellcheck \

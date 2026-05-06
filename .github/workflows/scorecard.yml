@@ -44,8 +44,9 @@ jobs:
           persist-credentials: false
 
       - name: Run analysis
-        # ossf/scorecard-action v2.4.3
-        uses: ossf/scorecard-action@99c09fe975337306107572b4fdf4db224cf8e2f2
+        # ossf/scorecard-action v2.4.3 (commit SHA, not tag-object SHA — see
+        # https://github.com/ossf/scorecard-action#workflow-restrictions)
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a
         with:
           results_file: results.sarif
           results_format: sarif

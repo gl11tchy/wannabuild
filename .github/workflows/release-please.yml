@@ -15,8 +15,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: release-please-${{ github.ref }}
@@ -27,6 +26,9 @@ jobs:
     name: Release Please
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Harden runner (audit)
         # step-security/harden-runner v2.19.1
