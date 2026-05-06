@@ -6,6 +6,11 @@
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
+setup_file() {
+  cargo build --quiet --manifest-path "$REPO_ROOT/Cargo.toml" --bin wb-runtime
+  export WB_RUNTIME_BIN="$REPO_ROOT/target/debug/wb-runtime"
+}
+
 _copy_repo() {
   local dest="$BATS_TEST_TMPDIR/repo"
   mkdir -p "$dest"

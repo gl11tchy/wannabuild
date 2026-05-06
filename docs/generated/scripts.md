@@ -123,10 +123,8 @@ check-large-files.sh — flag oversized tracked files.
 
 Rules:
   - Any tracked file > 500 KB fails.
-  - Any *.sh or *.md > 800 lines fails, EXCEPT skills/build/SKILL.md which
-    CLAUDE.md documents as "deliberately the largest file" (orchestrator
-    spec). It is currently 633 lines; we exempt it with a soft cap of 700
-    lines so unbounded growth still trips the check.
+  - Any *.sh or *.md > 800 lines fails, with narrow soft caps for known
+    generated/contract surfaces that are intentionally larger.
 ```
 
 ### Functions
@@ -565,17 +563,22 @@ Path: `scripts/wannabuild-gate-check.sh`
 
 ### Functions
 
-- `check_qa`
-- `check_review`
+- `run_runtime_gate`
+- `runtime_command_for_gate`
+- `runtime_unavailable`
 - `usage`
 
 ### CLI flags / options observed
 
-- `-G`
-- `-d`
+- `--bin`
+- `--manifest-path`
+- `--project`
+- `--quiet`
 - `-e`
 - `-f`
 - `-n`
+- `-v`
+- `-x`
 
 ## `wannabuild-session.sh`
 
@@ -583,12 +586,20 @@ Path: `scripts/wannabuild-session.sh`
 
 ### Functions
 
+- `runtime_plan_gate`
 - `usage`
 
 ### CLI flags / options observed
 
+- `--bin`
+- `--manifest-path`
+- `--project`
+- `--quiet`
 - `-e`
+- `-f`
 - `-l`
+- `-n`
+- `-v`
 
 ## `wannabuild-workspace.sh`
 

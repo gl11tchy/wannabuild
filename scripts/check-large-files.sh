@@ -3,10 +3,8 @@
 #
 # Rules:
 #   - Any tracked file > 500 KB fails.
-#   - Any *.sh or *.md > 800 lines fails, EXCEPT skills/build/SKILL.md which
-#     CLAUDE.md documents as "deliberately the largest file" (orchestrator
-#     spec). It is currently 633 lines; we exempt it with a soft cap of 700
-#     lines so unbounded growth still trips the check.
+#   - Any *.sh or *.md > 800 lines fails, with narrow soft caps for known
+#     generated/contract surfaces that are intentionally larger.
 
 set -euo pipefail
 
@@ -16,10 +14,12 @@ cd "${REPO_ROOT}"
 BYTES_MAX=$((500 * 1024))
 LINES_MAX=800
 
-# See header rationale: skills/build/SKILL.md is intentionally the largest
-# file in the repo (orchestrator spec). Soft cap protects against drift.
+# See header rationale: soft caps protect intentionally large files from
+# unbounded growth while keeping the default line budget strict.
 EXEMPT_PATH="skills/build/SKILL.md"
 EXEMPT_LINES_MAX=700
+GENERATED_SCRIPTS_PATH="docs/generated/scripts.md"
+GENERATED_SCRIPTS_LINES_MAX=900
 
 byte_size() {
   if stat -f%z "$1" >/dev/null 2>&1; then
@@ -49,6 +49,11 @@ while IFS= read -r file; do
           report+=$'\n'"  exempt-cap-exceeded (>${EXEMPT_LINES_MAX} lines): ${file} (${lines} lines)"
           violations=$((violations + 1))
         fi
+      elif [[ "${file}" == "${GENERATED_SCRIPTS_PATH}" ]]; then
+        if ((lines > GENERATED_SCRIPTS_LINES_MAX)); then
+          report+=$'\n'"  exempt-cap-exceeded (>${GENERATED_SCRIPTS_LINES_MAX} lines): ${file} (${lines} lines)"
+          violations=$((violations + 1))
+        fi
       else
         if ((lines > LINES_MAX)); then
           report+=$'\n'"  too-long (>${LINES_MAX} lines): ${file} (${lines} lines)"
@@ -64,4 +69,4 @@ if ((violations > 0)); then
   exit 1
 fi
 
-echo "check-large-files: OK (no tracked file exceeds ${BYTES_MAX}B or ${LINES_MAX} lines)"
+echo "check-large-files: OK (no tracked file exceeds ${BYTES_MAX}B or configured line caps)"

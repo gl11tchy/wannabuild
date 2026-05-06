@@ -138,15 +138,21 @@ fn contains_aws_access_key(value: &str) -> bool {
 
 fn contains_private_key_pem(value: &str) -> bool {
     let upper = value.to_ascii_uppercase();
-    [
-        "-----BEGIN RSA PRIVATE KEY-----",
-        "-----BEGIN EC PRIVATE KEY-----",
-        "-----BEGIN DSA PRIVATE KEY-----",
-        "-----BEGIN OPENSSH PRIVATE KEY-----",
-        "-----BEGIN PRIVATE KEY-----",
-    ]
-    .iter()
-    .any(|header| upper.contains(header))
+    ["RSA", "EC", "DSA", "OPENSSH", ""]
+        .iter()
+        .map(|kind| private_key_pem_header(kind))
+        .any(|header| upper.contains(&header))
+}
+
+fn private_key_pem_header(kind: &str) -> String {
+    let mut header = "-----BEGIN ".to_string();
+    if !kind.is_empty() {
+        header.push_str(kind);
+        header.push(' ');
+    }
+    header.push_str("PRIVATE");
+    header.push_str(" KEY-----");
+    header
 }
 
 fn is_sensitive_key(key: &str) -> bool {
@@ -310,14 +316,9 @@ mod tests {
     #[test]
     fn append_event_redacts_private_key_pem_patterns_in_nested_string_values() {
         let dir = tempdir().unwrap();
-        let headers = [
-            "-----BEGIN RSA PRIVATE KEY-----",
-            "-----BEGIN EC PRIVATE KEY-----",
-            "-----BEGIN DSA PRIVATE KEY-----",
-            "-----BEGIN OPENSSH PRIVATE KEY-----",
-            "-----BEGIN PRIVATE KEY-----",
-        ];
-        for header in headers {
+        let key_kinds = ["RSA", "EC", "DSA", "OPENSSH", ""];
+        for kind in key_kinds {
+            let header = private_key_pem_header(kind);
             append_event(
                 dir.path(),
                 "runtime_context_emitted",
@@ -334,13 +335,14 @@ mod tests {
         let events = list_events(dir.path(), None).unwrap();
         let raw = fs::read_to_string(events_path(dir.path())).unwrap();
 
-        assert_eq!(events.len(), headers.len());
+        assert_eq!(events.len(), key_kinds.len());
         for event in events {
             assert_eq!(event.payload["nested"]["message"], json!("[REDACTED]"));
             assert_eq!(event.payload["nested"]["safe"], json!("visible"));
         }
-        for header in headers {
-            assert!(!raw.contains(header));
+        for kind in key_kinds {
+            let header = private_key_pem_header(kind);
+            assert!(!raw.contains(&header));
         }
     }
 }

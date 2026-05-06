@@ -1,0 +1,3 @@
+# False positives from synthetic PEM redaction fixtures in commit 12abd1f.
+12abd1febfd1fb71edc70f0ea3394715c77bcd43:crates/wb-runtime/src/events.rs:private-key:142
+12abd1febfd1fb71edc70f0ea3394715c77bcd43:crates/wb-runtime/src/events.rs:private-key:315
