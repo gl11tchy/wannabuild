@@ -10,6 +10,12 @@ the auto-generated sections by hand.
 
 ## [Unreleased]
 
+## [2.2.5] - 2026-05-06
+
+### Fixes
+
+- unwrap `hooks/hooks.json` so Claude Code's plugin loader can iterate hook groups without crashing `/reload-plugins` with `TypeError: X?.reduce is not a function`
+
 ### Refactor
 
 - consolidate python3 invocations and fix TOCTOU in install script (e0ba27b)
