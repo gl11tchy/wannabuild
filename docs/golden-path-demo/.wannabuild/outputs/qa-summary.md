@@ -1,6 +1,8 @@
 # QA Summary
 
 Status: PASS
+Acceptance Coverage: verified
+Integration Coverage: verified
 
 Validated:
 

@@ -33,6 +33,52 @@ fi
 command="$1"
 project_root="$(cd "$2" && pwd)"
 state_file="$project_root/.wannabuild/state.json"
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+
+runtime_plan_gate() {
+  local output status
+  if command -v wb-runtime >/dev/null 2>&1; then
+    set +e
+    output="$(wb-runtime assert-plan-ready --project "$project_root" 2>&1)"
+    status=$?
+    set -e
+    if [[ $status -eq 0 || "$output" == *"Plan gate failed"* ]]; then
+      if [[ $status -eq 0 ]]; then
+        printf '%s\n' "$output"
+      else
+        printf '%s\n' "$output" >&2
+      fi
+      return "$status"
+    fi
+  fi
+
+  if command -v cargo >/dev/null 2>&1 && [[ -f "$repo_root/crates/wb-runtime/Cargo.toml" ]]; then
+    set +e
+    output="$(cargo run --quiet --manifest-path "$repo_root/Cargo.toml" --bin wb-runtime -- assert-plan-ready --project "$project_root" 2>&1)"
+    status=$?
+    set -e
+    if [[ $status -eq 0 || "$output" == *"Plan gate failed"* ]]; then
+      if [[ $status -eq 0 ]]; then
+        printf '%s\n' "$output"
+      else
+        printf '%s\n' "$output" >&2
+      fi
+      return "$status"
+    fi
+  fi
+
+  return 127
+}
+
+if [[ "$command" == "assert-plan-ready" ]]; then
+  runtime_status=0
+  runtime_plan_gate || runtime_status=$?
+  if [[ $runtime_status -eq 0 ]]; then
+    exit 0
+  elif [[ $runtime_status -ne 127 ]]; then
+    exit "$runtime_status"
+  fi
+fi
 
 python3 - "$command" "$project_root" "$state_file" "${3:-}" "${4:-}" <<'PY'
 import json
@@ -81,7 +127,6 @@ def plan_ready(state):
     spec = root / ".wannabuild" / "spec"
     artifacts_ready = (spec / "design.md").is_file() and (spec / "tasks.md").is_file()
     state = state if isinstance(state, dict) else {}
-    public_plan_complete = has_complete(state.get("public_stage_history"), "stage", "plan")
     phase_history = state.get("phase_history")
     phase_plan_complete = has_complete(phase_history, "phase", "design") and has_complete(
         phase_history, "phase", "tasks"
@@ -89,8 +134,6 @@ def plan_ready(state):
     evidence = []
     if artifacts_ready:
         evidence.append("design.md+tasks.md")
-    if public_plan_complete:
-        evidence.append("public_stage_history.plan")
     if phase_plan_complete:
         evidence.append("phase_history.design+tasks")
     return bool(evidence), evidence
@@ -164,7 +207,7 @@ elif command == "assert-plan-ready":
         raise SystemExit(
             "Plan gate failed: complete Plan before implementation "
             "(requires .wannabuild/spec/design.md and .wannabuild/spec/tasks.md, "
-            "or a completed plan marker in .wannabuild/state.json)"
+            "or completed design and tasks phase history in .wannabuild/state.json)"
         )
     print(f"Plan gate OK: {', '.join(evidence)}")
 else:

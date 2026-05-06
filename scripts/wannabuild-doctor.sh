@@ -188,9 +188,14 @@ check_file "scripts/install-factory-plugin.sh" || status=1
 check_file "scripts/wannabuild-workspace.sh" || status=1
 check_file "scripts/wannabuild-session.sh" || status=1
 check_file "scripts/wannabuild-gate-check.sh" || status=1
+check_file "Cargo.toml" || status=1
+check_file "crates/wb-runtime/Cargo.toml" || status=1
+check_file "crates/wb-runtime/src/main.rs" || status=1
+check_file "crates/wb-runtime/src/lib.rs" || status=1
 check_contains "hooks/wannabuild-route.py" "WannaBuild runtime state is active" "Claude hook injects active workflow runtime state" || status=1
 check_contains "hooks/wannabuild-route.py" "FORBIDDEN: do not implement or edit code" "Claude hook enforces implementation-before-plan guard" || status=1
 check_contains "scripts/wannabuild-session.sh" "assert-plan-ready" "Session helper exposes hard planning gate" || status=1
+check_contains "scripts/wannabuild-session.sh" "wb-runtime assert-plan-ready" "Session helper delegates planning gate to runtime when available" || status=1
 check_contains "skills/wb-build/SKILL.md" "assert-plan-ready" "wb-build requires hard planning gate before editing" || status=1
 echo
 echo "Adapters"

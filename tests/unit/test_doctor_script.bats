@@ -7,6 +7,11 @@
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
+setup_file() {
+  cargo build --quiet --manifest-path "$REPO_ROOT/Cargo.toml" --bin wb-runtime
+  export WB_RUNTIME_BIN="$REPO_ROOT/target/debug/wb-runtime"
+}
+
 # Make a shallow clone of the repo into a tmp location and echo the path.
 # Excludes potentially large dirs we don't need for the doctor's checks.
 _copy_repo() {

@@ -4,6 +4,11 @@
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
+setup_file() {
+  cargo build --quiet --manifest-path "$REPO_ROOT/Cargo.toml" --bin wb-runtime
+  export WB_RUNTIME_BIN="$REPO_ROOT/target/debug/wb-runtime"
+}
+
 setup() {
   TARGET="$(setup_tmpdir)/proj"
   make_target_repo "$TARGET" >/dev/null
@@ -20,8 +25,23 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
+@test "gate_check: fails clearly when runtime is unavailable" {
+  fake_repo="$(setup_tmpdir)/fake-repo"
+  mkdir -p "$fake_repo/scripts"
+  cp "$SCRIPTS_DIR/wannabuild-gate-check.sh" "$fake_repo/scripts/wannabuild-gate-check.sh"
+
+  set +e
+  actual_output="$(env -u WB_RUNTIME_BIN PATH="/usr/bin:/bin" \
+    bash "$fake_repo/scripts/wannabuild-gate-check.sh" "$TARGET" review 2>&1)"
+  actual_status=$?
+  set -e
+
+  [ "$actual_status" -eq 127 ]
+  [[ "$actual_output" == *"Runtime unavailable: wb-runtime is required to evaluate the 'review' gate."* ]]
+}
+
 @test "gate_check: review gate fails when review dir is missing" {
-  rm -rf "$TARGET/.wannabuild/review"
+  rmdir "$TARGET/.wannabuild/review"
   run_script wannabuild-gate-check.sh "$TARGET" review
   [ "$status" -ne 0 ]
   [[ "$output" == *"Missing review directory"* ]]
@@ -49,7 +69,7 @@ setup() {
   done
   run_script wannabuild-gate-check.sh "$TARGET" review
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Gate OK: review"* ]]
+  [[ "$output" == *"Review gate OK"* ]]
 }
 
 @test "gate_check: review gate fails when any reviewer FAILs" {
@@ -65,18 +85,72 @@ setup() {
   [[ "$output" == *"Non-passing review verdicts"* ]]
 }
 
+@test "gate_check: review gate ignores superseded historical failures" {
+  for agent in wb-security-reviewer wb-performance-reviewer \
+               wb-architecture-reviewer wb-testing-reviewer \
+               wb-integration-tester wb-code-simplifier; do
+    cat >"$TARGET/.wannabuild/review/${agent}-iter-1.json" <<JSON
+{"agent":"${agent}","status":"FAIL","summary":"old","issues":[]}
+JSON
+    cat >"$TARGET/.wannabuild/review/${agent}-iter-2.json" <<JSON
+{"agent":"${agent}","status":"PASS","summary":"fixed","issues":[]}
+JSON
+  done
+
+  run_script wannabuild-gate-check.sh "$TARGET" review
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Review gate OK"* ]]
+}
+
 @test "gate_check: qa gate fails when qa-summary is missing" {
   run_script wannabuild-gate-check.sh "$TARGET" qa
   [ "$status" -ne 0 ]
   [[ "$output" == *"Missing QA summary"* ]]
 }
 
-@test "gate_check: qa gate passes when qa-summary exists" {
+@test "gate_check: qa gate fails when qa-summary lacks positive evidence" {
   mkdir -p "$TARGET/.wannabuild/outputs"
   printf '# QA summary\n' > "$TARGET/.wannabuild/outputs/qa-summary.md"
   run_script wannabuild-gate-check.sh "$TARGET" qa
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"lacks positive PASS evidence"* ]]
+}
+
+@test "gate_check: qa gate passes with structured pass coverage" {
+  mkdir -p "$TARGET/.wannabuild/outputs"
+  {
+    printf '# QA summary\n\n'
+    printf 'status: PASS\n'
+    printf 'acceptance_coverage: covered\n'
+    printf 'integration_coverage: covered\n'
+  } > "$TARGET/.wannabuild/outputs/qa-summary.md"
+  run_script wannabuild-gate-check.sh "$TARGET" qa
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Gate OK: qa"* ]]
+  [[ "$output" == *"Qa gate OK"* ]]
+}
+
+@test "gate_check: qa gate rejects latest failed QA event" {
+  mkdir -p "$TARGET/.wannabuild/outputs"
+  printf '# QA summary\n' > "$TARGET/.wannabuild/outputs/qa-summary.md"
+  cat > "$TARGET/.wannabuild/events.jsonl" <<'JSONL'
+{"id":"1","timestamp":"2026-05-06T10:00:00Z","type":"qa_passed","payload":{}}
+{"id":"2","timestamp":"2026-05-06T10:01:00Z","type":"qa_failed","payload":{"reason":"integration failed"}}
+JSONL
+  run_script wannabuild-gate-check.sh "$TARGET" qa
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"latest QA event is qa_failed"* ]]
+}
+
+@test "gate_check: qa gate rejects latest passed QA event without structured evidence" {
+  mkdir -p "$TARGET/.wannabuild/outputs"
+  printf '# QA summary\n' > "$TARGET/.wannabuild/outputs/qa-summary.md"
+  cat > "$TARGET/.wannabuild/events.jsonl" <<'JSONL'
+{"id":"1","timestamp":"2026-05-06T10:00:00Z","type":"qa_failed","payload":{"reason":"integration failed"}}
+{"id":"2","timestamp":"2026-05-06T10:01:00Z","type":"qa_passed","payload":{}}
+JSONL
+  run_script wannabuild-gate-check.sh "$TARGET" qa
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"lacks positive PASS evidence"* ]]
 }
 
 @test "gate_check: summary gate requires both review and qa to pass" {
@@ -86,8 +160,13 @@ setup() {
     write_review_verdict "$TARGET" "$agent" pass
   done
   mkdir -p "$TARGET/.wannabuild/outputs"
-  printf '# QA summary\n' > "$TARGET/.wannabuild/outputs/qa-summary.md"
+  {
+    printf '# QA summary\n\n'
+    printf 'status: PASS\n'
+    printf 'acceptance_coverage: covered\n'
+    printf 'integration_coverage: covered\n'
+  } > "$TARGET/.wannabuild/outputs/qa-summary.md"
   run_script wannabuild-gate-check.sh "$TARGET" summary
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Gate OK: summary"* ]]
+  [[ "$output" == *"Summary gate OK"* ]]
 }

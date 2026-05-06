@@ -166,13 +166,18 @@ with_clean_env() {
   : "${BATS_TEST_TMPDIR:?BATS_TEST_TMPDIR required}"
   local fake_home="${BATS_TEST_TMPDIR}/home"
   mkdir -p "$fake_home"
-  env -i \
-    PATH="$PATH" \
-    HOME="$fake_home" \
-    LANG="${LANG:-C.UTF-8}" \
-    LC_ALL="${LC_ALL:-C.UTF-8}" \
-    BATS_TEST_TMPDIR="$BATS_TEST_TMPDIR" \
-    "$@"
+  local -a env_args=(
+    "PATH=$PATH"
+    "HOME=$fake_home"
+    "LANG=${LANG:-C.UTF-8}"
+    "LC_ALL=${LC_ALL:-C.UTF-8}"
+    "BATS_TEST_TMPDIR=$BATS_TEST_TMPDIR"
+  )
+  # Preserve explicit runtime override; fake HOME can make rustup shims unusable.
+  if [[ -n "${WB_RUNTIME_BIN:-}" ]]; then
+    env_args+=("WB_RUNTIME_BIN=$WB_RUNTIME_BIN")
+  fi
+  env -i "${env_args[@]}" "$@"
 }
 
 # write_review_verdict <target_dir> <agent> [pass|fail]

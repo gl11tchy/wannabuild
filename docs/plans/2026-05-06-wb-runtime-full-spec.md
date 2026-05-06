@@ -168,81 +168,28 @@ Required files:
 
 ### JSON State
 
-`state.json` remains the portable, human-inspectable workflow state.
-
-It must include:
-
-- project
-- mode
-- current_phase
-- phase_status
-- public_stage
-- workflow_status
-- control_mode
-- started_at
-- updated_at
-- artifacts
-- phase_history
-- public_stage_history
-- pause_reason
-- blocked_reason
-- active_task_ids
-- runtime_version
+`state.json` remains the portable, human-inspectable workflow state. Required
+fields: project, mode, current_phase, phase_status, public_stage,
+workflow_status, control_mode, started_at, updated_at, artifacts,
+phase_history, public_stage_history, pause_reason, blocked_reason,
+active_task_ids, and runtime_version.
 
 ### Event Log
 
-`events.jsonl` is append-only.
-
-Event types:
-
-- workflow_started
-- workflow_resumed
-- user_prompt_received
-- runtime_context_emitted
-- phase_started
-- phase_completed
-- phase_blocked
-- phase_paused
-- transition_requested
-- transition_accepted
-- transition_denied
-- gate_checked
-- gate_passed
-- gate_failed
-- task_created
-- task_started
-- task_completed
-- task_blocked
-- checkpoint_written
-- verification_started
-- verification_passed
-- verification_failed
-- review_started
-- review_passed
-- review_failed
-- qa_started
-- qa_passed
-- qa_failed
-- human_judgment_required
-- workflow_completed
+`events.jsonl` is append-only. Event types: workflow_started,
+workflow_resumed, user_prompt_received, runtime_context_emitted, phase_started,
+phase_completed, phase_blocked, phase_paused, transition_requested,
+transition_accepted, transition_denied, gate_checked, gate_passed, gate_failed,
+task_created, task_started, task_completed, task_blocked, checkpoint_written,
+verification_started, verification_passed, verification_failed, review_started,
+review_passed, review_failed, qa_started, qa_passed, qa_failed,
+human_judgment_required, and workflow_completed.
 
 ### SQLite Index
 
-`runtime.db` indexes state and events for fast queries.
-
-Tables:
-
-- `workflows`
-- `events`
-- `tasks`
-- `task_dependencies`
-- `checkpoints`
-- `artifacts`
-- `gates`
-- `reviews`
-- `qa_runs`
-- `adapter_sessions`
-- `locks`
+`runtime.db` indexes state and events for fast queries. Tables: `workflows`,
+`events`, `tasks`, `task_dependencies`, `checkpoints`, `artifacts`, `gates`,
+`reviews`, `qa_runs`, `adapter_sessions`, and `locks`.
 
 SQLite is an implementation detail. JSON files remain the compatibility and
 debugging surface.
@@ -309,8 +256,10 @@ Pass evidence:
 
 - `.wannabuild/spec/design.md` exists
 - `.wannabuild/spec/tasks.md` exists
-- or `state.json.public_stage_history` contains `plan: complete`
 - or phase history contains `design: complete` and `tasks: complete`
+- `state.json.public_stage_history` may record `plan: complete` only after the
+  runtime has already validated one of the real evidence paths above; it is not
+  standalone pass evidence.
 
 Runtime command:
 
@@ -354,6 +303,8 @@ Pass evidence:
 - acceptance criteria checked
 - integration behavior checked
 - `.wannabuild/outputs/qa-summary.md` exists
+- a `qa_passed` event alone is not sufficient without structured acceptance and
+  integration evidence
 - hard gate verifier passes
 
 ### Ship Gate
@@ -491,35 +442,12 @@ JSON form:
 
 The Task DAG is derived from `.wannabuild/spec/tasks.md`.
 
-Each task has:
+Each task has: id, title, description, phase, dependencies, owner, expected
+files, acceptance criteria, verification commands, checkpoint path, status,
+retry count, blocked reason, risk level, and parallelizable flag.
 
-- id
-- title
-- description
-- phase
-- dependencies
-- owner
-- expected files
-- acceptance criteria
-- verification commands
-- checkpoint path
-- status
-- retry count
-- blocked reason
-- risk level
-- parallelizable flag
-
-Task statuses:
-
-- pending
-- ready
-- claimed
-- in_progress
-- verifying
-- complete
-- blocked
-- failed
-- skipped
+Task statuses: pending, ready, claimed, in_progress, verifying, complete,
+blocked, failed, and skipped.
 
 ## Scheduler
 
@@ -759,18 +687,11 @@ Add:
 
 ## Rust Crates And Implementation Direction
 
-Suggested crates:
-
-- `clap` for CLI
-- `serde` / `serde_json` for state
-- `rusqlite` or `sqlx` for SQLite
-- `time` for timestamps
-- `thiserror` / `anyhow` for errors
-- `fs2` or SQLite transactions for locking
-- `tracing` for logs
-- `camino` for UTF-8 paths
-- `insta` for snapshot tests
-- `assert_cmd` for CLI tests
+Suggested crates: `clap` for CLI, `serde` / `serde_json` for state,
+`rusqlite` or `sqlx` for SQLite, `time` for timestamps, `thiserror` /
+`anyhow` for errors, `fs2` or SQLite transactions for locking, `tracing` for
+logs, `camino` for UTF-8 paths, `insta` for snapshot tests, and `assert_cmd`
+for CLI tests.
 
 Module layout:
 

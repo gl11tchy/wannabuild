@@ -12,6 +12,7 @@ env/
 # Build outputs
 dist/
 build/
+target/
 !skills/build/
 *.egg-info/
 *.egg
@@ -44,6 +45,9 @@ logs/
 .wannabuild-*/
 !docs/golden-path-demo/.wannabuild/
 !docs/golden-path-demo/.wannabuild/**
+docs/golden-path-demo/.wannabuild/events.jsonl
+docs/golden-path-demo/.wannabuild/runtime.db
+docs/golden-path-demo/.wannabuild/runtime.lock
 
 # Local Codex/OMX workspace state
 .codex/worktrees/
