@@ -15,6 +15,8 @@ the auto-generated sections by hand.
 ### Fixes
 
 - unwrap `hooks/hooks.json` so Claude Code's plugin loader can iterate hook groups without crashing `/reload-plugins` with `TypeError: X?.reduce is not a function`
+- register gl11tchy as own marketplace namespace in install script (ebddcec)
+- use claude-plugins-official namespace in install script (d74b330)
 
 ### Refactor
 
@@ -23,11 +25,6 @@ the auto-generated sections by hand.
 ### Features
 
 - add dry-run fixtures and checks for gates, advisor, and QA loop (467e600)
-
-### Fixes
-
-- register gl11tchy as own marketplace namespace in install script (ebddcec)
-- use claude-plugins-official namespace in install script (d74b330)
 
 ### Chores
 
