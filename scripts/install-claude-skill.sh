@@ -242,7 +242,8 @@ fi
 # Verify the hooks file is in the unwrapped event-map shape Claude Code's
 # plugin loader actually accepts. Catches the v2.2.4-style /reload-plugins
 # crash at install time instead of in the user's first session.
-if ! "$PYTHON" - "${PLUGIN_CACHE}/hooks/hooks.json" <<'PY'
+verify_hooks_shape() {
+  "$PYTHON" - "$1" <<'PY'
 import json, sys
 try:
     d = json.load(open(sys.argv[1]))
@@ -258,7 +259,9 @@ if not isinstance(d.get("SessionStart"), list) or not isinstance(d.get("UserProm
     print("hooks.json is missing SessionStart or UserPromptSubmit event arrays.", file=sys.stderr)
     sys.exit(1)
 PY
-then
+}
+
+if ! verify_hooks_shape "${PLUGIN_CACHE}/hooks/hooks.json"; then
   echo "Install verification failed: hooks/hooks.json shape rejected." >&2
   exit 1
 fi
