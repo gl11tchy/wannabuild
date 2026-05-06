@@ -87,22 +87,22 @@ updates:
   #       patterns:
   #         - "*"
 
-  # docker — enable once .devcontainer/Dockerfile (or any Dockerfile) is added.
-  # - package-ecosystem: "docker"
-  #   directory: "/.devcontainer"
-  #   schedule:
-  #     interval: "weekly"
-  #     day: "monday"
-  #     time: "09:00"
-  #     timezone: "Etc/UTC"
-  #   open-pull-requests-limit: 5
-  #   labels:
-  #     - "dependencies"
-  #     - "docker"
-  #   reviewers:
-  #     - "gl11tchy"
-  #   assignees:
-  #     - "gl11tchy"
-  #   commit-message:
-  #     prefix: "chore(docker)"
-  #     include: "scope"
+  # docker — devcontainer base image; keep current via weekly bumps.
+  - package-ecosystem: "docker"
+    directory: "/.devcontainer"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    reviewers:
+      - "gl11tchy"
+    assignees:
+      - "gl11tchy"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
