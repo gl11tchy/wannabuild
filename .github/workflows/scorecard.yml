@@ -1,0 +1,66 @@
+# OpenSSF Scorecard.
+#
+# Computes the OSSF Scorecard security score for this repository
+# (branch protection, signed commits, code review, pinned actions,
+# vulnerable dependencies, etc.) and publishes the results to the
+# GitHub Security tab as SARIF.
+#
+# This is a public-credibility signal as well as a continuous audit:
+# regressions in posture (e.g., new unpinned action, missing branch
+# protection on main) show up as a downgraded score on the next run.
+name: Scorecard
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "30 6 * * 1"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - name: Harden runner (audit)
+        # step-security/harden-runner v2.19.1
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        # actions/checkout v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        # ossf/scorecard-action v2.4.3
+        uses: ossf/scorecard-action@99c09fe975337306107572b4fdf4db224cf8e2f2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF to Code Scanning
+        # github/codeql-action v3.27.5
+        uses: github/codeql-action/upload-sarif@6825d5659bf007b85a0866e2d0f434aacf50de94
+        with:
+          sarif_file: results.sarif
+
+      - name: Upload SARIF artifact
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
