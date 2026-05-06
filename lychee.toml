@@ -1,0 +1,28 @@
+# Lychee configuration for WannaBuild's markdown link checker.
+# Used by .github/workflows/lychee.yml.
+
+# Inputs: every markdown file in the repo, except generated/vendored/test fixture
+# trees that we don't author.
+exclude_path = [
+    "tests/.bats",
+    "tests/.bats-libs",
+    "docs/generated",
+    ".wannabuild",
+    ".worktrees",
+    ".factory",
+    "node_modules",
+]
+
+# Treat fragment links (#section) as part of the check so anchors stay accurate.
+include_fragments = "full"
+
+# Network behavior: keep timeouts short enough that flakey hosts fail loud,
+# but high enough that slow third-party sites don't false-fail.
+timeout = 20
+max_redirects = 10
+max_retries = 1
+retry_wait_time = 2
+
+# 429 (rate-limited) is not a real failure — let CI keep moving and re-check
+# next run.
+accept = ["200..=299", "429"]
