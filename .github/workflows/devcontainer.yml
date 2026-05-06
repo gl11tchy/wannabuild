@@ -1,0 +1,63 @@
+# Devcontainer build smoke.
+#
+# Builds the .devcontainer/Dockerfile on every PR that touches it (or any
+# script/dependency it pulls in) and verifies the resulting image has the
+# tools the CONTRIBUTING.md "Local Setup" promises. Catches base-image
+# bumps and apt-get drift before they break a contributor's first
+# `Reopen in Container`.
+name: Devcontainer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".devcontainer/**"
+      - ".github/workflows/devcontainer.yml"
+  pull_request:
+    branches: ["**"]
+    paths:
+      - ".devcontainer/**"
+      - ".github/workflows/devcontainer.yml"
+  schedule:
+    # Weekly canary so we catch upstream base-image breakage even when
+    # the devcontainer files are quiet.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build + smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        # actions/checkout v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Build devcontainer image
+        run: |
+          set -euo pipefail
+          docker build -f .devcontainer/Dockerfile -t wannabuild-devcontainer:ci .devcontainer
+
+      - name: Smoke-check expected tools
+        run: |
+          set -euo pipefail
+          docker run --rm wannabuild-devcontainer:ci bash -c '
+            set -euo pipefail
+            echo "shellcheck:    $(shellcheck --version | head -2 | tail -1)"
+            echo "shfmt:         $(shfmt --version)"
+            echo "jq:            $(jq --version)"
+            echo "ripgrep:       $(rg --version | head -1)"
+            echo "bats:          $(bats --version)"
+            echo "kcov:          $(kcov --version | head -1)"
+            echo "pre-commit:    $(pre-commit --version)"
+            echo "lizard:        $(lizard --version)"
+            echo "yamllint:      $(yamllint --version)"
+          '
