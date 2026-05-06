@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        # actions/checkout v4.1.7
+        # actions/checkout v6.0.2
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
@@ -55,10 +55,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        # actions/checkout v4.1.7
+        # actions/checkout v6.0.2
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Dependency review
-        # actions/dependency-review-action v4.3.4
+        # actions/dependency-review-action v4.9.0
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48
         with:
           fail-on-severity: high
@@ -70,7 +70,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        # actions/checkout v4.1.7
+        # actions/checkout v6.0.2
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Check workflow risk patterns
         run: |
