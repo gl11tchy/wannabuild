@@ -42,7 +42,7 @@ jobs:
 
       - name: Restore lychee cache
         # actions/cache v4.2.3
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: .lycheecache
           key: lychee-${{ runner.os }}-${{ github.sha }}
@@ -64,7 +64,7 @@ jobs:
       - name: Open tracking issue on schedule failure
         if: failure() && github.event_name == 'schedule'
         # peter-evans/create-issue-from-file v5.0.0
-        uses: peter-evans/create-issue-from-file@24452a72d85239eacf1468b0f1982a9f3fec4c94
+        uses: peter-evans/create-issue-from-file@fca9117c27cdc29c6c4db3b86c48e4115a786710
         with:
           title: "Link check (scheduled) found broken links"
           content-filepath: lychee/out.md
