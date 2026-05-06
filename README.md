@@ -119,6 +119,7 @@ For contributors and maintainers working on the framework itself:
 - [docs/supply-chain.md](docs/supply-chain.md) — dependency hardening.
 - [docs/log-scrubbing.md](docs/log-scrubbing.md) — runtime scrubbing primitives.
 - [docs/observability.md](docs/observability.md) — metrics, traces, runbooks.
+- [docs/runbooks/install-and-load-failures.md](docs/runbooks/install-and-load-failures.md) — troubleshooting install + plugin-load issues.
 - [tests/README.md](tests/README.md) — bats unit + integration suite.
 - [.devcontainer/README.md](.devcontainer/README.md) — dev container setup.
 - [SECURITY.md](SECURITY.md) — vulnerability reporting.
