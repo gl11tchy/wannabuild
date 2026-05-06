@@ -4,6 +4,29 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NAMESPACE="gl11tchy"
 
+# Resolve a usable Python interpreter once, up front, so we fail fast with an
+# actionable error instead of silently swallowing it inside a heredoc.
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON="python3"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON="python"
+elif command -v py >/dev/null 2>&1; then
+  PYTHON="py"
+else
+  cat >&2 <<'ERR'
+install-claude-skill: no Python interpreter on PATH.
+
+WannaBuild's install script and runtime hook both need Python 3.x. Install
+one of:
+  - macOS:   brew install python@3.11
+  - Ubuntu:  sudo apt-get install python3
+  - Windows: install from python.org and ensure python3 is on PATH
+
+Then re-run this script.
+ERR
+  exit 1
+fi
+
 resolve_host_home() {
   if [[ -n "${WANNABUILD_HOST_HOME:-}" ]]; then
     printf '%s\n' "$WANNABUILD_HOST_HOME"
@@ -154,7 +177,7 @@ create_plugin_link "$ROOT" "$PLUGIN_CACHE"
 mkdir -p "$(dirname "$INSTALLED")" "$(dirname "$SETTINGS")"
 
 # Register namespace and plugin in all three JSON config files
-python3 - "$NAMESPACE" "$JSON_MARKETPLACE_DIR" "$KNOWN_MARKETPLACES" "$JSON_PLUGIN_CACHE" "$INSTALLED" "$SETTINGS" <<'PY'
+"$PYTHON" - "$NAMESPACE" "$JSON_MARKETPLACE_DIR" "$KNOWN_MARKETPLACES" "$JSON_PLUGIN_CACHE" "$INSTALLED" "$SETTINGS" <<'PY'
 import json, sys
 from pathlib import Path
 from datetime import datetime, timezone
@@ -216,11 +239,44 @@ if [[ ! -f "${PLUGIN_CACHE}/hooks/hooks.json" ]]; then
   exit 1
 fi
 
+# Verify the hooks file is in the unwrapped event-map shape Claude Code's
+# plugin loader actually accepts. Catches the v2.2.4-style /reload-plugins
+# crash at install time instead of in the user's first session.
+verify_hooks_shape() {
+  "$PYTHON" - "$1" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception as e:
+    print(f"hooks.json is not valid JSON: {e}", file=sys.stderr)
+    sys.exit(1)
+if "hooks" in d:
+    print("hooks.json is double-wrapped under a 'hooks' key — Claude Code's", file=sys.stderr)
+    print("plugin loader will crash /reload-plugins. Expected the file body", file=sys.stderr)
+    print("to be the event map directly, e.g. {\"SessionStart\": [...]}.", file=sys.stderr)
+    sys.exit(1)
+if not isinstance(d.get("SessionStart"), list) or not isinstance(d.get("UserPromptSubmit"), list):
+    print("hooks.json is missing SessionStart or UserPromptSubmit event arrays.", file=sys.stderr)
+    sys.exit(1)
+PY
+}
+
+if ! verify_hooks_shape "${PLUGIN_CACHE}/hooks/hooks.json"; then
+  echo "Install verification failed: hooks/hooks.json shape rejected." >&2
+  exit 1
+fi
+
+VERSION="$("$PYTHON" -c "import json; print(json.load(open('${PLUGIN_CACHE}/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo unknown)"
+
 echo ""
 echo "Installed WannaBuild for Claude Code:"
+echo "  Version:     $VERSION"
 echo "  Plugin path: $PLUGIN_CACHE -> $ROOT"
 echo "  Namespace:   wannabuild@${NAMESPACE}"
 echo "  Hooks:       SessionStart + UserPromptSubmit autorouting verified"
+echo "  Python:      $PYTHON ($($PYTHON --version 2>&1))"
 echo ""
 echo "Run /reload-plugins in Claude Code, then type a natural feature request."
 echo "Explicit shortcut remains available: /wannabuild"
+echo ""
+echo "Trouble? See docs/runbooks/install-and-load-failures.md"

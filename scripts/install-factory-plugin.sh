@@ -7,6 +7,28 @@ NAMESPACE="gl11tchy"
 PLUGIN="wannabuild"
 MARKETPLACE="${FACTORY_MARKETPLACE:-$(basename "$ROOT")}"
 
+# Resolve a usable Python interpreter once, up front, so we fail fast with an
+# actionable error instead of silently swallowing it inside a heredoc.
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON="python3"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON="python"
+elif command -v py >/dev/null 2>&1; then
+  PYTHON="py"
+else
+  cat >&2 <<'ERR'
+install-factory-plugin: no Python interpreter on PATH.
+
+WannaBuild's install script needs Python 3.x. Install one of:
+  - macOS:   brew install python@3.11
+  - Ubuntu:  sudo apt-get install python3
+  - Windows: install from python.org and ensure python3 is on PATH
+
+Then re-run this script.
+ERR
+  exit 1
+fi
+
 resolve_host_home() {
   if [[ -n "${WANNABUILD_HOST_HOME:-}" ]]; then
     printf '%s\n' "$WANNABUILD_HOST_HOME"
@@ -150,7 +172,7 @@ mkdir -p "$PLUGIN_CACHE_PARENT" "$DROIDS_DIR" "$(dirname "$KNOWN_MARKETPLACES")"
 safe_remove_existing "$PLUGIN_CACHE"
 create_link "$ADAPTER" "$PLUGIN_CACHE"
 
-python3 - "$NAMESPACE" "$MARKETPLACE" "$PLUGIN" "$VERSION" "$(json_path_for_host "$ROOT")" "$(json_path_for_host "$PLUGIN_CACHE")" "$KNOWN_MARKETPLACES" "$INSTALLED_PLUGINS" <<'PY'
+"$PYTHON" - "$NAMESPACE" "$MARKETPLACE" "$PLUGIN" "$VERSION" "$(json_path_for_host "$ROOT")" "$(json_path_for_host "$PLUGIN_CACHE")" "$KNOWN_MARKETPLACES" "$INSTALLED_PLUGINS" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
@@ -203,7 +225,7 @@ installed_path.write_text(json.dumps(installed, indent=2))
 print(f"Registered {key} in installed_plugins.json")
 PY
 
-python3 - "$ROOT" "$DROIDS_DIR" <<'PY'
+"$PYTHON" - "$ROOT" "$DROIDS_DIR" <<'PY'
 import json
 import re
 import sys

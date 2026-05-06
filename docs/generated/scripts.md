@@ -341,10 +341,12 @@ Path: `scripts/install-claude-skill.sh`
 - `resolve_host_home`
 - `safe_remove_existing`
 - `to_windows_path`
+- `verify_hooks_shape`
 - `windows_powershell`
 
 ### CLI flags / options observed
 
+- `--version`
 - `-C`
 - `-F`
 - `-I`
@@ -353,11 +355,10 @@ Path: `scripts/install-claude-skill.sh`
 - `-P`
 - `-R`
 - `-T`
+- `-c`
 - `-d`
 - `-e`
-- `-f`
-- `-n`
-- _5 more omitted._
+- _7 more omitted._
 
 ## `install-codex-skill.sh`
 
