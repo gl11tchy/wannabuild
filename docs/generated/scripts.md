@@ -488,6 +488,37 @@ Examples:
 - `-t`
 - `-u`
 
+## `validate-claude-marketplace.sh`
+
+Path: `scripts/validate-claude-marketplace.sh`
+
+### Description
+
+```text
+
+Validate the Claude Code marketplace contract from this repo.
+
+Simulates what a consumer of `/plugin marketplace add gl11tchy/wannabuild`
+experiences: parse the marketplace manifest, follow each plugin's
+`source` to its plugin.json, follow the plugin's `hooks` path to the
+hooks file, and verify each layer matches what Claude Code expects.
+
+Catches:
+  - marketplace.json missing or malformed
+  - declared plugin source paths that don't exist
+  - plugin.json missing required fields
+  - version mismatches between marketplace.json and plugin.json
+  - hooks file declared but missing
+  - hooks file in the wrapped (broken) shape
+
+Exit 0 = contract holds, non-zero = a real consumer would hit an error.
+```
+
+### CLI flags / options observed
+
+- `-e`
+- `-f`
+
 ## `validate-wannabuild-artifacts.sh`
 
 Path: `scripts/validate-wannabuild-artifacts.sh`
@@ -536,6 +567,9 @@ Path: `scripts/wannabuild-doctor.sh`
 
 ### Functions
 
+- `_fail`
+- `_pass`
+- `_warn`
 - `check_command`
 - `check_contains`
 - `check_dir`
@@ -545,8 +579,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_not_contains`
 - `check_optional_user_file`
 - `resolve_host_home`
-- `resolve_path`
-- `skill_display_name`
+- _2 more omitted._
 
 ### CLI flags / options observed
 
@@ -556,6 +589,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-e`
 - `-f`
 - `-n`
+- `-t`
 - `-v`
 
 ## `wannabuild-gate-check.sh`
