@@ -6,6 +6,7 @@ Spec-driven development for indie builders.
 
 Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
+[![CI](https://github.com/gl11tchy/wannabuild/actions/workflows/ci.yml/badge.svg)](https://github.com/gl11tchy/wannabuild/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 ![Specialists](https://img.shields.io/badge/specialists-21-blue?style=flat-square)
 ![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
@@ -13,9 +14,53 @@ Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 ![Claude Code](https://img.shields.io/badge/claude--code-supported-5B21B6?style=flat-square)
 ![Cursor](https://img.shields.io/badge/cursor-supported-0f766e?style=flat-square)
 
-[Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts) · [Trust Harness](#trust-harness)
+[Quickstart](#quickstart) · [Workflow](#workflow) · [Install](#install) · [Usage](#usage) · [Artifacts](#artifacts) · [Trust Harness](#trust-harness)
 
 </div>
+
+---
+
+## Quickstart
+
+Three steps to your first WannaBuild-driven feature. Pick the host you already
+use; commands are equivalent across hosts.
+
+### Claude Code
+
+```text
+/plugin marketplace add gl11tchy/wannabuild
+/plugin install wannabuild@gl11tchy
+/reload-plugins
+```
+
+Then type a natural feature request:
+
+```text
+I want to add Stripe billing to my SaaS
+```
+
+### Codex
+
+```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
+./scripts/install-codex-skill.sh
+```
+
+Restart Codex, then:
+
+```text
+$wannabuild I want to add Stripe billing to my SaaS
+```
+
+### Cursor
+
+Load `.cursor/rules/wannabuild.mdc` from a clone of this repo, then describe the
+feature in chat.
+
+> **Hit a problem?** See
+> [docs/runbooks/install-and-load-failures.md](docs/runbooks/install-and-load-failures.md)
+> before opening an issue.
 
 ---
 
