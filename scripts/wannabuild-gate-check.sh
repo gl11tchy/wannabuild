@@ -8,7 +8,7 @@ Usage:
 
 Gates:
   review   - require review verdict JSON files including integration tester
-  qa       - require qa-summary artifact
+  qa       - require positive QA pass evidence
   summary  - require review and qa gates to be satisfied
 USAGE
 }
@@ -20,97 +20,61 @@ fi
 
 project_root="$(cd "$1" && pwd)"
 gate="$2"
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
-review_dir="$project_root/.wannabuild/review"
-qa_summary="$project_root/.wannabuild/outputs/qa-summary.md"
-loop_state="$project_root/.wannabuild/loop-state.json"
-
-check_review() {
-  [[ -d "$review_dir" ]] || {
-    echo "Missing review directory: $review_dir" >&2
-    return 1
-  }
-  compgen -G "$review_dir/*.json" >/dev/null || {
-    echo "No review verdict files found in $review_dir" >&2
-    return 1
-  }
-  python3 - "$review_dir" "$loop_state" <<'PY'
-import json
-from pathlib import Path
-import sys
-
-review_dir = Path(sys.argv[1])
-loop_state_path = Path(sys.argv[2])
-files = sorted(review_dir.glob("*.json"))
-if not files:
-    raise SystemExit("No review verdict files found")
-
-required = {
-    "wb-security-reviewer",
-    "wb-performance-reviewer",
-    "wb-architecture-reviewer",
-    "wb-testing-reviewer",
-    "wb-integration-tester",
-    "wb-code-simplifier",
-}
-if loop_state_path.exists():
-    try:
-        loop = json.loads(loop_state_path.read_text(encoding="utf-8"))
-        iterations = loop.get("iterations")
-        if isinstance(iterations, list) and iterations:
-            latest = max(iterations, key=lambda item: item.get("iteration", 0))
-            active = latest.get("active_reviewers")
-            if isinstance(active, list) and active:
-                required = {item for item in active if isinstance(item, str)}
-    except Exception:
-        pass
-
-seen = set()
-failures = []
-
-for path in files:
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except Exception as exc:
-        raise SystemExit(f"Invalid review verdict JSON: {path} ({exc})")
-
-    agent = payload.get("agent")
-    status = payload.get("status")
-    if isinstance(agent, str):
-        seen.add(agent)
-    if status != "PASS":
-        failures.append(f"{path.name}:{agent}:{status}")
-
-missing = sorted(required - seen)
-if missing:
-    raise SystemExit("Missing required review verdicts: " + ", ".join(missing))
-if failures:
-    raise SystemExit("Non-passing review verdicts: " + ", ".join(failures))
-PY
+runtime_command_for_gate() {
+  case "$1" in
+    review) printf 'assert-review-ready\n' ;;
+    qa) printf 'assert-qa-ready\n' ;;
+    summary) printf 'assert-summary-ready\n' ;;
+    *) return 1 ;;
+  esac
 }
 
-check_qa() {
-  [[ -f "$qa_summary" ]] || {
-    echo "Missing QA summary: $qa_summary" >&2
-    return 1
-  }
+runtime_unavailable() {
+  echo "Runtime unavailable: wb-runtime is required to evaluate the '$gate' gate." >&2
+  echo "Install wb-runtime, build $repo_root/target/debug/wb-runtime, or run with cargo available." >&2
+}
+
+run_runtime_gate() {
+  local runtime_command="$1"
+  local runtime_bin
+
+  if [[ -n "${WB_RUNTIME_BIN:-}" ]]; then
+    if [[ ! -x "$WB_RUNTIME_BIN" ]]; then
+      echo "Runtime unavailable: WB_RUNTIME_BIN is not executable: $WB_RUNTIME_BIN" >&2
+      return 127
+    fi
+    "$WB_RUNTIME_BIN" "$runtime_command" --project "$project_root"
+    return
+  fi
+
+  if runtime_bin="$(command -v wb-runtime 2>/dev/null)"; then
+    "$runtime_bin" "$runtime_command" --project "$project_root"
+    return
+  fi
+
+  if [[ -x "$repo_root/target/debug/wb-runtime" ]]; then
+    "$repo_root/target/debug/wb-runtime" "$runtime_command" --project "$project_root"
+    return
+  fi
+
+  if command -v cargo >/dev/null 2>&1 && [[ -f "$repo_root/Cargo.toml" ]]; then
+    cargo run --quiet --manifest-path "$repo_root/Cargo.toml" --bin wb-runtime -- "$runtime_command" --project "$project_root"
+    return
+  fi
+
+  runtime_unavailable
+  return 127
 }
 
 case "$gate" in
-  review)
-    check_review
-    ;;
-  qa)
-    check_qa
-    ;;
-  summary)
-    check_review
-    check_qa
-    ;;
+  review | qa | summary) ;;
   *)
     usage >&2
     exit 1
     ;;
 esac
 
-echo "Gate OK: $gate"
+runtime_command="$(runtime_command_for_gate "$gate")"
+run_runtime_gate "$runtime_command"

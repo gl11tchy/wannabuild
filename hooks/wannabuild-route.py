@@ -11,9 +11,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 
 ROUTE_CONTEXT = {
@@ -138,7 +140,7 @@ def candidate_roots(event: dict[str, Any]) -> list[Path]:
     return roots
 
 
-def find_state_path(event: dict[str, Any]) -> Path | None:
+def find_state_path(event: dict[str, Any]) -> Optional[Path]:
     seen: set[Path] = set()
     for root in candidate_roots(event):
         try:
@@ -169,18 +171,17 @@ def has_complete(history: Any, key: str, value: str) -> bool:
 def plan_ready(state: dict[str, Any], project_root: Path) -> bool:
     spec = project_root / ".wannabuild" / "spec"
     artifacts_ready = (spec / "design.md").is_file() and (spec / "tasks.md").is_file()
-    public_plan_complete = has_complete(state.get("public_stage_history"), "stage", "plan")
     phase_history = state.get("phase_history")
     phase_plan_complete = has_complete(phase_history, "phase", "design") and has_complete(
         phase_history, "phase", "tasks"
     )
-    return artifacts_ready or public_plan_complete or phase_plan_complete
+    return artifacts_ready or phase_plan_complete
 
 
-def runtime_context(
+def fallback_runtime_context(
     event: dict[str, Any],
     prompt: str = "",
-    route_skill: str | None = None,
+    route_skill: Optional[str] = None,
 ) -> str:
     state_path = find_state_path(event)
     if state_path is None:
@@ -193,16 +194,16 @@ def runtime_context(
         return ""
 
     project_root = state_path.parent.parent
-    public_stage = str(state.get("public_stage") or "unknown")
-    current_phase = str(state.get("current_phase") or "unknown")
-    phase_status = str(state.get("phase_status") or "unknown")
-    control_mode = str(state.get("control_mode") or "autonomous")
+    public_stage = safe_context_value(state.get("public_stage"), "unknown")
+    current_phase = safe_context_value(state.get("current_phase"), "unknown")
+    phase_status = safe_context_value(state.get("phase_status"), "unknown")
+    control_mode = safe_context_value(state.get("control_mode"), "autonomous")
     ready = plan_ready(state, project_root)
     next_action = NEXT_ACTIONS.get(public_stage, "continue the active WannaBuild phase")
 
     lines = [
         "WannaBuild runtime state is active.",
-        f"- state_file: {state_path}",
+        f"- state_file: {safe_context_value(state_path)}",
         f"- public_stage: {public_stage}",
         f"- current_phase: {current_phase}",
         f"- phase_status: {phase_status}",
@@ -227,6 +228,157 @@ def runtime_context(
     return "\n".join(lines)
 
 
+def runtime_binary() -> Optional[str]:
+    env_bin = os.environ.get("WB_RUNTIME_BIN")
+    if env_bin and Path(env_bin).is_file():
+        return env_bin
+    path_bin = shutil.which("wb-runtime")
+    if path_bin:
+        return path_bin
+    repo_bin = Path(__file__).resolve().parents[1] / "target" / "debug" / "wb-runtime"
+    if repo_bin.is_file():
+        return str(repo_bin)
+    return None
+
+
+def runtime_project_root(event: dict[str, Any]) -> Path:
+    state_path = find_state_path(event)
+    if state_path is not None:
+        return state_path.parent.parent
+    for root in candidate_roots(event):
+        try:
+            root = root.resolve()
+        except OSError:
+            continue
+        if root.is_dir():
+            return root
+    return Path.cwd().resolve()
+
+
+def runtime_adapter_context(
+    event: dict[str, Any],
+    event_name: str,
+    prompt: str = "",
+) -> Optional[dict[str, Any]]:
+    binary = runtime_binary()
+    if not binary:
+        return None
+    args = [
+        binary,
+        "adapter",
+        "context",
+        "--project",
+        str(runtime_project_root(event)),
+        "--host",
+        "claude-code",
+        "--event",
+        event_name,
+    ]
+    if prompt:
+        args.extend(["--prompt", prompt])
+    try:
+        completed = subprocess.run(
+            args,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
+        return None
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def runtime_context_from_adapter(
+    adapter_context: dict[str, Any],
+    prompt: str = "",
+    route_skill: Optional[str] = None,
+) -> str:
+    runtime = adapter_context.get("runtime_context")
+    if not isinstance(runtime, dict) or not runtime.get("runtime_active"):
+        return ""
+
+    forbidden_actions = string_list(
+        adapter_context.get("forbidden_actions", runtime.get("forbidden_actions"))
+    )
+    required_gates = string_list(adapter_context.get("required_gates", runtime.get("required_gates")))
+    pause_required = bool(adapter_context.get("pause_required") or runtime.get("pause_required"))
+
+    lines = [
+        "WannaBuild runtime state is active.",
+        f"- state_file: {safe_context_value(runtime.get('state_file'))}",
+        f"- public_stage: {safe_context_value(runtime.get('public_stage'))}",
+        f"- current_phase: {safe_context_value(runtime.get('current_phase'))}",
+        f"- phase_status: {safe_context_value(runtime.get('phase_status'))}",
+        f"- allowed_next_action: {safe_context_value(adapter_context.get('allowed_next_action') or runtime.get('allowed_next_action'))}",
+    ]
+    if forbidden_actions:
+        lines.append(f"- forbidden_actions: {', '.join(forbidden_actions)}")
+    if required_gates:
+        lines.append(f"- required_gates: {', '.join(required_gates)}")
+    if pause_required:
+        lines.append("- pause_required: true")
+    lines.append("- preserve this workflow across turns until completion or explicit user stop/exit")
+    if prompt and vague_ack(prompt):
+        lines.append(
+            "- vague_acknowledgment: continue the current phase; do not skip phases or treat this as implementation approval"
+        )
+    if explicit_phase_limit(prompt):
+        lines.append("- explicit_phase_limit: stop after the requested phase boundary")
+    if "implement_before_plan" in forbidden_actions or "assert-plan-ready" in required_gates:
+        lines.append(
+            "- FORBIDDEN: do not implement or edit code; complete Plan first and satisfy the planning gate"
+        )
+    if route_skill == "wb-build":
+        lines.append(
+            "- before_build: run `scripts/wannabuild-session.sh assert-plan-ready <project_root>` when available"
+        )
+    return "\n".join(lines)
+
+
+def string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [safe_context_value(item) for item in value if safe_context_value(item)]
+
+
+def route_from_adapter(adapter_context: dict[str, Any]) -> tuple[Optional[str], str]:
+    route = adapter_context.get("route")
+    if not isinstance(route, dict):
+        return None, ""
+    skill = route.get("skill")
+    if not isinstance(skill, str) or not skill:
+        return None, safe_context_value(route.get("reason"), "")
+    return safe_context_value(skill, ""), safe_context_value(route.get("reason"), "")
+
+
+def route_context(skill: str, reason: str) -> str:
+    route_reason, instruction = ROUTE_CONTEXT[skill]
+    return (
+        f"WannaBuild autoroute: this prompt matches `{skill}` because it is a "
+        f"{route_reason} ({reason}). {instruction} Do not ask the user to type "
+        "a slash command first."
+    )
+
+
+def safe_context_value(value: Any, default: str = "unknown") -> str:
+    if value is None:
+        value = default
+    text = re.sub(r"[\x00-\x1f\x7f]+", " ", str(value))
+    text = re.sub(r"\s+", " ", text).strip().replace("`", "'")
+    if not text:
+        text = default
+    if len(text) > 300:
+        text = f"{text[:297]}..."
+    return text
+
+
 def normalized(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
 
@@ -235,15 +387,12 @@ def has(pattern: str, text: str) -> bool:
     return re.search(pattern, text, flags=re.IGNORECASE) is not None
 
 
-def classify(prompt: str) -> tuple[str, str] | None:
+def classify(prompt: str) -> Optional[tuple[str, str]]:
     text = normalized(prompt)
     if not text:
         return None
 
-    if text.startswith(("/", "$")):
-        return None
-
-    if has(r"\b(do not|don't|dont|without|skip|avoid)\s+(use\s+)?wannabuild\b", text):
+    if leave_prompt_alone(text):
         return None
 
     if has(r"\b(debug|diagnose|reproduce|trace|traceback|exception|crash|broken|failing|failure|bug|regression)\b", text):
@@ -290,6 +439,12 @@ def classify(prompt: str) -> tuple[str, str] | None:
     return None
 
 
+def leave_prompt_alone(text: str) -> bool:
+    if text.startswith(("/", "$")):
+        return True
+    return has(r"\b(do not|don't|dont|without|skip|avoid)\s+(use\s+)?wannabuild\b", text)
+
+
 def emit(event_name: str, context: str) -> None:
     print(
         json.dumps(
@@ -309,7 +464,13 @@ def main() -> int:
     event_name = str(event.get("hook_event_name") or event.get("hookEventName") or "")
 
     if event_name == "SessionStart":
-        context = "\n\n".join(part for part in [SESSION_CONTEXT, runtime_context(event)] if part)
+        adapter_context = runtime_adapter_context(event, "SessionStart")
+        runtime = (
+            runtime_context_from_adapter(adapter_context)
+            if adapter_context is not None
+            else fallback_runtime_context(event)
+        )
+        context = "\n\n".join(part for part in [SESSION_CONTEXT, runtime] if part)
         emit("SessionStart", context)
         return 0
 
@@ -317,22 +478,30 @@ def main() -> int:
         return 0
 
     prompt = str(event.get("prompt") or "")
+    if leave_prompt_alone(normalized(prompt)):
+        return 0
+
+    adapter_context = runtime_adapter_context(event, event_name, prompt)
+    if adapter_context is not None:
+        skill, reason = route_from_adapter(adapter_context)
+        runtime = runtime_context_from_adapter(adapter_context, prompt, skill)
+        if skill in ROUTE_CONTEXT:
+            context = "\n\n".join(part for part in [route_context(skill, reason), runtime] if part)
+            emit("UserPromptSubmit", context)
+        elif runtime:
+            emit("UserPromptSubmit", runtime)
+        return 0
+
     route = classify(prompt)
-    runtime = runtime_context(event, prompt)
+    runtime = fallback_runtime_context(event, prompt)
     if route is None:
         if runtime:
             emit("UserPromptSubmit", runtime)
         return 0
 
     skill, reason = route
-    route_reason, instruction = ROUTE_CONTEXT[skill]
-    route_context = (
-        f"WannaBuild autoroute: this prompt matches `{skill}` because it is a "
-        f"{route_reason} ({reason}). {instruction} Do not ask the user to type "
-        "a slash command first."
-    )
     context = "\n\n".join(
-        part for part in [route_context, runtime_context(event, prompt, skill)] if part
+        part for part in [route_context(skill, reason), fallback_runtime_context(event, prompt, skill)] if part
     )
     emit("UserPromptSubmit", context)
     return 0

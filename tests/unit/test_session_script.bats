@@ -92,7 +92,7 @@ setup() {
   [[ "$output" == *"Plan gate OK"* ]]
 }
 
-@test "session: assert-plan-ready passes with completed plan marker" {
+@test "session: assert-plan-ready rejects completed plan marker without real evidence" {
   mkdir -p "$TARGET/.wannabuild"
   cat >"$TARGET/.wannabuild/state.json" <<'JSON'
 {
@@ -111,8 +111,33 @@ setup() {
 }
 JSON
   run_script wannabuild-session.sh assert-plan-ready "$TARGET"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Plan gate failed"* ]]
+}
+
+@test "session: assert-plan-ready passes with completed design and tasks phase history" {
+  mkdir -p "$TARGET/.wannabuild"
+  cat >"$TARGET/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "implement",
+  "phase_status": "in_progress",
+  "public_stage": "implement",
+  "workflow_status": "in_progress",
+  "control_mode": "autonomous",
+  "public_stage_history": [
+    {"stage": "discover", "status": "complete", "timestamp": "2026-05-06T10:00:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  run_script wannabuild-session.sh assert-plan-ready "$TARGET"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"public_stage_history.plan"* ]]
+  [[ "$output" == *"phase_history.design+tasks"* ]]
 }
 
 @test "session: show fails before init" {
