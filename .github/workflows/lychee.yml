@@ -54,8 +54,9 @@ jobs:
         uses: lycheeverse/lychee-action@7cd0af4c74a61395d455af97419279d86aafaede
         with:
           # Pin to a recent lychee so config schema matches local dev
-          # (the action's default bundles an older lychee).
-          lycheeVersion: lychee-v0.24.2
+          # (the action's default bundles an older lychee). The action
+          # prefixes "lychee-" to this string when forming the download URL.
+          lycheeVersion: v0.24.2
           args: >-
             --config lychee.toml
             --cache
