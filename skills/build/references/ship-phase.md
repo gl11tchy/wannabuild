@@ -1,3 +1,5 @@
+> Internal reference: this preserves the legacy Ship phase contract for orchestrator use; it is not a public top-level Claude-discoverable skill surface.
+
 # WannaBuild: Ship Phase
 
 > "Let's get this merged."

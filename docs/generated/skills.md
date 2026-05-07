@@ -13,7 +13,6 @@ Workflow and phase contracts available to the orchestrator.
 | `wannabuild-requirements` | — | `skills/requirements/SKILL.md` | Vision-first requirements discovery for WannaBuild. Interviews the user conversationally, synthesizes the product brief, and derives requirements, acceptance criteria, and integration scenarios after the vision is clear. |
 | `research` | — | `skills/research/SKILL.md` | > Optional multi-agent research before planning. |
 | `review` | — | `skills/review/SKILL.md` | > "Does the code match the spec?" |
-| `ship` | — | `skills/ship/SKILL.md` | > "Let's get this merged." |
 | `tasks` | — | `skills/tasks/SKILL.md` | > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests. |
 | `using-wannabuild` | WannaBuild: Guide | `skills/using-wannabuild/SKILL.md` | Intro skill for starting or continuing the WannaBuild full-loop workflow from natural language or any phase skill entrypoint. |
 | `wannabuild` | WannaBuild: Full Loop | `skills/wannabuild/SKILL.md` | Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts and any WannaBuild phase skill entrypoint. |

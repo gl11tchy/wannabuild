@@ -108,6 +108,17 @@ check_file() {
   fi
 }
 
+check_absent_file() {
+  local path="$1"
+  local label="${2:-$path absent}"
+  if [[ -e "$ROOT/$path" || -L "$ROOT/$path" ]]; then
+    _fail "FAIL  $label"
+    return 1
+  else
+    _pass "PASS  $label"
+  fi
+}
+
 check_dir() {
   local path="$1"
   if [[ -d "$ROOT/$path" ]]; then
@@ -210,6 +221,8 @@ check_file "README.md" || status=1
 check_file "AGENTS.md" || status=1
 check_file "skills/build/SKILL.md" || status=1
 check_file "skills/build/references/advisor-escalation.md" || status=1
+check_file "skills/build/references/ship-phase.md" || status=1
+check_absent_file "skills/ship/SKILL.md" "legacy ship skill must stay out of top-level Claude-discoverable skills" || status=1
 check_file "skills/wannabuild/SKILL.md" || status=1
 check_file "skills/using-wannabuild/SKILL.md" || status=1
 check_file "skills/research/SKILL.md" || status=1

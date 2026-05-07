@@ -133,7 +133,7 @@ Use these contracts as needed. If installed via the Claude Code marketplace, the
 - `skills/tasks/SKILL.md`
 - `skills/implement/SKILL.md`
 - `skills/review/SKILL.md`
-- `skills/ship/SKILL.md`
+- `skills/build/references/ship-phase.md`
 - `skills/document/SKILL.md`
 
 > **Optional scripts (repo install only):** `scripts/validate-wannabuild-artifacts.sh` can be used for artifact validation if the WannaBuild repo is accessible. It is not required for normal skill execution.
