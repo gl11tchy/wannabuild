@@ -420,7 +420,7 @@ Path: `scripts/install-factory-plugin.sh`
 - `-d`
 - `-e`
 - `-f`
-- _6 more omitted._
+- _9 more omitted._
 
 ## `lint.sh`
 
@@ -577,9 +577,9 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_file`
 - `check_json_key`
 - `check_link_target`
+- `check_no_symlinks_under`
 - `check_not_contains`
-- `check_optional_user_file`
-- _3 more omitted._
+- _5 more omitted._
 
 ### CLI flags / options observed
 
@@ -589,8 +589,12 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-e`
 - `-f`
 - `-n`
+- `-p`
+- `-q`
+- `-s`
 - `-t`
 - `-v`
+- `-z`
 
 ## `wannabuild-gate-check.sh`
 

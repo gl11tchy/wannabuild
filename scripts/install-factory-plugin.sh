@@ -167,6 +167,12 @@ KNOWN_MARKETPLACES="${FACTORY_PLUGINS}/known_marketplaces.json"
 INSTALLED_PLUGINS="${FACTORY_PLUGINS}/installed_plugins.json"
 VERSION="${WANNABUILD_FACTORY_VERSION:-$(git -C "$ROOT" rev-parse --short=12 HEAD 2>/dev/null || printf 'local')}"
 
+ADAPTER_SYMLINK="$(find "$ADAPTER" -mindepth 1 -type l -print -quit 2>/dev/null || true)"
+if [[ -n "$ADAPTER_SYMLINK" ]]; then
+  echo "Install verification failed: Factory adapter must be self-contained; found symlink: ${ADAPTER_SYMLINK#"$ROOT/"}" >&2
+  exit 1
+fi
+
 mkdir -p "$PLUGIN_CACHE_PARENT" "$DROIDS_DIR" "$(dirname "$KNOWN_MARKETPLACES")" "$(dirname "$INSTALLED_PLUGINS")"
 
 safe_remove_existing "$PLUGIN_CACHE"
