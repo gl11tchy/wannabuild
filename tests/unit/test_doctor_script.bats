@@ -68,6 +68,15 @@ _copy_repo() {
   [[ "$output" == *"FAIL  skills/wb-build/SKILL.md"* ]]
 }
 
+@test "doctor: FAILs when legacy ship skill is present in top-level Claude surface" {
+  copy="$(_copy_repo)"
+  mkdir -p "$copy/skills/ship"
+  printf '# Legacy Ship Skill\n' > "$copy/skills/ship/SKILL.md"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  legacy ship skill must stay out of top-level Claude-discoverable skills"* ]]
+}
+
 @test "doctor: FAILs when a required phase command is removed" {
   copy="$(_copy_repo)"
   rm -f "$copy/commands/wb-build.md"

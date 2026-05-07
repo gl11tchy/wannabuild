@@ -35,6 +35,18 @@ run_install() {
   [ -e "$cache/hooks/hooks.json" ]
 }
 
+@test "install-claude-skill: exposes public wb-ship skill but not legacy ship skill" {
+  fake_home="$(setup_tmpdir)/host"
+  mkdir -p "$fake_home"
+
+  run run_install "$fake_home"
+  [ "$status" -eq 0 ]
+
+  cache="$fake_home/.claude/plugins/cache/gl11tchy/wannabuild/local"
+  [ -e "$cache/skills/wb-ship/SKILL.md" ]
+  [ ! -e "$cache/skills/ship/SKILL.md" ]
+}
+
 @test "install-claude-skill: installed hooks.json is the unwrapped event-map shape" {
   fake_home="$(setup_tmpdir)/host"
   mkdir -p "$fake_home"

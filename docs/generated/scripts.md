@@ -570,6 +570,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `_fail`
 - `_pass`
 - `_warn`
+- `check_absent_file`
 - `check_command`
 - `check_contains`
 - `check_dir`
@@ -578,8 +579,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_link_target`
 - `check_not_contains`
 - `check_optional_user_file`
-- `resolve_host_home`
-- _2 more omitted._
+- _3 more omitted._
 
 ### CLI flags / options observed
 
