@@ -367,16 +367,21 @@ Path: `scripts/install-codex-skill.sh`
 ### Functions
 
 - `create_skill_link`
+- `install_codex_runtime`
 - `install_repo_skill`
 - `is_windows_mount_path`
 - `ps_literal`
 - `resolve_host_home`
+- `runtime_binary_source`
 - `safe_remove_existing`
 - `to_windows_path`
 - `windows_powershell`
 
 ### CLI flags / options observed
 
+- `--bin`
+- `--manifest-path`
+- `--quiet`
 - `-C`
 - `-F`
 - `-I`
@@ -386,10 +391,7 @@ Path: `scripts/install-codex-skill.sh`
 - `-R`
 - `-T`
 - `-d`
-- `-e`
-- `-f`
-- `-m`
-- _7 more omitted._
+- _11 more omitted._
 
 ## `install-factory-plugin.sh`
 
@@ -583,6 +585,8 @@ Path: `scripts/wannabuild-doctor.sh`
 
 ### CLI flags / options observed
 
+- `--manifest-path`
+- `--quiet`
 - `-F`
 - `-L`
 - `-d`
@@ -593,8 +597,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-q`
 - `-s`
 - `-t`
-- `-v`
-- `-z`
+- _2 more omitted._
 
 ## `wannabuild-gate-check.sh`
 
@@ -602,6 +605,7 @@ Path: `scripts/wannabuild-gate-check.sh`
 
 ### Functions
 
+- `codex_runtime_bin`
 - `run_runtime_gate`
 - `runtime_command_for_gate`
 - `runtime_unavailable`
@@ -625,6 +629,8 @@ Path: `scripts/wannabuild-session.sh`
 
 ### Functions
 
+- `codex_runtime_bin`
+- `run_runtime_plan_gate`
 - `runtime_plan_gate`
 - `usage`
 
@@ -639,6 +645,7 @@ Path: `scripts/wannabuild-session.sh`
 - `-l`
 - `-n`
 - `-v`
+- `-x`
 
 ## `wannabuild-workspace.sh`
 
