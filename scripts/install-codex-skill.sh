@@ -124,10 +124,12 @@ create_skill_link() {
 HOST_HOME="$(resolve_host_home)"
 CODEX_BASE="${CODEX_HOME:-${HOST_HOME}/.codex}"
 TARGET="${CODEX_SKILLS_DIR:-${CODEX_BASE}/skills}"
+RUNTIME_TARGET="${CODEX_RUNTIME_DIR:-${CODEX_BASE}/bin}"
 
-mkdir -p "$TARGET"
+mkdir -p "$TARGET" "$RUNTIME_TARGET"
 
 installed=()
+installed_runtime=""
 
 install_repo_skill() {
   local name="$1"
@@ -142,6 +144,42 @@ install_repo_skill() {
   installed+=("$TARGET/$name")
 }
 
+runtime_binary_source() {
+  local source="$ROOT/target/debug/wb-runtime"
+  if [[ -x "$source" ]]; then
+    printf '%s\n' "$source"
+  elif [[ -x "${source}.exe" ]]; then
+    printf '%s\n' "${source}.exe"
+  else
+    return 1
+  fi
+}
+
+install_codex_runtime() {
+  local source name dest
+
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "Codex runtime install failed: cargo is required to build wb-runtime." >&2
+    return 1
+  fi
+
+  cargo build --quiet --manifest-path "$ROOT/Cargo.toml" --bin wb-runtime
+  source="$(runtime_binary_source)" || {
+    echo "Codex runtime install failed: built wb-runtime binary was not found." >&2
+    return 1
+  }
+
+  name="$(basename "$source")"
+  dest="$RUNTIME_TARGET/$name"
+  cp "$source" "$dest"
+  chmod +x "$dest"
+  if [[ ! -x "$dest" ]]; then
+    echo "Codex runtime install verification failed for $dest" >&2
+    return 1
+  fi
+  installed_runtime="$dest"
+}
+
 install_repo_skill "wannabuild"
 install_repo_skill "using-wannabuild"
 
@@ -151,13 +189,22 @@ if [[ -d "$ROOT/skills" ]]; then
   done < <(find "$ROOT/skills" -mindepth 2 -maxdepth 2 -type f -path '*/wb-*/SKILL.md' | LC_ALL=C sort)
 fi
 
+install_codex_runtime
+
 echo "Installed Codex skills:"
 for path in "${installed[@]}"; do
   echo "- $path"
 done
 echo
+echo "Installed Codex runtime:"
+echo "- $installed_runtime"
+echo
 echo "Verified Codex skills target:"
 echo "  $TARGET"
+echo
+echo "Verified Codex runtime target:"
+echo "  $RUNTIME_TARGET"
+echo "Add this directory to PATH if Codex cannot find wb-runtime."
 echo
 echo "Restart Codex, then type a natural feature request."
 echo "Explicit shortcut remains available: \$wannabuild"

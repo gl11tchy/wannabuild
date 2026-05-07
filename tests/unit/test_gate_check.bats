@@ -27,17 +27,39 @@ setup() {
 
 @test "gate_check: fails clearly when runtime is unavailable" {
   fake_repo="$(setup_tmpdir)/fake-repo"
+  fake_home="$(setup_tmpdir)/empty-home"
   mkdir -p "$fake_repo/scripts"
   cp "$SCRIPTS_DIR/wannabuild-gate-check.sh" "$fake_repo/scripts/wannabuild-gate-check.sh"
 
   set +e
-  actual_output="$(env -u WB_RUNTIME_BIN PATH="/usr/bin:/bin" \
+  actual_output="$(env -u WB_RUNTIME_BIN -u CODEX_HOME HOME="$fake_home" PATH="/usr/bin:/bin" \
     bash "$fake_repo/scripts/wannabuild-gate-check.sh" "$TARGET" review 2>&1)"
   actual_status=$?
   set -e
 
   [ "$actual_status" -eq 127 ]
   [[ "$actual_output" == *"Runtime unavailable: wb-runtime is required to evaluate the 'review' gate."* ]]
+}
+
+@test "gate_check: finds Codex-installed runtime outside PATH" {
+  fake_repo="$(setup_tmpdir)/fake-repo"
+  codex_home="$(setup_tmpdir)/codex-home"
+  mkdir -p "$fake_repo/scripts" "$codex_home/bin"
+  cp "$SCRIPTS_DIR/wannabuild-gate-check.sh" "$fake_repo/scripts/wannabuild-gate-check.sh"
+  cat >"$codex_home/bin/wb-runtime" <<'SH'
+#!/usr/bin/env bash
+echo "Review gate OK: codex-runtime-bin"
+SH
+  chmod +x "$codex_home/bin/wb-runtime"
+
+  set +e
+  actual_output="$(env -u WB_RUNTIME_BIN CODEX_HOME="$codex_home" PATH="/usr/bin:/bin" \
+    bash "$fake_repo/scripts/wannabuild-gate-check.sh" "$TARGET" review 2>&1)"
+  actual_status=$?
+  set -e
+
+  [ "$actual_status" -eq 0 ]
+  [[ "$actual_output" == *"codex-runtime-bin"* ]]
 }
 
 @test "gate_check: review gate fails when review dir is missing" {

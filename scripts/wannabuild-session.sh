@@ -36,38 +36,75 @@ state_file="$project_root/.wannabuild/state.json"
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
 runtime_plan_gate() {
-  local output status
-  if command -v wb-runtime >/dev/null 2>&1; then
-    set +e
-    output="$(wb-runtime assert-plan-ready --project "$project_root" 2>&1)"
-    status=$?
-    set -e
-    if [[ $status -eq 0 || "$output" == *"Plan gate failed"* ]]; then
-      if [[ $status -eq 0 ]]; then
-        printf '%s\n' "$output"
-      else
-        printf '%s\n' "$output" >&2
-      fi
-      return "$status"
+  local runtime_bin
+  if [[ -n "${WB_RUNTIME_BIN:-}" ]]; then
+    if [[ ! -x "$WB_RUNTIME_BIN" ]]; then
+      echo "Runtime unavailable: WB_RUNTIME_BIN is not executable: $WB_RUNTIME_BIN" >&2
+      return 127
     fi
+    run_runtime_plan_gate "$WB_RUNTIME_BIN"
+    return $?
   fi
 
-  if command -v cargo >/dev/null 2>&1 && [[ -f "$repo_root/crates/wb-runtime/Cargo.toml" ]]; then
-    set +e
-    output="$(cargo run --quiet --manifest-path "$repo_root/Cargo.toml" --bin wb-runtime -- assert-plan-ready --project "$project_root" 2>&1)"
-    status=$?
-    set -e
-    if [[ $status -eq 0 || "$output" == *"Plan gate failed"* ]]; then
-      if [[ $status -eq 0 ]]; then
-        printf '%s\n' "$output"
-      else
-        printf '%s\n' "$output" >&2
-      fi
-      return "$status"
-    fi
+  if runtime_bin="$(command -v wb-runtime 2>/dev/null)"; then
+    run_runtime_plan_gate "$runtime_bin"
+    return $?
   fi
 
+  if runtime_bin="$(codex_runtime_bin)"; then
+    run_runtime_plan_gate "$runtime_bin"
+    return $?
+  fi
+
+  if [[ -x "$repo_root/target/debug/wb-runtime" ]]; then
+    run_runtime_plan_gate "$repo_root/target/debug/wb-runtime"
+    return $?
+  fi
+
+  if [[ -x "$repo_root/target/debug/wb-runtime.exe" ]]; then
+    run_runtime_plan_gate "$repo_root/target/debug/wb-runtime.exe"
+    return $?
+  fi
+
+  if command -v cargo >/dev/null 2>&1 && [[ -f "$repo_root/Cargo.toml" ]]; then
+    run_runtime_plan_gate cargo run --quiet --manifest-path "$repo_root/Cargo.toml" --bin wb-runtime --
+    return $?
+  fi
+
+  echo "Runtime unavailable: wb-runtime is required to evaluate the plan gate." >&2
+  echo "Install wb-runtime, build $repo_root/target/debug/wb-runtime, or run with cargo available." >&2
   return 127
+}
+
+codex_runtime_bin() {
+  local codex_bin=""
+  if [[ -n "${CODEX_HOME:-}" ]]; then
+    codex_bin="$CODEX_HOME/bin"
+  elif [[ -n "${HOME:-}" ]]; then
+    codex_bin="$HOME/.codex/bin"
+  fi
+
+  if [[ -n "$codex_bin" && -x "$codex_bin/wb-runtime" ]]; then
+    printf '%s\n' "$codex_bin/wb-runtime"
+  elif [[ -n "$codex_bin" && -x "$codex_bin/wb-runtime.exe" ]]; then
+    printf '%s\n' "$codex_bin/wb-runtime.exe"
+  else
+    return 1
+  fi
+}
+
+run_runtime_plan_gate() {
+  local output status
+  set +e
+  output="$("$@" assert-plan-ready --project "$project_root" 2>&1)"
+  status=$?
+  set -e
+  if [[ $status -eq 0 ]]; then
+    printf '%s\n' "$output"
+  else
+    printf '%s\n' "$output" >&2
+  fi
+  return "$status"
 }
 
 if [[ "$command" == "assert-plan-ready" ]]; then
@@ -75,9 +112,8 @@ if [[ "$command" == "assert-plan-ready" ]]; then
   runtime_plan_gate || runtime_status=$?
   if [[ $runtime_status -eq 0 ]]; then
     exit 0
-  elif [[ $runtime_status -ne 127 ]]; then
-    exit "$runtime_status"
   fi
+  exit "$runtime_status"
 fi
 
 python3 - "$command" "$project_root" "$state_file" "${3:-}" "${4:-}" <<'PY'
@@ -111,32 +147,6 @@ def load_state():
 def write_state(state):
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
-
-def has_complete(history, key, value):
-    if not isinstance(history, list):
-        return False
-    for item in history:
-        if not isinstance(item, dict):
-            continue
-        if item.get(key) == value and item.get("status") == "complete":
-            return True
-    return False
-
-def plan_ready(state):
-    root = Path(project_root)
-    spec = root / ".wannabuild" / "spec"
-    artifacts_ready = (spec / "design.md").is_file() and (spec / "tasks.md").is_file()
-    state = state if isinstance(state, dict) else {}
-    phase_history = state.get("phase_history")
-    phase_plan_complete = has_complete(phase_history, "phase", "design") and has_complete(
-        phase_history, "phase", "tasks"
-    )
-    evidence = []
-    if artifacts_ready:
-        evidence.append("design.md+tasks.md")
-    if phase_plan_complete:
-        evidence.append("phase_history.design+tasks")
-    return bool(evidence), evidence
 
 if command == "init":
     ts = now()
@@ -200,16 +210,6 @@ elif command == "assert-stage":
     if actual != expected:
         raise SystemExit(f"Expected stage {expected!r}, got {actual!r}")
     print(f"Stage OK: {actual}")
-elif command == "assert-plan-ready":
-    state = load_state()
-    ready, evidence = plan_ready(state)
-    if not ready:
-        raise SystemExit(
-            "Plan gate failed: complete Plan before implementation "
-            "(requires .wannabuild/spec/design.md and .wannabuild/spec/tasks.md, "
-            "or completed design and tasks phase history in .wannabuild/state.json)"
-        )
-    print(f"Plan gate OK: {', '.join(evidence)}")
 else:
     raise SystemExit(f"Unknown command: {command}")
 PY

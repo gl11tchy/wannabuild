@@ -54,8 +54,18 @@ run_runtime_gate() {
     return
   fi
 
+  if runtime_bin="$(codex_runtime_bin)"; then
+    "$runtime_bin" "$runtime_command" --project "$project_root"
+    return
+  fi
+
   if [[ -x "$repo_root/target/debug/wb-runtime" ]]; then
     "$repo_root/target/debug/wb-runtime" "$runtime_command" --project "$project_root"
+    return
+  fi
+
+  if [[ -x "$repo_root/target/debug/wb-runtime.exe" ]]; then
+    "$repo_root/target/debug/wb-runtime.exe" "$runtime_command" --project "$project_root"
     return
   fi
 
@@ -66,6 +76,23 @@ run_runtime_gate() {
 
   runtime_unavailable
   return 127
+}
+
+codex_runtime_bin() {
+  local codex_bin=""
+  if [[ -n "${CODEX_HOME:-}" ]]; then
+    codex_bin="$CODEX_HOME/bin"
+  elif [[ -n "${HOME:-}" ]]; then
+    codex_bin="$HOME/.codex/bin"
+  fi
+
+  if [[ -n "$codex_bin" && -x "$codex_bin/wb-runtime" ]]; then
+    printf '%s\n' "$codex_bin/wb-runtime"
+  elif [[ -n "$codex_bin" && -x "$codex_bin/wb-runtime.exe" ]]; then
+    printf '%s\n' "$codex_bin/wb-runtime.exe"
+  else
+    return 1
+  fi
 }
 
 case "$gate" in

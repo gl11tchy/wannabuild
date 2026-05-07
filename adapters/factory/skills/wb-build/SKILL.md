@@ -12,7 +12,7 @@ Use this phase skill when the user invokes implementation or the active WannaBui
 Before any implementation phase work:
 
 - If no concrete task exists, ask for the actual goal first.
-- Before editing code, run `scripts/wannabuild-session.sh assert-plan-ready <project_root>` when available.
+- Before editing code, run `scripts/wannabuild-session.sh assert-plan-ready <project_root>`. If it fails or the runtime cannot execute, stop and return to Plan.
 - If planning is missing or incomplete, invoke/complete the WannaBuild planning phase before editing code.
 - Work in the current checkout by default.
 - Do not create an isolated worktree unless the user asks, selects implementation-time isolation, requests parallel implementation, or the risk justifies separation.

@@ -42,6 +42,7 @@ Provides:
 
 - `AGENTS.md` guidance
 - script-first workflows
+- Rust `wb-runtime` install through `scripts/install-codex-skill.sh`
 - local and web/cloud repo usage docs
 - full loop via `$wannabuild`; phase entry via phase-specific prompts
 - model-agnostic advisor escalation via read-only advisor equivalent when available
@@ -82,6 +83,7 @@ Provides:
 | Workflow contract | Yes | Co-primary | Reference | Co-primary |
 | `.wannabuild/` artifacts | Yes | Yes | Yes | Yes |
 | Validator script | Yes | Yes | Yes | Yes |
+| Rust workflow runtime | Yes | Installed by script | Repo/manual | Installed by repo script |
 | Daily-use dry runs | Yes | Yes | Reference | Yes |
 | Golden path demo | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |
@@ -89,7 +91,7 @@ Provides:
 | Full-loop invocation | Yes | Natural prompt, `$wannabuild` shortcut | Prompt/rules | Natural prompt, `/wannabuild` shortcut |
 | Phase entrypoint usage | Phase contract | Phase prompts | Prompt/rules | Natural prompt, `/wb-*` shortcuts |
 | Natural-language autorouting | Yes | Skill descriptions | Rules-driven | `SessionStart` + `UserPromptSubmit` hooks |
-| Plugin install path | No | Script symlink | No | Marketplace or script |
+| Plugin install path | No | Script skill links + runtime copy | No | Marketplace or script |
 | Repo-only usage | Yes | Yes | Yes | Yes |
 | Getting-started doc | No | Yes | No | Yes |
 | Advisor escalation | State/report contract | Read-only advisor equivalent | Prompt/report fallback | Read-only subagent or native Claude API advisor |

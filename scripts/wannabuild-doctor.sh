@@ -271,8 +271,12 @@ check_file "crates/wb-runtime/src/lib.rs" || status=1
 check_contains "hooks/wannabuild-route.py" "WannaBuild runtime state is active" "Claude hook injects active workflow runtime state" || status=1
 check_contains "hooks/wannabuild-route.py" "FORBIDDEN: do not implement or edit code" "Claude hook enforces implementation-before-plan guard" || status=1
 check_contains "scripts/wannabuild-session.sh" "assert-plan-ready" "Session helper exposes hard planning gate" || status=1
-check_contains "scripts/wannabuild-session.sh" "wb-runtime assert-plan-ready" "Session helper delegates planning gate to runtime when available" || status=1
+check_contains "scripts/wannabuild-session.sh" "Runtime unavailable: wb-runtime is required to evaluate the plan gate." "Session helper fails closed when runtime is unavailable" || status=1
+check_contains "scripts/install-codex-skill.sh" "cargo build --quiet --manifest-path" "Codex installer builds wb-runtime" || status=1
+check_contains "scripts/install-codex-skill.sh" "Installed Codex runtime" "Codex installer reports runtime install" || status=1
 check_contains "skills/wb-build/SKILL.md" "assert-plan-ready" "wb-build requires hard planning gate before editing" || status=1
+check_contains "skills/wb-ship/SKILL.md" "check CI status after the delivery action" "wb-ship checks CI after PR or push delivery" || status=1
+check_contains "skills/wb-ship/SKILL.md" "scripts/wannabuild-gate-check.sh <project_root> summary" "wb-ship runs runtime summary gate before final summary" || status=1
 echo
 echo "Adapters"
 check_dir "adapters" || status=1
