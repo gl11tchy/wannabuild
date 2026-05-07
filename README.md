@@ -55,6 +55,16 @@ Restart Codex, then:
 $wannabuild I want to add Stripe billing to my SaaS
 ```
 
+### Factory Droid
+
+```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
+./scripts/install-factory-plugin.sh
+```
+
+Restart Droid, then type a natural feature request or use `/wannabuild`.
+
 ### Cursor
 
 Load `.cursor/rules/wannabuild.mdc` from a clone of this repo, then describe the
@@ -184,9 +194,10 @@ Co-primary path (alongside Codex).
 ```text
 /plugin marketplace add gl11tchy/wannabuild
 /plugin install wannabuild@gl11tchy
+/reload-plugins
 ```
 
-Restart Claude Code, then:
+Then:
 
 ```text
 I want to build a Stripe billing flow for my SaaS
@@ -197,16 +208,22 @@ Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The insta
 **From repo:**
 
 ```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
 ./scripts/install-claude-skill.sh
 ```
 
-Then run `/reload-plugins` and start with a natural feature or ideation prompt.
+The repo installer registers and enables the local plugin under
+`~/.claude/plugins/`, verifies the hook shape, and points Claude Code at this
+checkout. Then run `/reload-plugins` and start with a natural feature or
+ideation prompt.
 
 See [adapters/claude-code/README.md](adapters/claude-code/README.md) and [.claude/INSTALL.md](.claude/INSTALL.md).
 
 ### Codex / Repo-First
 
-Use WannaBuild directly from the repo in Codex:
+Use WannaBuild directly from the repo in Codex. The installer links the
+repo-native skills into `~/.codex/skills/`:
 
 - [AGENTS.md](AGENTS.md)
 - [.codex/INSTALL.md](.codex/INSTALL.md)
@@ -220,6 +237,8 @@ Use WannaBuild directly from the repo in Codex:
 Install the Codex skills:
 
 ```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
 ./scripts/install-codex-skill.sh
 ```
 
@@ -233,14 +252,30 @@ Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skil
 
 ### Factory / Droid
 
-Install the Factory plugin and generated Droid specialists from this repo:
+Full install from the repo is recommended for Factory Droid because it installs
+both the plugin surface and the generated specialist droids:
 
 ```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
 ./scripts/install-factory-plugin.sh
 ```
 
-The installer registers the local marketplace/plugin, links `adapters/factory` into Factory's plugin cache, and writes the generated `wb-*` droids to `~/.factory/droids/`.
-Restart Droid, then start with a natural feature, planning, debug, review, QA, or ship request. Explicit plugin commands and skills remain available as shortcuts.
+The installer registers the local marketplace/plugin, links the self-contained
+`adapters/factory` plugin into Factory's plugin cache, and writes generated
+`wb-*` droids to `~/.factory/droids/`. Restart Droid, then start with a natural
+feature, planning, debug, review, QA, or ship request. Explicit `/wannabuild`
+and `/wb-*` plugin commands remain available as shortcuts.
+
+If you only need the packaged plugin commands and skills, you can install
+through Droid's plugin manager instead:
+
+```bash
+droid plugin marketplace add https://github.com/gl11tchy/wannabuild
+droid plugin install wannabuild@wannabuild
+```
+
+Use the repo installer for the complete generated `wb-*` Droid specialist set.
 
 ### Cursor
 
@@ -289,7 +324,7 @@ $wannabuild I wanna build a user authentication system with OAuth and magic link
 Droid:
 
 ```text
-I wanna build a user authentication system with OAuth and magic links
+/wannabuild I wanna build a user authentication system with OAuth and magic links
 ```
 
 ### Phase Skill Usage
@@ -306,7 +341,7 @@ Use natural phase prompts to enter or resume the loop at a specific phase:
 
 Phase skills display as `WannaBuild: <Skill>` in skill UI surfaces, with `wb-*` retained as the stable command/file shortcut. They stop after one phase only when the user explicitly limits the request.
 
-Claude Code command shortcuts:
+Claude Code and Droid command shortcuts:
 
 - `/wb-discover`: clarify vision, scope, flows, and acceptance criteria
 - `/wb-plan`: turn requirements into design, tasks, risks, and verification expectations
@@ -365,7 +400,7 @@ Core artifact roles:
 
 ## Trust Harness
 
-WannaBuild includes a host-neutral daily-use trust harness. It validates the behavior that must hold in both Claude Code and Codex:
+WannaBuild includes a host-neutral daily-use trust harness. It validates the behavior that must hold across Claude Code, Codex, and Factory Droid:
 
 - no-task invocation asks for the actual goal instead of inferring from repo state
 - concrete git tasks do not create worktrees until implementation-time isolation is selected
