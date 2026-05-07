@@ -7,6 +7,7 @@ Spec-driven development for indie builders.
 Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
 [![CI](https://github.com/gl11tchy/wannabuild/actions/workflows/ci.yml/badge.svg)](https://github.com/gl11tchy/wannabuild/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/gl11tchy/wannabuild/badge)](https://scorecard.dev/viewer/?uri=github.com/gl11tchy/wannabuild)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 ![Specialists](https://img.shields.io/badge/specialists-21-blue?style=flat-square)
 ![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
