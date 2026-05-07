@@ -23,6 +23,7 @@ Turn completed, reviewed, and QA-verified work into a clear ship-ready handoff, 
 
 - Confirm review and QA evidence before declaring work ready.
 - Do not hide failed or skipped checks.
+- Do not create draft PRs unless the user explicitly asks for a draft.
 - If a PR or pushed branch is involved, verify CI before final summary; failed CI routes back to remediation, and absent CI needs explicit user acknowledgment.
 - Keep release notes and PR text grounded in actual changes.
 - Run cleanup after the selected delivery action.
