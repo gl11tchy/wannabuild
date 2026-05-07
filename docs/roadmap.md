@@ -101,7 +101,8 @@ time on PRs that won't land:
   hosted orchestrator.
 - **Replacing the host model** — Claude Code, Codex, Cursor, and Factory
   are the surface. WannaBuild does not ship its own model or its own
-  agent runtime.
+  host agent runtime; the local `wb-runtime` workflow kernel remains part of
+  the shipped toolchain.
 - **Frontend UI** — there is no dashboard. The user experience is the
   host's chat UI plus repo artifacts under `.wannabuild/`.
 - **Feature flags / experimentation** — out of scope for the framework

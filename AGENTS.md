@@ -77,7 +77,7 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 - Exception: an explicit `wb-review` or `/wb-review` invocation is itself a concrete review task; if no target is named, review the current checkout changes by default and ask only when there is no reviewable diff.
 - Do not start planning or implementation without a concrete task.
 - Do not start implementation until Plan is complete.
-- Before implementation edits, run `scripts/wannabuild-session.sh assert-plan-ready .` when available. If it fails, return to Plan and do not edit implementation files.
+- Before implementation edits, run `scripts/wannabuild-session.sh assert-plan-ready .`. If it fails or the runtime cannot execute, return to Plan and do not edit implementation files.
 - Do not browse externally when no concrete task exists.
 - Do not create an isolated workspace/worktree during Discover, Plan, Review, QA, Summary, or explicitly phase-limited use.
 - Work in the current checkout by default.

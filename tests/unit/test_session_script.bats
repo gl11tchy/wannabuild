@@ -83,6 +83,39 @@ setup() {
   [[ "$output" == *"Plan gate failed"* ]]
 }
 
+@test "session: assert-plan-ready fails closed when runtime is unavailable" {
+  fake_repo="$(setup_tmpdir)/fake-repo"
+  fake_home="$(setup_tmpdir)/empty-home"
+  mkdir -p "$fake_repo/scripts"
+  cp "$SCRIPTS_DIR/wannabuild-session.sh" "$fake_repo/scripts/wannabuild-session.sh"
+
+  set +e
+  actual_output="$(env -u WB_RUNTIME_BIN -u CODEX_HOME HOME="$fake_home" PATH="/usr/bin:/bin" \
+    bash "$fake_repo/scripts/wannabuild-session.sh" assert-plan-ready "$TARGET" 2>&1)"
+  actual_status=$?
+  set -e
+
+  [ "$actual_status" -eq 127 ]
+  [[ "$actual_output" == *"Runtime unavailable: wb-runtime is required to evaluate the plan gate."* ]]
+}
+
+@test "session: assert-plan-ready finds Codex-installed runtime outside PATH" {
+  fake_repo="$(setup_tmpdir)/fake-repo"
+  codex_home="$(setup_tmpdir)/codex-home"
+  mkdir -p "$fake_repo/scripts" "$codex_home/bin"
+  cp "$SCRIPTS_DIR/wannabuild-session.sh" "$fake_repo/scripts/wannabuild-session.sh"
+  cat >"$codex_home/bin/wb-runtime" <<'SH'
+#!/usr/bin/env bash
+echo "Plan gate OK: codex-runtime-bin"
+SH
+  chmod +x "$codex_home/bin/wb-runtime"
+
+  run env -u WB_RUNTIME_BIN CODEX_HOME="$codex_home" PATH="/usr/bin:/bin" \
+    bash "$fake_repo/scripts/wannabuild-session.sh" assert-plan-ready "$TARGET"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"codex-runtime-bin"* ]]
+}
+
 @test "session: assert-plan-ready passes with plan artifacts" {
   mkdir -p "$TARGET/.wannabuild/spec"
   printf 'design\n' >"$TARGET/.wannabuild/spec/design.md"

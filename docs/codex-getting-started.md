@@ -24,7 +24,7 @@ I want to build a Stripe billing flow for my SaaS
 ```
 
 Codex should select the installed WannaBuild skills automatically when natural-language prompts match build, planning, debug, review, QA, or ship intent. `$wannabuild` and the `wb-*` skills are explicit shortcuts and phase entrypoints into the full loop by default. In skill UI surfaces, packaged metadata presents the phase skills as `WannaBuild: Build`, `WannaBuild: Debug`, `WannaBuild: Review`, `WannaBuild: Ship`, and the matching phase names.
-Codex does not currently install the Claude hook runtime; before implementation, use the same hard planning gate through `scripts/wannabuild-session.sh assert-plan-ready <project_root>` when available.
+Codex does not use Claude Code hooks; the Codex installer builds and copies the host-neutral Rust `wb-runtime` into `~/.codex/bin` by default. Runtime gates are fail-closed: before implementation, use `scripts/wannabuild-session.sh assert-plan-ready <project_root>`, which exits non-zero if `wb-runtime` cannot execute. Add `~/.codex/bin` to `PATH` if Codex cannot find `wb-runtime`.
 Open-ended ideation prompts such as "I want to work on this some" or "let's brainstorm ideas" should start Discover automatically, then continue through the full loop once the goal is crisp enough.
 
 WannaBuild runs one standard workflow mode. It does not ask the user to choose between Full, Light, or Spark.

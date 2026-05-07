@@ -223,7 +223,7 @@ def fallback_runtime_context(
         )
     if route_skill == "wb-build":
         lines.append(
-            "- before_build: run `scripts/wannabuild-session.sh assert-plan-ready <project_root>` when available"
+            "- before_build: run `scripts/wannabuild-session.sh assert-plan-ready <project_root>`; stop if it fails or the runtime cannot execute"
         )
     return "\n".join(lines)
 
@@ -337,7 +337,7 @@ def runtime_context_from_adapter(
         )
     if route_skill == "wb-build":
         lines.append(
-            "- before_build: run `scripts/wannabuild-session.sh assert-plan-ready <project_root>` when available"
+            "- before_build: run `scripts/wannabuild-session.sh assert-plan-ready <project_root>`; stop if it fails or the runtime cannot execute"
         )
     return "\n".join(lines)
 

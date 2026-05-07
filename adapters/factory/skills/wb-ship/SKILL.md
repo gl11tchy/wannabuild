@@ -23,6 +23,7 @@ Turn completed, reviewed, and QA-verified work into a clear ship-ready handoff, 
 
 - Confirm review and QA evidence before declaring work ready.
 - Do not hide failed or skipped checks.
+- If a PR or pushed branch is involved, verify CI before final summary; failed CI routes back to remediation, and absent CI needs explicit user acknowledgment.
 - Keep release notes and PR text grounded in actual changes.
 - Run cleanup after the selected delivery action.
 - Use sub-agents only for distinct release, CI, documentation, or risk ownership.
@@ -39,8 +40,10 @@ Turn completed, reviewed, and QA-verified work into a clear ship-ready handoff, 
    - push directly to `origin/main`
    - stop after local preparation
 5. Execute the selected path.
-6. Run cleanup: prune/remove temporary worktrees when safe, delete local/remote topic branches when appropriate, remove generated transient files, and verify the final git status.
-7. Stop with a concise summary.
+6. If a PR or pushed branch is involved, check CI status after the delivery action.
+7. Run `scripts/wannabuild-gate-check.sh <project_root> summary`; stop if the runtime gate fails.
+8. Run cleanup: prune/remove temporary worktrees when safe, delete local/remote topic branches when appropriate, remove generated transient files, and verify the final git status.
+9. Stop with a concise summary.
 
 ## Output
 
