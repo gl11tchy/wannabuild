@@ -129,6 +129,31 @@ check_dir() {
   fi
 }
 
+check_no_symlinks_under() {
+  local path="$1"
+  local label="$2"
+  local found
+  found="$(find "$ROOT/$path" -type l -print -quit 2>/dev/null || true)"
+  if [[ -z "$found" ]]; then
+    _pass "PASS  $label"
+  else
+    _fail "FAIL  $label: ${found#"$ROOT/"}"
+    return 1
+  fi
+}
+
+check_same_file() {
+  local expected="$1"
+  local actual="$2"
+  local label="$3"
+  if [[ -f "$ROOT/$expected" && -f "$ROOT/$actual" ]] && cmp -s "$ROOT/$expected" "$ROOT/$actual"; then
+    _pass "PASS  $label"
+  else
+    _fail "FAIL  $label"
+    return 1
+  fi
+}
+
 check_link_target() {
   local link_path="$1"
   local expected_path="$2"
@@ -259,8 +284,15 @@ check_file ".cursor-plugin/plugin.json" || status=1
 check_file ".factory/droids/wb-advisor.md" || status=1
 check_file ".factory-plugin/marketplace.json" || status=1
 check_file "adapters/factory/.factory-plugin/plugin.json" || status=1
-check_file "adapters/factory/commands/wannabuild.md" || status=1
+check_no_symlinks_under "adapters/factory" "Factory adapter is self-contained (no symlinks)" || status=1
 check_file "adapters/factory/hooks/hooks.json" || status=1
+check_file "adapters/factory/hooks/wannabuild-route.py" || status=1
+check_same_file "hooks/hooks.json" "adapters/factory/hooks/hooks.json" "Factory adapter hooks manifest mirrors canonical hooks manifest" || status=1
+check_same_file "hooks/wannabuild-route.py" "adapters/factory/hooks/wannabuild-route.py" "Factory adapter hook router mirrors canonical hook router" || status=1
+for skill in "${UI_SKILLS[@]}"; do
+  check_file "adapters/factory/commands/${skill}.md" || status=1
+  check_same_file "commands/${skill}.md" "adapters/factory/commands/${skill}.md" "Factory adapter command /${skill} mirrors canonical command" || status=1
+done
 check_file ".claude-plugin/plugin.json" || status=1
 check_file ".claude-plugin/marketplace.json" || status=1
 echo
@@ -272,6 +304,7 @@ for skill in "${UI_SKILLS[@]}"; do
   check_file "skills/${skill}/agents/openai.yaml" || status=1
   check_contains "skills/${skill}/agents/openai.yaml" "display_name: \"${display_name}\"" "Skill UI metadata exposes ${display_name}" || status=1
   check_file "adapters/factory/skills/${skill}/SKILL.md" || status=1
+  check_same_file "skills/${skill}/SKILL.md" "adapters/factory/skills/${skill}/SKILL.md" "Factory adapter skill ${skill} mirrors canonical skill" || status=1
 done
 for skill in "${TOOLBOX_SKILLS[@]}"; do
   check_file "skills/${skill}/SKILL.md" || status=1

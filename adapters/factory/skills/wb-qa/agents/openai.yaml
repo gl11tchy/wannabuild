@@ -1,0 +1,7 @@
+interface:
+  display_name: "WannaBuild: QA"
+  short_description: "Validate acceptance and integration"
+  default_prompt: "Use $wb-qa to verify this change against acceptance criteria."
+  brand_color: "#111827"
+policy:
+  allow_implicit_invocation: true

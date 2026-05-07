@@ -85,6 +85,23 @@ _copy_repo() {
   [[ "$output" == *"FAIL  commands/wb-build.md"* ]]
 }
 
+@test "doctor: FAILs when Factory adapter contains symlinks" {
+  copy="$(_copy_repo)"
+  rm -rf "$copy/adapters/factory/commands"
+  ln -s ../../commands "$copy/adapters/factory/commands"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Factory adapter is self-contained (no symlinks)"* ]]
+}
+
+@test "doctor: FAILs when Factory adapter command copy drifts" {
+  copy="$(_copy_repo)"
+  printf '\nFactory adapter drift fixture\n' >> "$copy/adapters/factory/commands/wannabuild.md"
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  Factory adapter command /wannabuild mirrors canonical command"* ]]
+}
+
 @test "doctor: FAILs when required phase docs are removed" {
   copy="$(_copy_repo)"
   python3 - "$copy/README.md" <<'PY'

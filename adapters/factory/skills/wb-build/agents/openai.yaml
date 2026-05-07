@@ -1,0 +1,7 @@
+interface:
+  display_name: "WannaBuild: Build"
+  short_description: "Implement a concrete task or slice"
+  default_prompt: "Use $wb-build to implement this planned WannaBuild task."
+  brand_color: "#111827"
+policy:
+  allow_implicit_invocation: true

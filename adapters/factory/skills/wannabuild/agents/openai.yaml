@@ -1,0 +1,7 @@
+interface:
+  display_name: "WannaBuild: Full Loop"
+  short_description: "Run the full spec-driven workflow"
+  default_prompt: "Use $wannabuild to start the full WannaBuild loop for my project."
+  brand_color: "#111827"
+policy:
+  allow_implicit_invocation: true

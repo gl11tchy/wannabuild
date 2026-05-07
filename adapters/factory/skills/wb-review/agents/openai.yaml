@@ -1,0 +1,7 @@
+interface:
+  display_name: "WannaBuild: Review"
+  short_description: "Review changed code and contracts"
+  default_prompt: "Use $wb-review to review the current checkout changes."
+  brand_color: "#111827"
+policy:
+  allow_implicit_invocation: true
