@@ -58,6 +58,14 @@ assert_parity() {
   assert_parity "let's build a settings page" "wannabuild" "$project"
 }
 
+@test "host parity: repo-meta cleanup prompts route to wannabuild on every host" {
+  project="$(setup_tmpdir)/proj"
+  make_target_repo "$project" >/dev/null
+  "$WB_RUNTIME_BIN" init --project "$project" >/dev/null
+  assert_parity "clean up the duplicate slash commands" "wannabuild" "$project"
+  assert_parity "fix this plugin, the packaging is weird" "wannabuild" "$project"
+}
+
 @test "host parity: planning prompts route to wb-plan on every host" {
   project="$(setup_tmpdir)/proj"
   make_target_repo "$project" >/dev/null

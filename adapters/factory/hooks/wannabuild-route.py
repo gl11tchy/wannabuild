@@ -436,6 +436,18 @@ def classify(prompt: str) -> Optional[tuple[str, str]]:
     if has(r"\b(i want|i wanna|i need|we need|i'd like|id like|let's build|lets build|build me|build a|create a|add|new feature|functionality)\b", text):
         return ("wannabuild", "broad feature/change language")
 
+    if has(
+        r"\b(fix this|fix the|clean ?up|tidy up|tidy this|weird|messy|"
+        r"duplicate|duplicates|duplicated|"
+        r"why are there|why is there|why do we have|why does this|"
+        r"slash command|slash commands|slash menu|"
+        r"plugin packaging|plugin loader|repo plumbing|plumbing|"
+        r"this plugin|the plugin|our plugin|"
+        r"packaging|tooling|devtools|dev tools)\b",
+        text,
+    ):
+        return ("wannabuild", "repo-meta/cleanup/complaint language")
+
     return None
 
 

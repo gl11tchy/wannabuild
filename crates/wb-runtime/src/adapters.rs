@@ -257,6 +257,46 @@ pub fn classify_prompt(prompt: &str) -> PromptRoute {
     ) {
         return skill("wannabuild", "broad feature/change language", phase_limit);
     }
+    if contains_any(
+        &text,
+        &[
+            "fix this",
+            "fix the",
+            "clean up",
+            "cleanup",
+            "tidy up",
+            "tidy this",
+            "weird",
+            "messy",
+            "duplicate",
+            "duplicates",
+            "duplicated",
+            "why are there",
+            "why is there",
+            "why do we have",
+            "why does this",
+            "slash command",
+            "slash commands",
+            "slash menu",
+            "plugin packaging",
+            "plugin loader",
+            "repo plumbing",
+            "plumbing",
+            "this plugin",
+            "the plugin",
+            "our plugin",
+            "packaging",
+            "tooling",
+            "devtools",
+            "dev tools",
+        ],
+    ) {
+        return skill(
+            "wannabuild",
+            "repo-meta/cleanup/complaint language",
+            phase_limit,
+        );
+    }
 
     no_route("no WannaBuild route matched", false, phase_limit)
 }
@@ -385,6 +425,22 @@ mod tests {
             "wb-discover"
         );
         assert_eq!(classify_prompt("ok").route, "continue-current-phase");
+        assert_eq!(
+            classify_prompt("fix this plugin, the slash menu has duplicates").route,
+            "wannabuild"
+        );
+        assert_eq!(
+            classify_prompt("clean up the duplicate slash commands").route,
+            "wannabuild"
+        );
+        assert_eq!(
+            classify_prompt("why are there so many /wannabuild commands showing up").route,
+            "wannabuild"
+        );
+        assert_eq!(
+            classify_prompt("the plugin packaging is weird").route,
+            "wannabuild"
+        );
     }
 
     #[test]

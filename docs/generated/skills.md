@@ -14,7 +14,7 @@ Workflow and phase contracts available to the orchestrator.
 | `research` | — | `skills/internal/research/SKILL.md` | > Optional multi-agent research before planning. |
 | `review` | — | `skills/internal/review/SKILL.md` | > "Does the code match the spec?" |
 | `tasks` | — | `skills/internal/tasks/SKILL.md` | > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests. |
-| `using-wannabuild` | WannaBuild: Guide | `skills/using-wannabuild/SKILL.md` | Intro skill for starting or continuing the WannaBuild full-loop workflow from natural language or any phase skill entrypoint. |
+| `using-wannabuild` | WannaBuild: Guide | `skills/using-wannabuild/SKILL.md` | Use when starting any conversation that touches software work — establishes how to find and use WannaBuild skills, requiring skill invocation before ANY response including clarifying questions. |
 | `wannabuild` | WannaBuild: Full Loop | `skills/wannabuild/SKILL.md` | Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts and any WannaBuild phase skill entrypoint. |
 | `wb-build` | WannaBuild: Build | `skills/wb-build/SKILL.md` | WannaBuild implementation phase entrypoint for implementing a concrete plan or task with focused verification and adaptive delegation. |
 | `wb-debug` | WannaBuild: Debug | `skills/wb-debug/SKILL.md` | WannaBuild debugging implementation entrypoint for reproducing, diagnosing, fixing, and verifying bugs within the full loop. |

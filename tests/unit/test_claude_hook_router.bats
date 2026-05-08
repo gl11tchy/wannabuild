@@ -175,6 +175,25 @@ JSON
   [[ "$output" == *'`wb-review`'* ]]
 }
 
+@test "hook: repo-meta cleanup complaint routes to full WannaBuild loop" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"clean up the duplicate slash commands in the plugin"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+  [[ "$output" == *'repo-meta/cleanup/complaint language'* ]]
+}
+
+@test "hook: plugin-fix complaint routes to full WannaBuild loop" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"fix this plugin, why are there so many slash commands"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+}
+
+@test "hook: weird plugin packaging routes to full WannaBuild loop" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"the plugin packaging is weird"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+}
+
 @test "hook: explicit command is left alone" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"/wannabuild I want to build billing"}'
   [ "$status" -eq 0 ]
