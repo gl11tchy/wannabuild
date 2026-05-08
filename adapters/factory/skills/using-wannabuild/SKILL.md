@@ -34,7 +34,7 @@ If `AGENTS.md` or `CLAUDE.md` says "discovery only" and a skill says "continue t
 - **Factory:** the `wannabuild` and `wb-*` skills auto-route from natural language; no shortcut required.
 - **Cursor:** `.cursor/rules/wannabuild.mdc` is loaded automatically.
 
-# The Rule
+## The Rule
 
 **Invoke the relevant WannaBuild skill BEFORE any response or action when the user's request plausibly matches one.** Even a 1% chance a skill applies means you should invoke it. If it turns out wrong, drop it.
 
