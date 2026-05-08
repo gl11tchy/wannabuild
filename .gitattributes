@@ -22,4 +22,4 @@ docs/generated/** linguist-generated=true
 tests/fixtures/** linguist-vendored=true
 
 # Mark dry-run JSON as test data
-skills/build/dry-runs/** linguist-vendored=true
+skills/internal/build/dry-runs/** linguist-vendored=true

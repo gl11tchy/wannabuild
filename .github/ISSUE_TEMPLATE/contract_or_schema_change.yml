@@ -53,7 +53,7 @@ body:
       label: Validator and test impact
       description: |
         Which parts of `scripts/validate-wannabuild-artifacts.sh`,
-        `skills/build/schemas/*.schema.json`, and tests need to change?
+        `skills/internal/build/schemas/*.schema.json`, and tests need to change?
     validations:
       required: true
 
@@ -62,9 +62,9 @@ body:
     attributes:
       label: Confirmations
       options:
-        - label: I have updated `skills/build/references/artifact-contracts.md`.
+        - label: I have updated `skills/internal/build/references/artifact-contracts.md`.
           required: false
-        - label: I have updated the affected JSON schema(s) under `skills/build/schemas/`.
+        - label: I have updated the affected JSON schema(s) under `skills/internal/build/schemas/`.
           required: false
         - label: I have updated tests and dry-run fixtures.
           required: false

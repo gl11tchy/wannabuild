@@ -23,7 +23,7 @@ fi
 
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 ROOT="$(cd "$ROOT" && pwd)"
-DRY_RUN_DIR="$ROOT/skills/build/dry-runs"
+DRY_RUN_DIR="$ROOT/skills/internal/build/dry-runs"
 MANIFEST="$DRY_RUN_DIR/daily-use-trust-scenarios.json"
 GOLDEN_ROOT="$ROOT/docs/golden-path-demo"
 ARTIFACT_VALIDATOR="$ROOT/scripts/validate-wannabuild-artifacts.sh"

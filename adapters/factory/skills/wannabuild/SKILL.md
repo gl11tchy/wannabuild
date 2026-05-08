@@ -120,7 +120,7 @@ In full-loop mode, Discover should interview until the goal is crisp enough to f
 Use these contracts as needed. If installed via the Claude Code marketplace, these are available at their relative paths within the plugin. If working directly from the repo, they are at the same relative paths.
 
 - `AGENTS.md` (repo root) — primary operator contract
-- `skills/build/SKILL.md` — full orchestrator contract
+- `skills/internal/build/SKILL.md` — full orchestrator contract
 - `skills/wb-discover/SKILL.md` — discovery phase entrypoint
 - `skills/wb-plan/SKILL.md` — planning phase entrypoint
 - `skills/wb-build/SKILL.md` — implementation phase entrypoint
@@ -128,13 +128,13 @@ Use these contracts as needed. If installed via the Claude Code marketplace, the
 - `skills/wb-review/SKILL.md` — review phase entrypoint
 - `skills/wb-qa/SKILL.md` — QA phase entrypoint
 - `skills/wb-ship/SKILL.md` — ship/summary phase entrypoint
-- `skills/requirements/SKILL.md`
-- `skills/design/SKILL.md`
-- `skills/tasks/SKILL.md`
-- `skills/implement/SKILL.md`
-- `skills/review/SKILL.md`
-- `skills/build/references/ship-phase.md`
-- `skills/document/SKILL.md`
+- `skills/internal/requirements/SKILL.md`
+- `skills/internal/design/SKILL.md`
+- `skills/internal/tasks/SKILL.md`
+- `skills/internal/implement/SKILL.md`
+- `skills/internal/review/SKILL.md`
+- `skills/internal/build/references/ship-phase.md`
+- `skills/internal/document/SKILL.md`
 
 > **Optional scripts (repo install only):** `scripts/validate-wannabuild-artifacts.sh` can be used for artifact validation if the WannaBuild repo is accessible. It is not required for normal skill execution.
 

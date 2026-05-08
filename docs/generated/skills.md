@@ -6,14 +6,14 @@ Workflow and phase contracts available to the orchestrator.
 
 | Skill | Display Name | Path | Description |
 |---|---|---|---|
-| `build` | — | `skills/build/SKILL.md` | > "What do you wanna build?" |
-| `design` | — | `skills/design/SKILL.md` | > Phase 2 of 7 in the WannaBuild SDD pipeline. Transforms requirements into a technical blueprint with architecture, tech stack decisions, data models, API contracts, testing strategy, and risk assessment. |
-| `document` | — | `skills/document/SKILL.md` | > "What would confuse future-you? Write that down." |
-| `implement` | — | `skills/implement/SKILL.md` | > "Let's build this thing." |
-| `wannabuild-requirements` | — | `skills/requirements/SKILL.md` | Vision-first requirements discovery for WannaBuild. Interviews the user conversationally, synthesizes the product brief, and derives requirements, acceptance criteria, and integration scenarios after the vision is clear. |
-| `research` | — | `skills/research/SKILL.md` | > Optional multi-agent research before planning. |
-| `review` | — | `skills/review/SKILL.md` | > "Does the code match the spec?" |
-| `tasks` | — | `skills/tasks/SKILL.md` | > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests. |
+| `build` | — | `skills/internal/build/SKILL.md` | > "What do you wanna build?" |
+| `design` | — | `skills/internal/design/SKILL.md` | > Phase 2 of 7 in the WannaBuild SDD pipeline. Transforms requirements into a technical blueprint with architecture, tech stack decisions, data models, API contracts, testing strategy, and risk assessment. |
+| `document` | — | `skills/internal/document/SKILL.md` | > "What would confuse future-you? Write that down." |
+| `implement` | — | `skills/internal/implement/SKILL.md` | > "Let's build this thing." |
+| `wannabuild-requirements` | — | `skills/internal/requirements/SKILL.md` | Vision-first requirements discovery for WannaBuild. Interviews the user conversationally, synthesizes the product brief, and derives requirements, acceptance criteria, and integration scenarios after the vision is clear. |
+| `research` | — | `skills/internal/research/SKILL.md` | > Optional multi-agent research before planning. |
+| `review` | — | `skills/internal/review/SKILL.md` | > "Does the code match the spec?" |
+| `tasks` | — | `skills/internal/tasks/SKILL.md` | > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests. |
 | `using-wannabuild` | WannaBuild: Guide | `skills/using-wannabuild/SKILL.md` | Intro skill for starting or continuing the WannaBuild full-loop workflow from natural language or any phase skill entrypoint. |
 | `wannabuild` | WannaBuild: Full Loop | `skills/wannabuild/SKILL.md` | Automatic repo-native WannaBuild full-loop workflow for natural "I want to build/add/change..." prompts and any WannaBuild phase skill entrypoint. |
 | `wb-build` | WannaBuild: Build | `skills/wb-build/SKILL.md` | WannaBuild implementation phase entrypoint for implementing a concrete plan or task with focused verification and adaptive delegation. |

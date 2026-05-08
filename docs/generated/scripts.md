@@ -284,7 +284,7 @@ Inputs:
   - scripts/*.sh
   - agents/*.md
   - skills/*/SKILL.md, skills/*/*/SKILL.md
-  - skills/build/schemas/*.json
+  - skills/internal/build/schemas/*.json
 
 Outputs:
   - docs/generated/index.md

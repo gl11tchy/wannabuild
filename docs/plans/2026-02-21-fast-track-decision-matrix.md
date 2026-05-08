@@ -4,7 +4,7 @@
 
 **Goal:** Define and implement a deterministic fast-track review pathway with explicit fallback rules so low-risk changes stay fast without weakening hard gates.
 
-**Architecture:** Keep the framework behavior in documentation artifacts only. Centralize policy in `AGENTS.md`, then align orchestrator guidance in `skills/build/SKILL.md`, and make reviewer behavior explicit in `skills/review/SKILL.md`. This creates one source for decision criteria and two explicit consumers so execution and expectations stay consistent.
+**Architecture:** Keep the framework behavior in documentation artifacts only. Centralize policy in `AGENTS.md`, then align orchestrator guidance in `skills/internal/build/SKILL.md`, and make reviewer behavior explicit in `skills/internal/review/SKILL.md`. This creates one source for decision criteria and two explicit consumers so execution and expectations stay consistent.
 
 **Tech Stack:** Markdown documentation updates, shell-based file operations, git.
 
@@ -61,7 +61,7 @@ git commit -m "docs: add deterministic fast-track decision matrix"
 
 **Files:**
 
-- Modify: `skills/build/SKILL.md`
+- Modify: `skills/internal/build/SKILL.md`
 
 ### Step 1: Add an execution default section that mirrors the matrix criteria
 
@@ -88,7 +88,7 @@ The integration hard gate is never bypassed.
 Run:
 
 ```bash
-rg -n "Fast-Track Review Decision Matrix|files_changed|fallback" skills/build/SKILL.md
+rg -n "Fast-Track Review Decision Matrix|files_changed|fallback" skills/internal/build/SKILL.md
 ```
 
 Expected: one section with all required criteria and a mandatory fallback line.
@@ -96,7 +96,7 @@ Expected: one section with all required criteria and a mandatory fallback line.
 ### Step 3: Commit this task
 
 ```bash
-git add skills/build/SKILL.md
+git add skills/internal/build/SKILL.md
 git commit -m "docs: align build skill with fast-track matrix"
 ```
 
@@ -104,7 +104,7 @@ git commit -m "docs: align build skill with fast-track matrix"
 
 **Files:**
 
-- Modify: `skills/review/SKILL.md`
+- Modify: `skills/internal/review/SKILL.md`
 
 ### Step 1: Add fast-track fallback contract to review execution rules
 
@@ -125,7 +125,7 @@ Insert immediately after the reviewer set section:
 Run:
 
 ```bash
-rg -n "Fast-Track|full base reviewer set|integration tester|hard gate" skills/review/SKILL.md
+rg -n "Fast-Track|full base reviewer set|integration tester|hard gate" skills/internal/review/SKILL.md
 ```
 
 Expected: fast-track section appears once and references full-set fallback and hard-gate invariance.
@@ -133,7 +133,7 @@ Expected: fast-track section appears once and references full-set fallback and h
 ### Step 3: Commit this task
 
 ```bash
-git add skills/review/SKILL.md
+git add skills/internal/review/SKILL.md
 git commit -m "docs: define fast-track review contract and fallback behavior"
 ```
 
@@ -149,14 +149,14 @@ Expected output:
 
 ```text
 AGENTS.md
-skills/build/SKILL.md
-skills/review/SKILL.md
+skills/internal/build/SKILL.md
+skills/internal/review/SKILL.md
 ```
 
 ### Step 2: Spot-check for ambiguous criteria drift
 
 ```bash
-rg -n "Fast-Track|fallback|hard gate|integration tester" AGENTS.md skills/build/SKILL.md skills/review/SKILL.md
+rg -n "Fast-Track|fallback|hard gate|integration tester" AGENTS.md skills/internal/build/SKILL.md skills/internal/review/SKILL.md
 ```
 
 Expected: matching terminology across files.

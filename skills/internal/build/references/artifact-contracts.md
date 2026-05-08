@@ -4,12 +4,12 @@ WannaBuild runtime data in `.wannabuild/` is interpreted from these contracts.
 
 ## Schema Sources
 
-- `skills/build/schemas/state.schema.json`
-- `skills/build/schemas/loop-state.schema.json`
-- `skills/build/schemas/review-verdict.schema.json`
-- `skills/build/schemas/checkpoint.schema.json`
-- `skills/build/schemas/config.schema.json`
-- `skills/build/schemas/workspace.schema.json`
+- `skills/internal/build/schemas/state.schema.json`
+- `skills/internal/build/schemas/loop-state.schema.json`
+- `skills/internal/build/schemas/review-verdict.schema.json`
+- `skills/internal/build/schemas/checkpoint.schema.json`
+- `skills/internal/build/schemas/config.schema.json`
+- `skills/internal/build/schemas/workspace.schema.json`
 
 Use these with `scripts/validate-wannabuild-artifacts.sh`.
 
@@ -177,7 +177,7 @@ Optional configuration file that overrides workflow defaults. All keys are optio
 - `advisor_record_decisions` (boolean, default true)
 - `advisor_on_limit` (`pause-and-ask` | `error` | `strict-block`)
 
-Schema: `skills/build/schemas/config.schema.json`
+Schema: `skills/internal/build/schemas/config.schema.json`
 
 ## `.wannabuild/workspace.json`
 
@@ -192,7 +192,7 @@ Created only when implementation-time worktree isolation is selected. Tracks the
 - `branch_name` (string): Git branch name for the worktree
 - `dirty_snapshot` (boolean): Whether uncommitted changes were present at creation time
 
-Schema: `skills/build/schemas/workspace.schema.json`
+Schema: `skills/internal/build/schemas/workspace.schema.json`
 
 ## `.wannabuild/outputs/*.md` and `review/*.json`
 

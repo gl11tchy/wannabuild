@@ -8,7 +8,7 @@
 #   - scripts/*.sh
 #   - agents/*.md
 #   - skills/*/SKILL.md, skills/*/*/SKILL.md
-#   - skills/build/schemas/*.json
+#   - skills/internal/build/schemas/*.json
 #
 # Outputs:
 #   - docs/generated/index.md
@@ -297,10 +297,10 @@ generate_skills_md() {
 generate_schemas_md() {
   local out="${OUT_DIR}/schemas.md"
   local sources
-  sources="$(cd "${ROOT_DIR}" && ls skills/build/schemas/*.json 2>/dev/null | sort || true)"
+  sources="$(cd "${ROOT_DIR}" && ls skills/internal/build/schemas/*.json 2>/dev/null | sort || true)"
 
   {
-    printf '%s Source: skills/build/schemas/*.json -->\n\n' "${GENERATED_BY}"
+    printf '%s Source: skills/internal/build/schemas/*.json -->\n\n' "${GENERATED_BY}"
     printf '# Schemas\n\n'
     printf 'JSON schemas consumed by `scripts/validate-wannabuild-artifacts.sh`.\n\n'
 
@@ -369,7 +369,7 @@ generate_index_md() {
     printf -- '- [Scripts](scripts.md) — every `scripts/*.sh` with description, functions, and flags\n'
     printf -- '- [Agents](agents.md) — specialist agent prompts (`agents/*.md`)\n'
     printf -- '- [Skills](skills.md) — workflow contracts (`skills/**/SKILL.md`)\n'
-    printf -- '- [Schemas](schemas.md) — JSON schemas (`skills/build/schemas/*.json`)\n'
+    printf -- '- [Schemas](schemas.md) — JSON schemas (`skills/internal/build/schemas/*.json`)\n'
   } >"${out}"
 }
 

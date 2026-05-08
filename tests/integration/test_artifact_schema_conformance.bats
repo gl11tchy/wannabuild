@@ -5,7 +5,7 @@
 # invalid.
 #
 # This is a behavioral conformance check: the validator's accept/reject
-# behavior is the contract for the schemas in skills/build/schemas/.
+# behavior is the contract for the schemas in skills/internal/build/schemas/.
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 

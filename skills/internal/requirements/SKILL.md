@@ -23,7 +23,7 @@ Do not hard-code agent count or force both agents every time.
 - Tiny, clear requests can stay single-owner.
 - Medium or ambiguous requests can use one or more focused analysis agents.
 - Complex, high-risk, or multi-surface requests can use parallel perspectives if they are independently useful.
-- Choose capability tier and reasoning effort per the adaptive delegation policy in `skills/build/SKILL.md`; do not name concrete model IDs in the requirements plan.
+- Choose capability tier and reasoning effort per the adaptive delegation policy in `skills/internal/build/SKILL.md`; do not name concrete model IDs in the requirements plan.
 - Record the delegation rationale in `.wannabuild/decisions.md` or the phase checkpoint: why agents were or were not used, what each owned, and what evidence they produced.
 
 ## Trigger Conditions

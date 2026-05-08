@@ -38,7 +38,7 @@
     ".git/**",
     ".factory/**",
     "node_modules/**",
-    "skills/build/dry-runs/**",
+    "skills/internal/build/dry-runs/**",
     "docs/generated/**",
     "tests/.bats/**",
     "tests/.bats-libs/**",

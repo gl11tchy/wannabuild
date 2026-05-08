@@ -21,7 +21,7 @@ top of the observability tree; follow the links below for specifics.
 The framework's runtime surfaces are:
 
 - Repo scripts under `scripts/` (linting, validation, install, doctor).
-- The orchestrator running inside a target project (`skills/build/`).
+- The orchestrator running inside a target project (`skills/internal/build/`).
 - GitHub Actions workflows (CI, release, security).
 
 ### Primitives

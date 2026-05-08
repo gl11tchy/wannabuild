@@ -21,7 +21,7 @@ The full plan is split into thematic sub-pages so each task is self-contained an
 | 3 | [`task-3-install-script.md`](2026-04-06-claude-code-parity/task-3-install-script.md) | Add `scripts/install-claude-skill.sh` for repo-based local install. |
 | 4 + 5 | [`tasks-4-5-install-docs.md`](2026-04-06-claude-code-parity/tasks-4-5-install-docs.md) | Create `.claude/INSTALL.md`; rewrite `adapters/claude-code/README.md`. |
 | 6 + 7 | [`tasks-6-7-host-docs.md`](2026-04-06-claude-code-parity/tasks-6-7-host-docs.md) | Add `docs/claude-code-getting-started.md`; update `docs/host-capability-matrix.md`. |
-| 8 + 9 | [`tasks-8-9-positioning.md`](2026-04-06-claude-code-parity/tasks-8-9-positioning.md) | Update `README.md`, `CLAUDE.md`, `AGENTS.md`, `skills/build/SKILL.md` positioning. |
+| 8 + 9 | [`tasks-8-9-positioning.md`](2026-04-06-claude-code-parity/tasks-8-9-positioning.md) | Update `README.md`, `CLAUDE.md`, `AGENTS.md`, `skills/internal/build/SKILL.md` positioning. |
 | 10 | [`task-10-verification.md`](2026-04-06-claude-code-parity/task-10-verification.md) | End-to-end verification. |
 
 ## Execution Notes

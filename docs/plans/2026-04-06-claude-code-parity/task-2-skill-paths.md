@@ -152,14 +152,14 @@ Replace with:
 Use these contracts as needed. If installed via the Claude Code marketplace, these are available at their relative paths within the plugin. If working directly from the repo, they are at the same relative paths.
 
 - `AGENTS.md` (repo root) — primary operator contract
-- `skills/build/SKILL.md` — full orchestrator contract
-- `skills/requirements/SKILL.md`
-- `skills/design/SKILL.md`
-- `skills/tasks/SKILL.md`
-- `skills/implement/SKILL.md`
-- `skills/review/SKILL.md`
-- `skills/ship/SKILL.md`
-- `skills/document/SKILL.md`
+- `skills/internal/build/SKILL.md` — full orchestrator contract
+- `skills/internal/requirements/SKILL.md`
+- `skills/internal/design/SKILL.md`
+- `skills/internal/tasks/SKILL.md`
+- `skills/internal/implement/SKILL.md`
+- `skills/internal/review/SKILL.md`
+- `skills/internal/ship/SKILL.md`
+- `skills/internal/document/SKILL.md`
 
 > **Optional scripts (repo install only):** `scripts/validate-wannabuild-artifacts.sh` can be used for artifact validation if the WannaBuild repo is accessible. It is not required for normal skill execution.
 ```

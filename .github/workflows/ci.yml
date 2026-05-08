@@ -215,7 +215,7 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          fixtures=(skills/build/dry-runs/*.json)
+          fixtures=(skills/internal/build/dry-runs/*.json)
           if [ "${#fixtures[@]}" -eq 0 ]; then
             echo "No dry-run fixtures found; skipping" >&2
             exit 0

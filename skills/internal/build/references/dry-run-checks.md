@@ -6,7 +6,7 @@ All dry-runs are intentionally low-effort and contract-focused.
 
 ## 1) Resume mid-cycle from checkpoint
 
-Fixture: `skills/build/dry-runs/resume-state.json`
+Fixture: `skills/internal/build/dry-runs/resume-state.json`
 
 Expected behavior:
 
@@ -31,7 +31,7 @@ Use case:
 
 ## 2) Standard mode with missing `design.md` before implement
 
-Fixture: `skills/build/dry-runs/standard-missing-design-state.json`
+Fixture: `skills/internal/build/dry-runs/standard-missing-design-state.json`
 
 Expected behavior:
 
@@ -56,7 +56,7 @@ Use case:
 
 ## 3) Reviewer routing ambiguity fallback
 
-Fixture: `skills/build/dry-runs/ambiguous-review-loop.json`
+Fixture: `skills/internal/build/dry-runs/ambiguous-review-loop.json`
 
 Expected behavior:
 
@@ -80,7 +80,7 @@ Use case:
 
 ## 4) Autonomous implementation advance without prompting
 
-Fixture: `skills/build/dry-runs/autonomous-control-mode-state.json`
+Fixture: `skills/internal/build/dry-runs/autonomous-control-mode-state.json`
 
 Expected behavior:
 
@@ -106,7 +106,7 @@ Use case:
 
 ## 5) Research burst completed before planning
 
-Fixture: `skills/build/dry-runs/research-gate-taken-state.json`
+Fixture: `skills/internal/build/dry-runs/research-gate-taken-state.json`
 
 Expected behavior:
 
@@ -130,7 +130,7 @@ Use case:
 
 ## 6) Implementation selection — workflow advances without a gate
 
-Fixture: `skills/build/dry-runs/implement-gate-denied-state.json`
+Fixture: `skills/internal/build/dry-runs/implement-gate-denied-state.json`
 
 Expected behavior:
 
@@ -154,7 +154,7 @@ Use case:
 
 ## 7) Advisor escalation triggered during implement
 
-Fixture: `skills/build/dry-runs/advisor-escalation-triggered-state.json`
+Fixture: `skills/internal/build/dry-runs/advisor-escalation-triggered-state.json`
 
 Expected behavior:
 
@@ -181,7 +181,7 @@ Use case:
 
 ## 8) QA failure with remediation loop — integration hard gate blocking ship
 
-Fixture: `skills/build/dry-runs/qa-failure-remediation-loop.json`
+Fixture: `skills/internal/build/dry-runs/qa-failure-remediation-loop.json`
 
 Expected behavior:
 

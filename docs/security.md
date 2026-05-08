@@ -57,7 +57,7 @@ contract) is a security regression even if the immediate output looks correct.
 
 **Mitigations:**
 
-- The orchestrator contract in `AGENTS.md` and `skills/build/SKILL.md`
+- The orchestrator contract in `AGENTS.md` and `skills/internal/build/SKILL.md`
   enumerates what it is allowed to do per phase.
 - Implementer agents — not the orchestrator — own all code modification.
 - The validator (`scripts/validate-wannabuild-artifacts.sh`) verifies that

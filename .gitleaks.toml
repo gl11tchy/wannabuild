@@ -40,7 +40,7 @@ description = "WannaBuild allowlist for fixtures, examples, and obvious placehol
 # example secret-like strings so detectors can be demonstrated.
 paths = [
   '''^tests/fixtures/.*''',
-  '''^skills/build/dry-runs/.*''',
+  '''^skills/internal/build/dry-runs/.*''',
   '''^docs/secrets-management\.md$''',
   '''^docs/log-scrubbing\.md$''',
   '''^\.secrets\.baseline$''',

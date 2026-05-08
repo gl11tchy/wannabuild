@@ -13,4 +13,4 @@ bash scripts/generate-docs.sh
 - [Scripts](scripts.md) — every `scripts/*.sh` with description, functions, and flags
 - [Agents](agents.md) — specialist agent prompts (`agents/*.md`)
 - [Skills](skills.md) — workflow contracts (`skills/**/SKILL.md`)
-- [Schemas](schemas.md) — JSON schemas (`skills/build/schemas/*.json`)
+- [Schemas](schemas.md) — JSON schemas (`skills/internal/build/schemas/*.json`)

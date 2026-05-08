@@ -112,13 +112,13 @@ The repo has three layers:
 
 1. **Operator contract** — `AGENTS.md` is the canonical source of truth for what the orchestrator must do. It defines the golden path, step contracts, gate prompts, parallelization defaults, and model tiering. Read this first when understanding any behavior.
 
-2. **Orchestrator spec** — `skills/build/SKILL.md` is the execution contract: start banners, phase routing logic, the quality loop, advisor escalation as a stateful primitive, state management rules, pre-flight validation, and transition guardrails. It is deliberately the largest file. Changes here ripple everywhere.
+2. **Orchestrator spec** — `skills/internal/build/SKILL.md` is the execution contract: start banners, phase routing logic, the quality loop, advisor escalation as a stateful primitive, state management rules, pre-flight validation, and transition guardrails. It is deliberately the largest file. Changes here ripple everywhere.
 
 3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, model, tools) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 21 agents map to 7 internal phases.
 
 ### Reference documents and schemas
 
-`skills/build/references/` holds bounded reference files that the orchestrator consults before spawning phase agents:
+`skills/internal/build/references/` holds bounded reference files that the orchestrator consults before spawning phase agents:
 
 | File | Governs |
 |---|---|
@@ -131,7 +131,7 @@ The repo has three layers:
 | `transition-shim.md` | Shim check logic before phase transitions |
 | `dry-run-checks.md` | Validation behavior for dry-run fixture testing |
 
-`skills/build/schemas/` contains JSON schemas (`state.schema.json`, `loop-state.schema.json`, `review-verdict.schema.json`, `checkpoint.schema.json`, `config.schema.json`, `workspace.schema.json`) consumed by `scripts/validate-wannabuild-artifacts.sh`.
+`skills/internal/build/schemas/` contains JSON schemas (`state.schema.json`, `loop-state.schema.json`, `review-verdict.schema.json`, `checkpoint.schema.json`, `config.schema.json`, `workspace.schema.json`) consumed by `scripts/validate-wannabuild-artifacts.sh`.
 
 ### Host adapters
 
@@ -147,7 +147,7 @@ Adapter-specific packaging lives under `.claude-plugin/`, `.cursor-plugin/`, and
 
 ### Dry-run fixtures
 
-`skills/build/dry-runs/` holds JSON fixtures used to validate orchestrator behavior against known states (ambiguous review loop, resume-from-state, missing design state). These are reference fixtures, not executable tests.
+`skills/internal/build/dry-runs/` holds JSON fixtures used to validate orchestrator behavior against known states (ambiguous review loop, resume-from-state, missing design state). These are reference fixtures, not executable tests.
 
 ## Tooling Layer
 
@@ -177,5 +177,5 @@ Even though the deliverables are prompts/contracts, the repo enforces real engin
 ## Editing Guidance
 
 - Prefer tightening existing contracts over adding new layers or files.
-- When a contract changes, update `AGENTS.md`, the relevant `skills/*/SKILL.md`, the matching reference file in `skills/build/references/`, and the schema/validator if artifact shape changes — in that order.
+- When a contract changes, update `AGENTS.md`, the relevant `skills/*/SKILL.md`, the matching reference file in `skills/internal/build/references/`, and the schema/validator if artifact shape changes — in that order.
 - Claude-specific packaging (`.claude-plugin/`) may reference Claude-specific tooling; the core `AGENTS.md` and `skills/` must not.

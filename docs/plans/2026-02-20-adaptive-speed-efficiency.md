@@ -14,7 +14,7 @@
 
 **Files:**
 
-- Modify: `skills/build/SKILL.md`
+- Modify: `skills/internal/build/SKILL.md`
 
 ### Step 1: Add adaptive orchestration policy section
 
@@ -45,7 +45,7 @@
 
 **Files:**
 
-- Modify: `skills/review/SKILL.md`
+- Modify: `skills/internal/review/SKILL.md`
 
 ### Step 1: Replace static execution flow with adaptive flow
 
@@ -69,7 +69,7 @@
 
 **Files:**
 
-- Modify: `skills/implement/SKILL.md`
+- Modify: `skills/internal/implement/SKILL.md`
 - Modify: `AGENTS.md`
 - Modify: `README.md`
 
@@ -85,7 +85,7 @@
 
 **Files:**
 
-- Verify: `skills/build/SKILL.md`, `skills/review/SKILL.md`, `skills/implement/SKILL.md`, `AGENTS.md`, `README.md`
+- Verify: `skills/internal/build/SKILL.md`, `skills/internal/review/SKILL.md`, `skills/internal/implement/SKILL.md`, `AGENTS.md`, `README.md`
 
 ### Step 1: Run consistency grep checks
 

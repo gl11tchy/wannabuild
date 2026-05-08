@@ -64,13 +64,13 @@ git commit -m "docs: elevate Claude Code install to co-primary in README"
 
 ---
 
-## Task 9: Positioning cleanup — `CLAUDE.md`, `AGENTS.md`, `skills/build/SKILL.md`
+## Task 9: Positioning cleanup — `CLAUDE.md`, `AGENTS.md`, `skills/internal/build/SKILL.md`
 
 **Files:**
 
 - Modify: `CLAUDE.md`
 - Modify: `AGENTS.md`
-- Modify: `skills/build/SKILL.md`
+- Modify: `skills/internal/build/SKILL.md`
 
 **Step 1: Fix `CLAUDE.md`**
 
@@ -115,7 +115,7 @@ For Claude Code: marketplace install via `/plugin install wannabuild@gl11tchy` o
 For Codex: install via `scripts/install-codex-skill.sh`.
 ```
 
-**Step 3: Fix `skills/build/SKILL.md`**
+**Step 3: Fix `skills/internal/build/SKILL.md`**
 
 Read the file. Find the Host Positioning section near the top. Change any "Claude Code as compatibility" language to match co-primary framing.
 
@@ -131,6 +131,6 @@ Expected: no output.
 #### Step 5: Commit
 
 ```bash
-git add CLAUDE.md AGENTS.md skills/build/SKILL.md
+git add CLAUDE.md AGENTS.md skills/internal/build/SKILL.md
 git commit -m "docs: update positioning — Claude Code is co-primary, not compatibility packaging"
 ```

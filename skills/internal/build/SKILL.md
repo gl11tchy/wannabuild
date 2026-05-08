@@ -171,7 +171,7 @@ Escalation rules:
 
 ## Advisor Escalation
 
-Advisor escalation is a stateful workflow primitive — see `skills/build/references/advisor-escalation.md` for trigger matrix, invocation contract, report schema, and runtime mapping. Default: enabled, max 3 uses/phase, pause-and-ask on limit.
+Advisor escalation is a stateful workflow primitive — see `skills/internal/build/references/advisor-escalation.md` for trigger matrix, invocation contract, report schema, and runtime mapping. Default: enabled, max 3 uses/phase, pause-and-ask on limit.
 
 ## Adaptive Review Defaults
 
@@ -198,7 +198,7 @@ Parallelism is a judgment call, not a ritual.
 
 ## Artifact Backbone
 
-Artifact contract at `skills/build/references/artifact-contracts.md`. Core rule: specs are the source of truth; agents write full output to files and return one-liners. Reference: `skills/build/references/sdd-principles.md`.
+Artifact contract at `skills/internal/build/references/artifact-contracts.md`. Core rule: specs are the source of truth; agents write full output to files and return one-liners. Reference: `skills/internal/build/references/sdd-principles.md`.
 
 ### Fast-Track Review Decision Matrix (Execution Defaults)
 
@@ -413,7 +413,7 @@ LOOP:
       → LOOP
 ```
 
-Verdict schema at `skills/build/schemas/review-verdict.schema.json`. Required fields: agent, status (PASS|FAIL), issues[], summary. Integration tester additionally requires hard_gate:true, test_execution{}, coverage_map[].
+Verdict schema at `skills/internal/build/schemas/review-verdict.schema.json`. Required fields: agent, status (PASS|FAIL), issues[], summary. Integration tester additionally requires hard_gate:true, test_execution{}, coverage_map[].
 
 Context policy for reviewer prompts:
 
@@ -434,7 +434,7 @@ The `wb-integration-tester` agent has special status:
 
 ### Loop State Schema
 
-Loop state schema at `skills/build/schemas/loop-state.schema.json` and `skills/build/references/loop-state.md`.
+Loop state schema at `skills/internal/build/schemas/loop-state.schema.json` and `skills/internal/build/references/loop-state.md`.
 
 ### Feedback Aggregation
 
@@ -481,7 +481,7 @@ After max iterations:
 
 ### state.json Schema
 
-Full schema at `skills/build/schemas/state.schema.json` and `skills/build/references/artifact-contracts.md`. The `mode` field is `"standard"` when present.
+Full schema at `skills/internal/build/schemas/state.schema.json` and `skills/internal/build/references/artifact-contracts.md`. The `mode` field is `"standard"` when present.
 
 ### State Update Rule
 
@@ -568,24 +568,24 @@ Orchestrator: Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 ## Configuration
 
-Optional `.wannabuild/config.json` — see `skills/build/schemas/config.schema.json`. Key overrides: max_review_iterations (default 3), advisor_escalation (default true), on_limit (default pause-and-ask).
+Optional `.wannabuild/config.json` — see `skills/internal/build/schemas/config.schema.json`. Key overrides: max_review_iterations (default 3), advisor_escalation (default true), on_limit (default pause-and-ask).
 
 ## Contract Documents
 
 Use these references before spawning phase agents:
 
-- `skills/build/references/artifact-contracts.md`
-- `skills/build/references/advisor-escalation.md`
-- `skills/build/references/review-routing.md`
-- `skills/build/references/loop-state.md`
-- `skills/build/references/exit-conditions.md`
-- `skills/build/references/sdd-principles.md`
-- `skills/build/references/transition-shim.md`
-- `skills/build/references/dry-run-checks.md`
-- `skills/build/schemas/state.schema.json`
-- `skills/build/schemas/loop-state.schema.json`
-- `skills/build/schemas/review-verdict.schema.json`
-- `skills/build/schemas/checkpoint.schema.json`
+- `skills/internal/build/references/artifact-contracts.md`
+- `skills/internal/build/references/advisor-escalation.md`
+- `skills/internal/build/references/review-routing.md`
+- `skills/internal/build/references/loop-state.md`
+- `skills/internal/build/references/exit-conditions.md`
+- `skills/internal/build/references/sdd-principles.md`
+- `skills/internal/build/references/transition-shim.md`
+- `skills/internal/build/references/dry-run-checks.md`
+- `skills/internal/build/schemas/state.schema.json`
+- `skills/internal/build/schemas/loop-state.schema.json`
+- `skills/internal/build/schemas/review-verdict.schema.json`
+- `skills/internal/build/schemas/checkpoint.schema.json`
 
 ## Pre-flight Validation
 

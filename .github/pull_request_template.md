@@ -19,7 +19,7 @@ Closes #
 <!-- Check all that apply. Each box implies certain reviewers per CODEOWNERS. -->
 
 - [ ] AGENTS.md / operator contract
-- [ ] skills/build/SKILL.md (orchestrator spec)
+- [ ] skills/internal/build/SKILL.md (orchestrator spec)
 - [ ] agents/wb-*.md (specialist prompts)
 - [ ] scripts/ (validation or runtime helpers)
 - [ ] schemas/ (artifact JSON schemas)
@@ -47,8 +47,8 @@ Closes #
 - [ ] No spec impact
 - [ ] Updated AGENTS.md (sections: ___)
 - [ ] Updated relevant SKILL.md (which: ___)
-- [ ] Updated reference doc in skills/build/references/ (which: ___)
-- [ ] Updated schema in skills/build/schemas/ (which: ___)
+- [ ] Updated reference doc in skills/internal/build/references/ (which: ___)
+- [ ] Updated schema in skills/internal/build/schemas/ (which: ___)
 - [ ] Updated CHANGELOG via Conventional Commit
 
 ## Risk & rollout

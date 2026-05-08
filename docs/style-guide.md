@@ -14,16 +14,16 @@ column, treat it as advisory.
 | 2-space indent for shell, JSON, YAML, markdown | n/a | `.editorconfig`, `shfmt -i 2`, prettier `tabWidth: 2` |
 | No trailing whitespace (except markdown line breaks) | n/a | pre-commit `trailing-whitespace`, markdownlint MD009 |
 | No tracked file > 500 KB | n/a | `scripts/check-large-files.sh`, pre-commit `check-added-large-files` |
-| No tracked `*.sh`/`*.md` > 800 lines (700 for `skills/build/SKILL.md`) | n/a | `scripts/check-large-files.sh` |
+| No tracked `*.sh`/`*.md` > 800 lines (700 for `skills/internal/build/SKILL.md`) | n/a | `scripts/check-large-files.sh` |
 
 ## 2. File and directory naming
 
 | Surface | Convention | Example | Enforced by |
 |---|---|---|---|
 | Shell scripts | kebab-case, verb-noun | `check-tech-debt.sh` | review |
-| Skill directories | kebab-case | `skills/build/` | review |
+| Skill directories | kebab-case | `skills/internal/build/` | review |
 | Skill manifests | uppercase | `SKILL.md` | review |
-| Skill references | lowercase kebab in `references/` | `skills/build/references/loop-state.md` | review |
+| Skill references | lowercase kebab in `references/` | `skills/internal/build/references/loop-state.md` | review |
 | Specialist agent prompts | `wb-<role>.md` | `agents/wb-integration-tester.md` | review |
 | Adapters | `adapters/<host>/` | `adapters/codex/` | review |
 

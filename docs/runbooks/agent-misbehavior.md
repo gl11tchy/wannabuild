@@ -117,7 +117,7 @@ back further.
 
 Every reproducible orchestrator misbehavior should produce:
 
-- A **failing test fixture** added under `tests/` or `skills/build/dry-runs/`
+- A **failing test fixture** added under `tests/` or `skills/internal/build/dry-runs/`
   that the validator/orchestrator must now reject.
 - A doc update in the contract that was ambiguous.
 - A note in CHANGELOG under `Fixed`.
@@ -125,8 +125,8 @@ Every reproducible orchestrator misbehavior should produce:
 ## Cross-references
 
 - [`../../AGENTS.md`](../../AGENTS.md) — operator contract.
-- [`../../skills/build/SKILL.md`](../../skills/build/SKILL.md) — orchestrator
+- [`../../skills/internal/build/SKILL.md`](../../skills/internal/build/SKILL.md) — orchestrator
   spec.
-- [`../../skills/build/references/loop-state.md`](../../skills/build/references/loop-state.md)
-- [`../../skills/build/references/exit-conditions.md`](../../skills/build/references/exit-conditions.md)
+- [`../../skills/internal/build/references/loop-state.md`](../../skills/internal/build/references/loop-state.md)
+- [`../../skills/internal/build/references/exit-conditions.md`](../../skills/internal/build/references/exit-conditions.md)
 - [`../log-scrubbing.md`](../log-scrubbing.md) — scrubbing the bundle.

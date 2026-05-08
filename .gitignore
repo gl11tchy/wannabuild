@@ -13,7 +13,7 @@ env/
 dist/
 build/
 target/
-!skills/build/
+!skills/internal/build/
 *.egg-info/
 *.egg
 

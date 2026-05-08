@@ -244,13 +244,21 @@ echo
 echo "Core surfaces"
 check_file "README.md" || status=1
 check_file "AGENTS.md" || status=1
-check_file "skills/build/SKILL.md" || status=1
-check_file "skills/build/references/advisor-escalation.md" || status=1
-check_file "skills/build/references/ship-phase.md" || status=1
+check_file "skills/internal/build/SKILL.md" || status=1
+check_file "skills/internal/build/references/advisor-escalation.md" || status=1
+check_file "skills/internal/build/references/ship-phase.md" || status=1
 check_absent_file "skills/ship/SKILL.md" "legacy ship skill must stay out of top-level Claude-discoverable skills" || status=1
+check_absent_file "skills/build/SKILL.md" "internal orchestrator must not be at top of skills/ (must live under skills/internal/)" || status=1
+check_absent_file "skills/requirements/SKILL.md" "internal phase must not be at top of skills/" || status=1
+check_absent_file "skills/design/SKILL.md" "internal phase must not be at top of skills/" || status=1
+check_absent_file "skills/tasks/SKILL.md" "internal phase must not be at top of skills/" || status=1
+check_absent_file "skills/implement/SKILL.md" "internal phase must not be at top of skills/" || status=1
+check_absent_file "skills/review/SKILL.md" "internal phase must not be at top of skills/" || status=1
+check_absent_file "skills/document/SKILL.md" "internal phase must not be at top of skills/" || status=1
+check_absent_file "skills/research/SKILL.md" "internal phase must not be at top of skills/" || status=1
 check_file "skills/wannabuild/SKILL.md" || status=1
 check_file "skills/using-wannabuild/SKILL.md" || status=1
-check_file "skills/research/SKILL.md" || status=1
+check_file "skills/internal/research/SKILL.md" || status=1
 check_file "commands/wannabuild.md" || status=1
 check_file "commands/using-wannabuild.md" || status=1
 check_file "hooks/hooks.json" || status=1
@@ -372,21 +380,21 @@ check_file ".codex/INSTALL.md" || status=1
 check_file ".claude/INSTALL.md" || status=1
 echo
 echo "Schemas"
-check_file "skills/build/schemas/state.schema.json" || status=1
-check_file "skills/build/schemas/loop-state.schema.json" || status=1
-check_file "skills/build/schemas/review-verdict.schema.json" || status=1
-check_file "skills/build/schemas/checkpoint.schema.json" || status=1
-check_file "skills/build/schemas/config.schema.json" || status=1
-check_file "skills/build/schemas/workspace.schema.json" || status=1
+check_file "skills/internal/build/schemas/state.schema.json" || status=1
+check_file "skills/internal/build/schemas/loop-state.schema.json" || status=1
+check_file "skills/internal/build/schemas/review-verdict.schema.json" || status=1
+check_file "skills/internal/build/schemas/checkpoint.schema.json" || status=1
+check_file "skills/internal/build/schemas/config.schema.json" || status=1
+check_file "skills/internal/build/schemas/workspace.schema.json" || status=1
 echo
 echo "Daily-use trust harness"
-check_file "skills/build/dry-runs/daily-use-trust-scenarios.json" || status=1
-check_file "skills/build/dry-runs/no-task-invocation.json" || status=1
-check_file "skills/build/dry-runs/workspace-bootstrap-state.json" || status=1
-check_file "skills/build/dry-runs/workspace-bootstrap-workspace.json" || status=1
-check_file "skills/build/dry-runs/review-failure-loop.json" || status=1
-check_file "skills/build/dry-runs/qa-failure-remediation-loop.json" || status=1
-check_file "skills/build/dry-runs/summary-complete-state.json" || status=1
+check_file "skills/internal/build/dry-runs/daily-use-trust-scenarios.json" || status=1
+check_file "skills/internal/build/dry-runs/no-task-invocation.json" || status=1
+check_file "skills/internal/build/dry-runs/workspace-bootstrap-state.json" || status=1
+check_file "skills/internal/build/dry-runs/workspace-bootstrap-workspace.json" || status=1
+check_file "skills/internal/build/dry-runs/review-failure-loop.json" || status=1
+check_file "skills/internal/build/dry-runs/qa-failure-remediation-loop.json" || status=1
+check_file "skills/internal/build/dry-runs/summary-complete-state.json" || status=1
 echo
 echo "Host-native invocation surfaces"
 check_contains "AGENTS.md" "Do not tell the user to invoke a slash command" "Operator contract prevents command-first handoff" || status=1

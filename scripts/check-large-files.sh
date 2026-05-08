@@ -16,7 +16,7 @@ LINES_MAX=800
 
 # See header rationale: soft caps protect intentionally large files from
 # unbounded growth while keeping the default line budget strict.
-EXEMPT_PATH="skills/build/SKILL.md"
+EXEMPT_PATH="skills/internal/build/SKILL.md"
 EXEMPT_LINES_MAX=700
 GENERATED_SCRIPTS_PATH="docs/generated/scripts.md"
 GENERATED_SCRIPTS_LINES_MAX=900

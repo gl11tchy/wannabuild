@@ -5,8 +5,8 @@ This shim defines what the orchestrator must enforce at each phase transition be
 ## 1) Single source of validation truth
 
 - Validate contracts via:
-  - `skills/build/references/artifact-contracts.md`
-  - `skills/build/schemas/*.json`
+  - `skills/internal/build/references/artifact-contracts.md`
+  - `skills/internal/build/schemas/*.json`
   - `scripts/validate-wannabuild-artifacts.sh`
 - Fail the transition if any required artifact is invalid or missing.
 

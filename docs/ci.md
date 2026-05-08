@@ -14,7 +14,7 @@ runs, and how to debug it when it fails.
 | `lint` | ubuntu-latest | Runs `scripts/lint.sh` (shellcheck, shfmt, markdownlint-cli2, jscpd, lizard, prettier). |
 | `test` | ubuntu-latest, macos-latest | Runs `tests/run.sh` (bats), uploads JUnit results, publishes a test report. |
 | `coverage` | ubuntu-latest | Runs `tests/coverage.sh` with kcov; uploads coverage artifact. Requires `test` to succeed first. |
-| `validate-contracts` | ubuntu-latest | Runs `scripts/wannabuild-doctor.sh` plus the validator over each fixture in `skills/build/dry-runs/`. |
+| `validate-contracts` | ubuntu-latest | Runs `scripts/wannabuild-doctor.sh` plus the validator over each fixture in `skills/internal/build/dry-runs/`. |
 | `pre-commit` | ubuntu-latest | Runs `pre-commit run --all-files` against `.pre-commit-config.yaml`. |
 
 **Concurrency:** in-progress runs on non-default branches cancel when a newer
@@ -94,7 +94,7 @@ must regenerate locally and commit the result.
 
 - *PR fails the docs check.* Run `bash scripts/generate-docs.sh` locally, then
   `git add docs/generated && git commit`.
-- *jq parse error.* A schema under `skills/build/schemas/` is malformed JSON;
+- *jq parse error.* A schema under `skills/internal/build/schemas/` is malformed JSON;
   fix the schema, not the generator.
 
 ## Debugging tips

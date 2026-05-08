@@ -41,12 +41,12 @@ _copy_repo() {
   [[ "$output" == *"Repo surfaces ready"* ]]
 }
 
-@test "doctor_full_repo: removing skills/build/SKILL.md flips exit to 1 and prints FAIL" {
+@test "doctor_full_repo: removing skills/internal/build/SKILL.md flips exit to 1 and prints FAIL" {
   copy="$(_copy_repo)"
-  rm -f "$copy/skills/build/SKILL.md"
+  rm -f "$copy/skills/internal/build/SKILL.md"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL  skills/build/SKILL.md"* ]]
+  [[ "$output" == *"FAIL  skills/internal/build/SKILL.md"* ]]
   [[ "$output" == *"missing"* ]] || [[ "$output" == *"Missing"* ]]
 }
 

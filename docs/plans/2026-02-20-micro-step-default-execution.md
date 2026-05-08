@@ -14,7 +14,7 @@
 
 **Files:**
 
-- Modify: `skills/tasks/SKILL.md`
+- Modify: `skills/internal/tasks/SKILL.md`
 - Modify: `agents/wb-task-decomposer.md`
 
 ### Step 1: Add micro-step schema to task spec format
@@ -37,7 +37,7 @@
 Run:
 
 ```bash
-grep -n "Micro-Steps\|Checkpoint\|2–5 min\|drift" skills/tasks/SKILL.md agents/wb-task-decomposer.md
+grep -n "Micro-Steps\|Checkpoint\|2–5 min\|drift" skills/internal/tasks/SKILL.md agents/wb-task-decomposer.md
 ```
 
 Expected: matching lines in both files.
@@ -48,7 +48,7 @@ Expected: matching lines in both files.
 
 **Files:**
 
-- Modify: `skills/implement/SKILL.md`
+- Modify: `skills/internal/implement/SKILL.md`
 - Modify: `agents/wb-implementer.md`
 - Modify: `agents/wb-implementer-escalated.md`
 
@@ -74,8 +74,8 @@ Expected: matching lines in both files.
 Run:
 
 ```bash
-grep -n "checkpoint every micro-step\|task-{N}-step-{M}\|optional VCS" skills/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
-grep -n "one task = one commit\|commit frequently" skills/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
+grep -n "checkpoint every micro-step\|task-{N}-step-{M}\|optional VCS" skills/internal/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
+grep -n "one task = one commit\|commit frequently" skills/internal/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
 ```
 
 Expected:
@@ -89,7 +89,7 @@ Expected:
 
 **Files:**
 
-- Modify: `skills/build/SKILL.md`
+- Modify: `skills/internal/build/SKILL.md`
 
 ### Step 1: Add checkpoint lifecycle to architecture docs
 
@@ -109,7 +109,7 @@ Expected:
 Run:
 
 ```bash
-grep -n "checkpoints/\|latest checkpoint\|resume" skills/build/SKILL.md
+grep -n "checkpoints/\|latest checkpoint\|resume" skills/internal/build/SKILL.md
 ```
 
 Expected: all three concepts present.
@@ -120,7 +120,7 @@ Expected: all three concepts present.
 
 **Files:**
 
-- Modify: `skills/review/SKILL.md`
+- Modify: `skills/internal/review/SKILL.md`
 
 ### Step 1: Update input contract
 
@@ -140,7 +140,7 @@ Expected: all three concepts present.
 Run:
 
 ```bash
-grep -n "checkpoint\|changed files from last checkpoint window\|hard gate" skills/review/SKILL.md
+grep -n "checkpoint\|changed files from last checkpoint window\|hard gate" skills/internal/review/SKILL.md
 ```
 
 Expected: all appear.
@@ -153,8 +153,8 @@ Expected: all appear.
 
 - Modify: `README.md`
 - Modify: `AGENTS.md`
-- Modify: `skills/ship/SKILL.md`
-- Modify: `skills/document/SKILL.md`
+- Modify: `skills/internal/ship/SKILL.md`
+- Modify: `skills/internal/document/SKILL.md`
 
 ### Step 1: Update README + AGENTS wording
 
@@ -170,7 +170,7 @@ Expected: all appear.
 Run:
 
 ```bash
-grep -RIn "commit" README.md AGENTS.md skills/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
+grep -RIn "commit" README.md AGENTS.md skills/internal/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
 ```
 
 Expected: no mandatory commit language in implementation flow.
@@ -196,7 +196,7 @@ Expected: policy appears in build/tasks/implement/review and top-level docs.
 Run:
 
 ```bash
-! grep -RIn "one task = one commit\|commit frequently" skills/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
+! grep -RIn "one task = one commit\|commit frequently" skills/internal/implement/SKILL.md agents/wb-implementer.md agents/wb-implementer-escalated.md
 ```
 
 Expected: command exits 0 (no stale lines).

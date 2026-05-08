@@ -17,7 +17,7 @@ Use WannaBuild as a condensed workflow:
 Key rules:
 
 - Treat `AGENTS.md` as the main operator contract.
-- Treat `skills/build/SKILL.md` as the orchestrator spec.
+- Treat `skills/internal/build/SKILL.md` as the orchestrator spec.
 - Use `.wannabuild/` artifacts as the workflow state source of truth.
 - Natural build, change, and open-ended ideation prompts should start Discover automatically.
 - Continue from Discover to Plan automatically once the requirements direction is crisp enough.

@@ -43,7 +43,7 @@ split ownership along these lines rather than splitting horizontally (e.g.
 - **Triage SLA.** Best-effort within **5 days** for `needs-triage` items.
   An indie-maintained project can't promise a corporate SLA, but stale
   triage gets pruned weekly so contributors aren't left guessing.
-- **Spec impact.** Issues that touch `AGENTS.md`, `skills/build/SKILL.md`,
+- **Spec impact.** Issues that touch `AGENTS.md`, `skills/internal/build/SKILL.md`,
   or any artifact contract are labeled `needs-design-review`. These are
   not merged without an explicit design discussion (linked from the issue).
 - **Contract change.** Issues filed via the "Contract or schema change"

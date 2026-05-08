@@ -67,7 +67,7 @@ Elevate the Claude Code install section to equal prominence with Codex. Marketpl
 
 - `CLAUDE.md` — remove "Claude Code is supported as compatibility packaging"
 - `AGENTS.md` — update host positioning section to reflect co-primary
-- `skills/build/SKILL.md` — remove any Codex-only assumptions in the host positioning section
+- `skills/internal/build/SKILL.md` — remove any Codex-only assumptions in the host positioning section
 
 ## File Inventory
 
@@ -80,7 +80,7 @@ Elevate the Claude Code install section to equal prominence with Codex. Marketpl
 - `README.md`
 - `CLAUDE.md`
 - `AGENTS.md`
-- `skills/build/SKILL.md`
+- `skills/internal/build/SKILL.md`
 
 ### Created
 

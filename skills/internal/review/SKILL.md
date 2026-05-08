@@ -27,7 +27,7 @@ The reviewer set is adaptive:
 
 ## Fast-Track Review Contract (Mode-agnostic)
 
-- Iteration 1 may start with a reduced reviewer set only if the fast-track matrix in `skills/build/SKILL.md` is met and the rationale is recorded.
+- Iteration 1 may start with a reduced reviewer set only if the fast-track matrix in `skills/internal/build/SKILL.md` is met and the rationale is recorded.
 - Set must always include `wb-integration-tester`.
 - Any FAIL in fast-track triggers the next iteration to run the impacted reviewers plus any reviewers needed to cover uncertainty.
 - If impact routing confidence is unclear, broaden the reviewer set immediately.
@@ -253,8 +253,8 @@ Updated in `.wannabuild/loop-state.json` after each iteration. See orchestrator 
 
 Review agents can reference:
 
-- `skills/review/references/security-checklist.md` — regex patterns, OWASP, framework checks
-- `skills/review/references/architecture-patterns.md` — DRY, clean code, refactoring patterns
+- `skills/internal/review/references/security-checklist.md` — regex patterns, OWASP, framework checks
+- `skills/internal/review/references/architecture-patterns.md` — DRY, clean code, refactoring patterns
 
 ## Handoff to Ship
 

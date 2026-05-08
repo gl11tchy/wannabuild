@@ -37,7 +37,7 @@ bash scripts/lint.sh
 bash tests/run.sh
 
 # Validate the dry-run fixtures (same as CI):
-for fx in skills/build/dry-runs/*.json; do
+for fx in skills/internal/build/dry-runs/*.json; do
   bash scripts/validate-wannabuild-artifacts.sh "$fx"
 done
 
@@ -55,7 +55,7 @@ locally, then push.
 | Format drift | `prettier --check` or `shfmt -d` shows a diff. | `bash scripts/format.sh` (or `shfmt -w` / `prettier --write`), commit. |
 | New shellcheck warning | `lint` job fails on a `.sh` file. | Read the SC code; either fix the script or `# shellcheck disable=SCxxxx` with a justifying comment. |
 | Markdownlint regression | `lint` fails on a `.md` file. | Run `markdownlint-cli2 --fix .` and inspect. |
-| Schema/contract change without validator update | `validate-contracts` fails on a fixture that previously passed. | Either revert the schema change or update the fixture; update `skills/build/schemas/*.json` in lockstep. |
+| Schema/contract change without validator update | `validate-contracts` fails on a fixture that previously passed. | Either revert the schema change or update the fixture; update `skills/internal/build/schemas/*.json` in lockstep. |
 | Missing tool in CI image | Step fails with `command not found`. | Add the tool to `.devcontainer/Dockerfile` AND to the workflow's `setup` step. They must match. |
 | Pre-commit cache stale | `pre-commit` fails on a file not in the diff. | `pre-commit clean && pre-commit run --all-files` locally. |
 | Coverage drop below threshold | `test` step fails with `Coverage X% < threshold Y%`. | Add tests; or, with justification in the PR, raise/lower `COVERAGE_THRESHOLD` in `.env.example` (and the CI vars). |

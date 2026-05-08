@@ -740,7 +740,7 @@ crates/wb-runtime/
 
 ### Golden Tests
 
-Golden fixtures under `skills/build/dry-runs/` should assert:
+Golden fixtures under `skills/internal/build/dry-runs/` should assert:
 
 - active workflow runtime context
 - `wb-discover` entrypoint continues full loop

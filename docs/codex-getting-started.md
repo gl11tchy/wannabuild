@@ -66,7 +66,7 @@ Phase skills display as `WannaBuild: <Skill>` in skill UI surfaces. The `wb-*` n
 
 1. Open the repo in Codex.
 2. Read [AGENTS.md](../AGENTS.md).
-3. Follow [skills/build/SKILL.md](../skills/build/SKILL.md) and the phase skills under `skills/`.
+3. Follow [skills/internal/build/SKILL.md](../skills/internal/build/SKILL.md) and the phase skills under `skills/`.
 4. Run [scripts/validate-wannabuild-artifacts.sh](../scripts/validate-wannabuild-artifacts.sh) before phase transitions.
 5. Run [scripts/wannabuild-doctor.sh](../scripts/wannabuild-doctor.sh) when checking local readiness.
 6. Treat `.wannabuild/` in the target project as the source of truth.
@@ -87,7 +87,7 @@ The dry-run validator covers startup, exploratory discovery invocation, implemen
 ## Key Files
 
 - [AGENTS.md](../AGENTS.md)
-- [skills/build/SKILL.md](../skills/build/SKILL.md)
+- [skills/internal/build/SKILL.md](../skills/internal/build/SKILL.md)
 - [skills/wannabuild/SKILL.md](../skills/wannabuild/SKILL.md)
 - [scripts/validate-wannabuild-artifacts.sh](../scripts/validate-wannabuild-artifacts.sh)
 - [scripts/validate-wannabuild-dry-runs.sh](../scripts/validate-wannabuild-dry-runs.sh)

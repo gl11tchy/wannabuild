@@ -25,7 +25,7 @@ Internally, the framework still uses 7 execution phases, structured prompts, and
 
 - `AGENTS.md` — primary operator contract
 - `README.md` — public overview and usage
-- `skills/build/SKILL.md` — orchestrator contract
+- `skills/internal/build/SKILL.md` — orchestrator contract
 - `scripts/validate-wannabuild-artifacts.sh` — artifact validation
 - `scripts/wannabuild-doctor.sh` — repo readiness check
 - `.cursor/rules/wannabuild.mdc` — Cursor-ready rule surface
@@ -53,7 +53,7 @@ Target project state is stored under `.wannabuild/`:
 
 ## Remaining Structural Work
 
-- `skills/build/SKILL.md` is still larger than ideal for a thin orchestrator spec.
+- `skills/internal/build/SKILL.md` is still larger than ideal for a thin orchestrator spec.
 - Several reference/dry-run files still require periodic alignment when contracts evolve.
 - The next simplification step is structural extraction, not more copy cleanup.
 

@@ -50,7 +50,7 @@ For a full getting-started walkthrough, see [.claude/INSTALL.md](../../.claude/I
 | Slash command | `commands/wannabuild.md` → `/wannabuild` |
 | Autoroute hooks | `hooks/hooks.json` + `hooks/wannabuild-route.py` |
 | Orchestrator skill | `skills/wannabuild/` |
-| Phase skills | `skills/build/`, `skills/requirements/`, etc. |
+| Phase skills | `skills/internal/build/`, `skills/internal/requirements/`, etc. |
 | Specialist agents | `agents/wb-*.md` |
 | Utility scripts | `scripts/` (optional, for repo installs) |
 

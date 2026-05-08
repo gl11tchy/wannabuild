@@ -6,5 +6,5 @@ node_modules/
 LICENSE
 # Generated reports and fixtures
 .jscpd-report/
-skills/build/dry-runs/
+skills/internal/build/dry-runs/
 **/*.min.*
