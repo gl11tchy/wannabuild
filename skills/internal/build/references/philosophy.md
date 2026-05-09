@@ -1,6 +1,6 @@
 # WannaBuild Philosophy (Internal Reference)
 
-> This document supplements [`docs/philosophy.md`](../../../docs/philosophy.md) with operational details and internal framing relevant to the orchestrator and phase agents.
+> This document supplements [`docs/philosophy.md`](../../../../docs/philosophy.md) with operational details and internal framing relevant to the orchestrator and phase agents.
 
 Read `docs/philosophy.md` for the canonical user-facing philosophy, principles, and positioning.
 
