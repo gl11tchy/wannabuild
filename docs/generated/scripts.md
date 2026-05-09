@@ -630,8 +630,8 @@ Path: `scripts/wannabuild-session.sh`
 ### Functions
 
 - `codex_runtime_bin`
-- `run_runtime_plan_gate`
-- `runtime_plan_gate`
+- `run_runtime_command`
+- `runtime_command`
 - `usage`
 
 ### CLI flags / options observed
