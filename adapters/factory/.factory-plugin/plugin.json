@@ -1,7 +1,7 @@
 {
   "name": "wannabuild",
   "description": "Spec-Driven Development framework with 21 core specialist AI agents. Talk naturally, ship professionally.",
-  "version": "2.2.5",
+  "version": "2.3.0",
   "author": {
     "name": "gl11tchy"
   },
@@ -9,5 +9,12 @@
   "repository": "https://github.com/gl11tchy/wannabuild",
   "license": "MIT",
   "hooks": "./hooks/hooks.json",
-  "keywords": ["sdd", "spec-driven", "multi-agent", "code-review", "indie-hacker", "development-framework"]
+  "keywords": [
+    "sdd",
+    "spec-driven",
+    "multi-agent",
+    "code-review",
+    "indie-hacker",
+    "development-framework"
+  ]
 }
