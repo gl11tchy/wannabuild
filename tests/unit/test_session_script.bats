@@ -96,7 +96,7 @@ setup() {
   set -e
 
   [ "$actual_status" -eq 127 ]
-  [[ "$actual_output" == *"Runtime unavailable: wb-runtime is required to evaluate the plan gate."* ]]
+  [[ "$actual_output" == *"Runtime unavailable: wb-runtime is required to run assert-plan-ready."* ]]
 }
 
 @test "session: assert-plan-ready finds Codex-installed runtime outside PATH" {
