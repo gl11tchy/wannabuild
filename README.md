@@ -90,7 +90,7 @@ WannaBuild is a repo-native framework for running a disciplined product-developm
 
 Under the hood, WannaBuild uses structured specs, checkpoints, adaptive review routing, and specialist prompts so the workflow stays rigorous without feeling bureaucratic.
 Runs start in the current checkout. Worktrees are an implementation-time option for approved plans, parallel slices, or explicitly requested isolation.
-Claude Code installs a lightweight hook runtime that reinjects active `.wannabuild/state.json` phase state on session start and prompt submit. It also forbids implementation until the Plan gate is satisfied. Codex installs the host-neutral Rust `wb-runtime` binary and uses fail-closed compatibility gates for the same runtime checks.
+Claude Code installs a lightweight hook runtime that reinjects active `.wannabuild/state.json` phase state on session start and prompt submit. It also forbids implementation until the Plan gate is satisfied. Codex installs the host-neutral Rust `wb-runtime` binary and uses fail-closed compatibility gates for the same runtime checks. Top-level workflow starts must pass `assert-workflow-active`, so a host-only "skill activated" banner without `.wannabuild/` evidence is a runtime failure.
 Factory Droid installs a plugin surface plus generated `wb-*` droids so the same natural-language routing and specialist workflow are available in Droid.
 After install, start with natural language: "I want to add billing", "plan this", "debug this failure", or "review this change". Commands such as `/wannabuild` in Claude Code and `$wannabuild` in Codex are shortcuts, not requirements.
 
@@ -249,7 +249,7 @@ Then restart Codex and start with natural language:
 I want to build a Stripe billing flow for my SaaS
 ```
 
-Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`. Runtime gates fail closed; add `~/.codex/bin` to `PATH` if Codex cannot find `wb-runtime`.
+Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`. Runtime gates fail closed; `assert-workflow-active` catches missing `.wannabuild/` runtime evidence, and `assert-plan-ready` blocks implementation before Plan. Add `~/.codex/bin` to `PATH` if Codex cannot find `wb-runtime`.
 
 ### Factory / Droid
 

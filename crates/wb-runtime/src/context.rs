@@ -49,12 +49,17 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         .and_then(|value| get_str(value, "phase_status"))
         .unwrap_or("none")
         .to_string();
+    let workflow_active = gates::assert_workflow_active(project_root).is_ok();
     let plan_ready = gates::assert_plan_ready(project_root).is_ok();
     let pause_required = state
         .as_ref()
         .is_some_and(|value| pause_required_from_state(value));
     let mut forbidden_actions = Vec::new();
     let mut required_gates = Vec::new();
+    if !workflow_active {
+        forbidden_actions.push("host_only_wannabuild_claim".to_string());
+        required_gates.push("assert-workflow-active".to_string());
+    }
     if !plan_ready {
         forbidden_actions.push("implement_before_plan".to_string());
         forbidden_actions.push("edit_code_before_plan_gate".to_string());
@@ -78,7 +83,8 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         public_stage: public_stage.clone(),
         current_phase,
         phase_status,
-        allowed_next_action: allowed_next_action(&public_stage, plan_ready).to_string(),
+        allowed_next_action: allowed_next_action(&public_stage, workflow_active, plan_ready)
+            .to_string(),
         forbidden_actions,
         required_gates,
         pause_required,
@@ -98,7 +104,14 @@ fn pause_required_from_state(state: &Value) -> bool {
             .is_some_and(|status| status == "paused")
 }
 
-fn allowed_next_action(public_stage: &str, plan_ready: bool) -> &'static str {
+fn allowed_next_action(
+    public_stage: &str,
+    workflow_active: bool,
+    plan_ready: bool,
+) -> &'static str {
+    if !workflow_active {
+        return "run_runtime_bootstrap";
+    }
     match public_stage {
         "discover" => "continue_discover_then_plan",
         "research" => "finish_research_then_plan",
@@ -156,6 +169,25 @@ mod tests {
     use crate::state;
 
     use super::*;
+
+    #[test]
+    fn context_reports_runtime_bootstrap_when_state_is_missing() {
+        let dir = tempdir().unwrap();
+
+        let context = build_context(dir.path());
+
+        assert!(
+            context
+                .required_gates
+                .contains(&"assert-workflow-active".to_string())
+        );
+        assert!(
+            context
+                .forbidden_actions
+                .contains(&"host_only_wannabuild_claim".to_string())
+        );
+        assert_eq!(context.allowed_next_action, "run_runtime_bootstrap");
+    }
 
     #[test]
     fn context_reports_plan_gate_for_incomplete_plan() {

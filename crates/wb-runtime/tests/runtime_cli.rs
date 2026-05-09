@@ -50,10 +50,45 @@ fn help_exposes_runtime_command_groups() {
     let text = output_text(output);
 
     assert!(text.contains("status"));
+    assert!(text.contains("assert-workflow-active"));
     assert!(text.contains("assert-plan-ready"));
     assert!(text.contains("event"));
     assert!(text.contains("tasks"));
     assert!(text.contains("adapter"));
+}
+
+#[test]
+fn workflow_active_gate_rejects_label_only_runs() {
+    let dir = tempdir().unwrap();
+
+    let inactive = wb_runtime()
+        .args([
+            "assert-workflow-active",
+            "--project",
+            &project_arg(dir.path()),
+        ])
+        .output()
+        .unwrap();
+    assert!(!inactive.status.success());
+    let inactive_text = output_text(inactive);
+    assert!(inactive_text.contains("WannaBuild workflow inactive"));
+    assert!(inactive_text.contains(".wannabuild/state.json"));
+
+    wb_runtime()
+        .args(["init", "--project", &project_arg(dir.path())])
+        .assert()
+        .success();
+
+    let active = wb_runtime()
+        .args([
+            "assert-workflow-active",
+            "--project",
+            &project_arg(dir.path()),
+        ])
+        .output()
+        .unwrap();
+    assert!(active.status.success());
+    assert!(output_text(active).contains("Workflow-active gate OK"));
 }
 
 #[test]

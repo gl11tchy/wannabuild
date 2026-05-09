@@ -63,30 +63,12 @@ Before implementation starts from an approved plan, choose the implementation wo
 
 Use an isolated worktree only when the user selects it, explicitly asks for isolation, requests parallel implementation, or the implementation risk justifies separation. If an isolated worktree is created, use `scripts/wannabuild-workspace.sh --json` when available and then continue inside the reported `workspace_path`.
 
-Initialize `.wannabuild/state.json` in the active checkout before continuing:
+Initialize runtime artifacts in the active checkout before continuing:
 
-```json
-{
-  "project": "<project folder name>",
-  "mode": "standard",
-  "current_phase": "requirements",
-  "phase_status": "pending",
-  "public_stage": "discover",
-  "workflow_status": "in_progress",
-  "control_mode": "autonomous",
-  "started_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
-  "updated_at": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>",
-  "artifacts": {},
-  "phase_history": [],
-  "public_stage_history": [
-    {
-      "stage": "discover",
-      "status": "in_progress",
-      "timestamp": "<RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>"
-    }
-  ]
-}
-```
+1. Run `scripts/wannabuild-session.sh init <project_root>`.
+2. Run `scripts/wannabuild-session.sh assert-workflow-active <project_root>`.
+
+If either command fails, stop and report the runtime failure. Do not continue with host-only planning, implementation, or workflow claims.
 
 ## Workflow
 

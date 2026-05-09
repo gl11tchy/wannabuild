@@ -12,6 +12,7 @@ Commands:
   set-control-mode <project_root> <guided|autonomous>
   show <project_root>
   assert-stage <project_root> <stage>
+  assert-workflow-active <project_root>
   assert-plan-ready <project_root>
 
 Stages:
@@ -35,43 +36,44 @@ project_root="$(cd "$2" && pwd)"
 state_file="$project_root/.wannabuild/state.json"
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
-runtime_plan_gate() {
+runtime_command() {
+  local runtime_subcommand="$1"
   local runtime_bin
   if [[ -n "${WB_RUNTIME_BIN:-}" ]]; then
     if [[ ! -x "$WB_RUNTIME_BIN" ]]; then
       echo "Runtime unavailable: WB_RUNTIME_BIN is not executable: $WB_RUNTIME_BIN" >&2
       return 127
     fi
-    run_runtime_plan_gate "$WB_RUNTIME_BIN"
-    return $?
-  fi
-
-  if runtime_bin="$(command -v wb-runtime 2>/dev/null)"; then
-    run_runtime_plan_gate "$runtime_bin"
-    return $?
-  fi
-
-  if runtime_bin="$(codex_runtime_bin)"; then
-    run_runtime_plan_gate "$runtime_bin"
+    run_runtime_command "$WB_RUNTIME_BIN" "$runtime_subcommand"
     return $?
   fi
 
   if [[ -x "$repo_root/target/debug/wb-runtime" ]]; then
-    run_runtime_plan_gate "$repo_root/target/debug/wb-runtime"
+    run_runtime_command "$repo_root/target/debug/wb-runtime" "$runtime_subcommand"
     return $?
   fi
 
   if [[ -x "$repo_root/target/debug/wb-runtime.exe" ]]; then
-    run_runtime_plan_gate "$repo_root/target/debug/wb-runtime.exe"
+    run_runtime_command "$repo_root/target/debug/wb-runtime.exe" "$runtime_subcommand"
     return $?
   fi
 
   if command -v cargo >/dev/null 2>&1 && [[ -f "$repo_root/Cargo.toml" ]]; then
-    run_runtime_plan_gate cargo run --quiet --manifest-path "$repo_root/Cargo.toml" --bin wb-runtime --
+    run_runtime_command cargo run --quiet --manifest-path "$repo_root/Cargo.toml" --bin wb-runtime -- "$runtime_subcommand"
     return $?
   fi
 
-  echo "Runtime unavailable: wb-runtime is required to evaluate the plan gate." >&2
+  if runtime_bin="$(command -v wb-runtime 2>/dev/null)"; then
+    run_runtime_command "$runtime_bin" "$runtime_subcommand"
+    return $?
+  fi
+
+  if runtime_bin="$(codex_runtime_bin)"; then
+    run_runtime_command "$runtime_bin" "$runtime_subcommand"
+    return $?
+  fi
+
+  echo "Runtime unavailable: wb-runtime is required to run $runtime_subcommand." >&2
   echo "Install wb-runtime, build $repo_root/target/debug/wb-runtime, or run with cargo available." >&2
   return 127
 }
@@ -93,10 +95,10 @@ codex_runtime_bin() {
   fi
 }
 
-run_runtime_plan_gate() {
+run_runtime_command() {
   local output status
   set +e
-  output="$("$@" assert-plan-ready --project "$project_root" 2>&1)"
+  output="$("$@" --project "$project_root" 2>&1)"
   status=$?
   set -e
   if [[ $status -eq 0 ]]; then
@@ -107,9 +109,9 @@ run_runtime_plan_gate() {
   return "$status"
 }
 
-if [[ "$command" == "assert-plan-ready" ]]; then
+if [[ "$command" == "init" || "$command" == "assert-plan-ready" || "$command" == "assert-workflow-active" ]]; then
   runtime_status=0
-  runtime_plan_gate || runtime_status=$?
+  runtime_command "$command" || runtime_status=$?
   if [[ $runtime_status -eq 0 ]]; then
     exit 0
   fi

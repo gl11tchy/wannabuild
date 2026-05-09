@@ -25,6 +25,7 @@ enum Commands {
     Resume(ProjectArgs),
     Complete(ProjectArgs),
     Transition(TransitionArgs),
+    AssertWorkflowActive(ProjectArgs),
     AssertConcreteTask(ProjectArgs),
     AssertPlanReady(ProjectArgs),
     AssertReviewReady(ProjectArgs),
@@ -224,6 +225,11 @@ pub fn run() -> Result<()> {
             let outcome = transitions::transition(&root, &args.to, &args.status)?;
             print_json(&outcome)?;
         }
+        Commands::AssertWorkflowActive(args) => run_gate(
+            &project_root(args.project)?,
+            "workflow-active",
+            gates::assert_workflow_active,
+        )?,
         Commands::AssertConcreteTask(args) => run_gate(
             &project_root(args.project)?,
             "concrete-task",

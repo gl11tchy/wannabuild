@@ -85,6 +85,71 @@ pub fn assert_concrete_task(project_root: &Path) -> Result<GatePass> {
     })
 }
 
+pub fn assert_workflow_active(project_root: &Path) -> Result<GatePass> {
+    let wb_dir = project_root.join(".wannabuild");
+    let mut missing = Vec::new();
+    for artifact in [
+        ".wannabuild",
+        ".wannabuild/spec",
+        ".wannabuild/checkpoints",
+        ".wannabuild/review",
+        ".wannabuild/outputs",
+        ".wannabuild/state.json",
+    ] {
+        let path = project_root.join(artifact);
+        if !path.exists() {
+            missing.push(artifact.to_string());
+        }
+    }
+    if !missing.is_empty() {
+        return Err(RuntimeError::message(format!(
+            "WannaBuild workflow inactive: missing runtime artifacts: {}. Run wb-runtime init --project <project_root> before planning or implementation.",
+            missing.join(", ")
+        )));
+    }
+
+    let state = load_state(project_root)?
+        .ok_or_else(|| RuntimeError::message("WannaBuild workflow inactive: state.json missing"))?;
+    let mut invalid = Vec::new();
+    for key in ["public_stage", "workflow_status"] {
+        if state
+            .get(key)
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .is_none()
+        {
+            invalid.push(format!("state.{key}"));
+        }
+    }
+    if !invalid.is_empty() {
+        return Err(RuntimeError::message(format!(
+            "WannaBuild workflow inactive: invalid runtime state: {}",
+            invalid.join(", ")
+        )));
+    }
+
+    let mut evidence = vec![
+        wb_dir.display().to_string(),
+        "state.json".to_string(),
+        "spec/".to_string(),
+        "checkpoints/".to_string(),
+        "review/".to_string(),
+        "outputs/".to_string(),
+    ];
+    if let Some(stage) = state.get("public_stage").and_then(Value::as_str) {
+        evidence.push(format!("public_stage={stage}"));
+    }
+    if let Some(status) = state.get("workflow_status").and_then(Value::as_str) {
+        evidence.push(format!("workflow_status={status}"));
+    }
+
+    Ok(GatePass {
+        gate: "workflow-active",
+        evidence,
+    })
+}
+
 pub fn assert_plan_ready(project_root: &Path) -> Result<GatePass> {
     let state = load_state(project_root)?.unwrap_or(Value::Object(Default::default()));
     let real_evidence = plan_completion_evidence(project_root, &state);
