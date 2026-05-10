@@ -401,7 +401,9 @@ check_contains "AGENTS.md" "Do not tell the user to invoke a slash command" "Ope
 check_contains "skills/wannabuild/SKILL.md" "Select the skill and begin the appropriate workflow" "WannaBuild skill starts matching workflows directly" || status=1
 check_contains "commands/using-wannabuild.md" "Commands are optional shortcuts, not the normal path" "Intro command preserves skill-first positioning" || status=1
 check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
-check_contains ".claude-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude plugin declares hooks manifest" || status=1
+check_contains ".claude-plugin/plugin.json" "\"hooks\": {" "Claude plugin declares hooks inline" || status=1
+check_contains ".claude-plugin/plugin.json" "\"SessionStart\"" "Claude plugin inline hooks include SessionStart" || status=1
+check_contains ".claude-plugin/plugin.json" "\"UserPromptSubmit\"" "Claude plugin inline hooks include UserPromptSubmit" || status=1
 check_contains ".claude-plugin/marketplace.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude marketplace declares hooks manifest" || status=1
 check_contains ".factory-plugin/marketplace.json" "\"source\": \"./adapters/factory\"" "Factory marketplace routes to Factory adapter" || status=1
 check_contains "adapters/factory/.factory-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Factory plugin declares hooks manifest" || status=1

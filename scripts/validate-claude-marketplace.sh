@@ -100,24 +100,34 @@ for idx, entry in enumerate(plugins):
 
     hooks_field = plugin.get("hooks")
     if hooks_field:
-        hooks_path = (plugin_root / hooks_field).resolve()
-        if not hooks_path.exists():
-            fail(f"{plugin_json}: hooks path does not exist: {hooks_path}")
-        else:
-            try:
-                hooks_doc = json.loads(hooks_path.read_text())
-            except Exception as e:
-                fail(f"{hooks_path}: invalid JSON: {e}")
-                continue
-            if "hooks" in hooks_doc:
+        if isinstance(hooks_field, str):
+            # Legacy path-reference form. Claude Code's plugin loader does not
+            # accept this shape and will crash /reload-plugins with
+            # `TypeError: X?.reduce is not a function`. Inline the hooks
+            # object into plugin.json instead.
+            fail(
+                f"{plugin_json}: 'hooks' is a path reference "
+                f"({hooks_field!r}). Claude Code's plugin loader requires "
+                f"the hooks object to be inline in plugin.json."
+            )
+        elif isinstance(hooks_field, dict):
+            if "hooks" in hooks_field:
                 fail(
-                    f"{hooks_path}: double-wrapped under a 'hooks' key. "
-                    f"Claude Code's plugin loader will reject this. "
-                    f"Expected the file body to be the event map directly."
+                    f"{plugin_json}: 'hooks' is double-wrapped under a "
+                    f"'hooks' key. Expected the inline event map directly, "
+                    f"e.g. {{'SessionStart': [...]}}."
                 )
             for ev in ("SessionStart", "UserPromptSubmit"):
-                if ev in hooks_doc and not isinstance(hooks_doc[ev], list):
-                    fail(f"{hooks_path}: '{ev}' must be an array of hook groups")
+                if ev in hooks_field and not isinstance(hooks_field[ev], list):
+                    fail(
+                        f"{plugin_json}: 'hooks.{ev}' must be an array of "
+                        f"hook groups"
+                    )
+        else:
+            fail(
+                f"{plugin_json}: 'hooks' must be an inline object, got "
+                f"{type(hooks_field).__name__}"
+            )
 
 if errors:
     print("Claude marketplace contract violations:", file=sys.stderr)
