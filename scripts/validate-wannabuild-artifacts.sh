@@ -260,7 +260,62 @@ def validate_state(state):
                     f"state.json.public_stage_history[{i}].status invalid: {item.get('status')!r}"
                 )
             ensure_iso8601(item.get("timestamp"), f"state.json.public_stage_history[{i}].timestamp")
+    validate_discovery_state(state)
     validate_advisor_state(state)
+
+
+def validate_discovery_state(state):
+    discovery = state.get("discovery")
+    if discovery is None:
+        return
+    if not isinstance(discovery, dict):
+        record_error("state.json.discovery must be an object")
+        return
+
+    def validate_status_node(node, source, require_artifact=False):
+        if node is None:
+            return
+        if not isinstance(node, dict):
+            record_error(f"{source} must be an object")
+            return
+        if node.get("status") not in {"pending", "in_progress", "complete"}:
+            record_error(f"{source}.status invalid: {node.get('status')!r}")
+        if require_artifact:
+            artifact = node.get("artifact")
+            if not isinstance(artifact, str) or not artifact:
+                record_error(f"{source}.artifact must be a non-empty string path")
+
+    validate_status_node(discovery.get("interview"), "state.json.discovery.interview")
+    research = discovery.get("research")
+    if research is not None:
+        if not isinstance(research, dict):
+            record_error("state.json.discovery.research must be an object")
+        else:
+            for key, value in research.items():
+                validate_status_node(
+                    value, f"state.json.discovery.research.{key}", require_artifact=True
+                )
+    adaptive = discovery.get("adaptive_research")
+    if adaptive is not None:
+        if not isinstance(adaptive, list):
+            record_error("state.json.discovery.adaptive_research must be an array")
+        else:
+            for idx, item in enumerate(adaptive):
+                validate_status_node(
+                    item,
+                    f"state.json.discovery.adaptive_research[{idx}]",
+                    require_artifact=True,
+                )
+    validate_status_node(
+        discovery.get("followup_questions"),
+        "state.json.discovery.followup_questions",
+        require_artifact=True,
+    )
+    validate_status_node(
+        discovery.get("synthesis"),
+        "state.json.discovery.synthesis",
+        require_artifact=True,
+    )
 
 
 def validate_loop_state(loop_state):

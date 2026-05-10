@@ -25,6 +25,33 @@ JSON
   done
 }
 
+write_discovery_ready() {
+  write_spec "$TARGET" requirements.md "requirements\n"
+  mkdir -p "$TARGET/.wannabuild/outputs/discovery"
+  printf 'feasible\n' >"$TARGET/.wannabuild/outputs/discovery/feasibility.md"
+  printf 'alternatives\n' >"$TARGET/.wannabuild/outputs/discovery/alternatives-competition.md"
+  printf 'forecast\n' >"$TARGET/.wannabuild/outputs/discovery/failure-forecast.md"
+  printf 'questions\n' >"$TARGET/.wannabuild/outputs/discovery/followup-questions.md"
+  python3 - "$TARGET/.wannabuild/state.json" <<'PY'
+import json, sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+state = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+state["discovery"] = {
+    "interview": {"status": "complete"},
+    "research": {
+        "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+        "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+        "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"},
+    },
+    "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+    "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"},
+}
+path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
 @test "runtime_flow: no concrete task blocks planning" {
   run "$WB_RUNTIME_BIN" transition --project "$TARGET" --to plan
   [ "$status" -ne 0 ]
@@ -32,8 +59,24 @@ JSON
   assert_file_contains "$TARGET/.wannabuild/events.jsonl" '"type":"transition_denied"'
 }
 
-@test "runtime_flow: plan incomplete blocks implementation and plan complete allows it" {
+@test "runtime_flow: discovery incomplete blocks planning" {
   write_spec "$TARGET" requirements.md "requirements\n"
+
+  run "$WB_RUNTIME_BIN" transition --project "$TARGET" --to plan
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Discovery gate failed"* ]]
+
+  write_discovery_ready
+  run "$WB_RUNTIME_BIN" assert-discovery-ready --project "$TARGET"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Discovery gate OK"* ]]
+
+  run "$WB_RUNTIME_BIN" transition --project "$TARGET" --to plan
+  [ "$status" -eq 0 ]
+}
+
+@test "runtime_flow: plan incomplete blocks implementation and plan complete allows it" {
+  write_discovery_ready
   run "$WB_RUNTIME_BIN" transition --project "$TARGET" --to plan
   [ "$status" -eq 0 ]
 
@@ -239,7 +282,7 @@ TASKS
   [ "$codex_required" = "$cursor_required" ]
   [ "$codex_forbidden" = "$cursor_forbidden" ]
   [ "$codex_pause" = "$cursor_pause" ]
-  [[ "$cursor_required" == *"assert-plan-ready"* ]]
+  [[ "$cursor_required" == *"assert-discovery-ready"* ]]
 
   # Factory is a fourth supported host. The runtime treats it via the
   # wildcard branch of normalize_host(); this assertion pins that the

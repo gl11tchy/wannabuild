@@ -38,6 +38,7 @@ pub fn ensure_runtime_layout(project_root: &Path) -> Result<()> {
     fs::create_dir_all(root.join("checkpoints"))?;
     fs::create_dir_all(root.join("review"))?;
     fs::create_dir_all(root.join("outputs"))?;
+    fs::create_dir_all(root.join("outputs/discovery"))?;
     OpenOptions::new()
         .create(true)
         .append(true)

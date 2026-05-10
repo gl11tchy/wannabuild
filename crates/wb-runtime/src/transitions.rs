@@ -135,6 +135,9 @@ fn validate_transition(
     if matches!(target.public_stage.as_str(), "plan" | "implement") {
         gates::assert_concrete_task(project_root)?;
     }
+    if target.public_stage == "plan" && matches!(from, "discover" | "research") {
+        gates::assert_discovery_ready(project_root)?;
+    }
     if target.requested == "plan" && status == "complete" {
         gates::assert_plan_completion_evidence(project_root, current_state)?;
     }
@@ -261,10 +264,71 @@ fn workflow_status_for(status: &str) -> &'static str {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::path::Path;
 
     use tempfile::tempdir;
 
     use super::*;
+
+    fn write_discovery_ready(project_root: &Path) {
+        fs::create_dir_all(project_root.join(".wannabuild/outputs/discovery")).unwrap();
+        fs::create_dir_all(project_root.join(".wannabuild/spec")).unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/feasibility.md"),
+            "feasible",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/alternatives-competition.md"),
+            "alternatives",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/failure-forecast.md"),
+            "forecast",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/followup-questions.md"),
+            "questions",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/spec/requirements.md"),
+            "requirements",
+        )
+        .unwrap();
+        let mut value = state::ensure_state(project_root).unwrap();
+        state::set_value(
+            &mut value,
+            "discovery",
+            json!({
+                "interview": {"status": "complete"},
+                "research": {
+                    "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+                    "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+                    "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"}
+                },
+                "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+                "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"}
+            }),
+        )
+        .unwrap();
+        state::save_state(project_root, &value).unwrap();
+    }
+
+    #[test]
+    fn transition_denies_plan_before_discovery_ready() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/spec")).unwrap();
+        fs::write(dir.path().join(".wannabuild/spec/requirements.md"), "req").unwrap();
+
+        let err = transition(dir.path(), "plan", "in_progress")
+            .unwrap_err()
+            .to_string();
+
+        assert!(err.contains("Discovery gate failed"));
+    }
 
     #[test]
     fn transition_denies_implementation_before_plan() {
@@ -302,8 +366,7 @@ mod tests {
     #[test]
     fn transition_denies_plan_complete_without_real_plan_evidence() {
         let dir = tempdir().unwrap();
-        fs::create_dir_all(dir.path().join(".wannabuild/spec")).unwrap();
-        fs::write(dir.path().join(".wannabuild/spec/requirements.md"), "req").unwrap();
+        write_discovery_ready(dir.path());
 
         let err = transition(dir.path(), "plan", "complete")
             .unwrap_err()
@@ -319,10 +382,9 @@ mod tests {
     }
 
     #[test]
-    fn transition_allows_plan_in_progress_without_plan_evidence() {
+    fn transition_allows_plan_in_progress_after_discovery_without_plan_evidence() {
         let dir = tempdir().unwrap();
-        fs::create_dir_all(dir.path().join(".wannabuild/spec")).unwrap();
-        fs::write(dir.path().join(".wannabuild/spec/requirements.md"), "req").unwrap();
+        write_discovery_ready(dir.path());
 
         let outcome = transition(dir.path(), "plan", "in_progress").unwrap();
 
@@ -333,8 +395,7 @@ mod tests {
     #[test]
     fn internal_design_and_tasks_transitions_preserve_public_plan_stage() {
         let dir = tempdir().unwrap();
-        fs::create_dir_all(dir.path().join(".wannabuild/spec")).unwrap();
-        fs::write(dir.path().join(".wannabuild/spec/requirements.md"), "req").unwrap();
+        write_discovery_ready(dir.path());
 
         let design = transition(dir.path(), "design", "complete").unwrap();
         assert_eq!(design.to, "design");

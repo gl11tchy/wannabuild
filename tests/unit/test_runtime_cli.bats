@@ -14,10 +14,39 @@ setup() {
   mkdir -p "$TARGET"
 }
 
+write_discovery_ready() {
+  mkdir -p "$TARGET/.wannabuild/spec" "$TARGET/.wannabuild/outputs/discovery"
+  printf 'requirements\n' >"$TARGET/.wannabuild/spec/requirements.md"
+  printf 'feasible\n' >"$TARGET/.wannabuild/outputs/discovery/feasibility.md"
+  printf 'alternatives\n' >"$TARGET/.wannabuild/outputs/discovery/alternatives-competition.md"
+  printf 'forecast\n' >"$TARGET/.wannabuild/outputs/discovery/failure-forecast.md"
+  printf 'questions\n' >"$TARGET/.wannabuild/outputs/discovery/followup-questions.md"
+  python3 - "$TARGET/.wannabuild/state.json" <<'PY'
+import json, sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+state = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+state["discovery"] = {
+    "interview": {"status": "complete"},
+    "research": {
+        "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+        "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+        "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"},
+    },
+    "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+    "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"},
+}
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
 @test "runtime_cli: help exposes command groups" {
   run "$WB_RUNTIME_BIN" --help
   [ "$status" -eq 0 ]
   [[ "$output" == *"status"* ]]
+  [[ "$output" == *"assert-discovery-ready"* ]]
   [[ "$output" == *"assert-plan-ready"* ]]
   [[ "$output" == *"event"* ]]
   [[ "$output" == *"tasks"* ]]
@@ -31,8 +60,7 @@ setup() {
 }
 
 @test "runtime_cli: plan complete transition cannot create its own gate evidence" {
-  mkdir -p "$TARGET/.wannabuild/spec"
-  printf 'requirements\n' >"$TARGET/.wannabuild/spec/requirements.md"
+  write_discovery_ready
 
   run "$WB_RUNTIME_BIN" transition --project "$TARGET" --to plan --status complete
   [ "$status" -ne 0 ]
@@ -51,7 +79,7 @@ setup() {
   [ "$status" -eq 0 ]
   [[ "$output" == *'"runtime_active": true'* ]]
   [[ "$output" == *'"allowed_next_action"'* ]]
-  [[ "$output" == *'"assert-plan-ready"'* ]]
+  [[ "$output" == *'"assert-discovery-ready"'* ]]
 }
 
 @test "runtime_cli: session helper delegates plan gate to runtime when binary is on PATH" {
