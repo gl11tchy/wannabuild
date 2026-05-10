@@ -31,6 +31,7 @@ attributed_regex='\b(TODO|FIXME|XXX|HACK)\(([^)]+)\)'
 ignore_globs=(
   -g '!scripts/check-tech-debt.sh'
   -g '!docs/style-guide.md'
+  -g '!CHANGELOG.md'
   -g '!.pre-commit-config.yaml'
   -g '!.wannabuild/**'
   -g '!.worktrees/**'
