@@ -26,6 +26,35 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+@test "phase_flow: discovery state shape validates with exit 0" {
+  make_state_json "$TARGET" requirements
+  write_spec "$TARGET" requirements.md
+  mkdir -p "$TARGET/.wannabuild/outputs/discovery"
+  printf 'feasible\n' >"$TARGET/.wannabuild/outputs/discovery/feasibility.md"
+  printf 'alternatives\n' >"$TARGET/.wannabuild/outputs/discovery/alternatives-competition.md"
+  printf 'forecast\n' >"$TARGET/.wannabuild/outputs/discovery/failure-forecast.md"
+  printf 'questions\n' >"$TARGET/.wannabuild/outputs/discovery/followup-questions.md"
+  python3 - "$TARGET/.wannabuild/state.json" <<'PY'
+import json, sys
+
+p = sys.argv[1]
+d = json.load(open(p))
+d["discovery"] = {
+    "interview": {"status": "complete"},
+    "research": {
+        "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+        "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+        "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"},
+    },
+    "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+    "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"},
+}
+open(p, "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  run_script validate-wannabuild-artifacts.sh "$TARGET"
+  [ "$status" -eq 0 ]
+}
+
 @test "phase_flow: tasks phase validates with requirements.md and design.md" {
   make_state_json "$TARGET" tasks
   write_spec "$TARGET" requirements.md

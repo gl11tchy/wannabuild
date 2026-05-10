@@ -11,17 +11,21 @@ The user does not need to arrive with complete requirements. The orchestrator sh
 
 ## Analysis Agents
 
-Requirements may use these specialist perspectives when they materially improve the synthesis:
+Requirements must use a required research bundle once the user's initial intent is clear enough to research. Optional specialists may be added when they materially improve the synthesis.
 
 | Agent | File | Role |
 |---|---|---|
 | Scope Analyst | `wb-scope-analyst` | MVP boundaries, feature priority, scope risks, size assessment |
 | UX Perspective | `wb-ux-perspective` | Audience, desired feel, user flows, experience risks, testable journeys |
+| Feasibility Analyst | `wb-feasibility-analyst` | Implementation path, dependencies, unknowns, complexity, and effort risk |
+| Alternatives Analyst | `wb-alternatives-analyst` | Direct competitors, adjacent alternatives, existing tools/libraries, manual workflows, and do-nothing options |
+| Failure Forecast Analyst | `wb-failure-forecast` | Pre-mortem-style failure causes, warning signs, mitigations, and qualifying questions |
 
-Do not hard-code agent count or force both agents every time.
+Do not hard-code optional agent count or force optional perspectives every time.
 
-- Tiny, clear requests can stay single-owner.
-- Medium or ambiguous requests can use one or more focused analysis agents.
+- The required bundle is feasibility, alternatives/competition, and Failure Forecast.
+- Tiny, clear requests may produce the required bundle single-owner when the host cannot delegate.
+- Medium or ambiguous requests can use one or more focused analysis agents beyond the bundle.
 - Complex, high-risk, or multi-surface requests can use parallel perspectives if they are independently useful.
 - Choose capability tier and reasoning effort per the adaptive delegation policy in `skills/internal/build/SKILL.md`; do not name concrete model IDs in the requirements plan.
 - Record the delegation rationale in `.wannabuild/decisions.md` or the phase checkpoint: why agents were or were not used, what each owned, and what evidence they produced.
@@ -64,46 +68,65 @@ The first user prompt is raw material, not a complete spec. Treat it as the begi
    - core workflows from start to finish
    - feature inventory, priorities, and must-have vs later ideas
    - constraints, integrations, deadlines, data, platforms, and compatibility needs
+   - budget, time tolerance, operating constraints, and maintenance appetite
+   - decision tradeoffs where the user may prefer speed, quality, flexibility, cost, or control
    - explicit non-goals and things the user does not want
    - success signals: what would make the user say "yes, that's it"
 
-3. **Synthesize the interview.**
+3. **Synthesize the initial interview.**
    - Produce a concise problem brief.
    - Separate confirmed intent from inferred assumptions.
    - List open questions that would materially affect scope or implementation.
-   - Ask follow-up questions only when the answer changes the plan or success criteria.
+   - Ask follow-up questions only when the answer is needed before research.
 
-4. **Choose the analysis shape.**
-   Decide whether specialist agents would improve the synthesis:
-   - no agents for tiny, obvious, low-risk work
-   - one focused agent for a single uncertain dimension
-   - multiple parallel agents for independent perspectives or high uncertainty
+4. **Run the required research bundle.**
+   Once the intent is clear enough to research without guessing, produce:
+   - `.wannabuild/outputs/discovery/feasibility.md`
+   - `.wannabuild/outputs/discovery/alternatives-competition.md`
+   - `.wannabuild/outputs/discovery/failure-forecast.md`
+
+   Use sub-agents where the host supports them. If delegation is unavailable, the orchestrator still produces the same artifacts directly.
+
+5. **Choose adaptive research.**
+   Add focused research only when goal evidence justifies it:
+   - UX or accessibility
+   - security or privacy
+   - external integrations
+   - data model, migration, or compatibility
+   - compliance or policy
+   - performance or scale
+   - monetization, pricing, or market positioning
+   - domain-specific research
 
    Each delegated task must be bounded, independently useful, and assigned an ownership area.
 
-5. **Derive requirements after the vision is stable.**
-   Turn the interview and any agent outputs into:
+6. **Ask research-informed qualifying questions.**
+   Synthesize the required bundle and adaptive findings into `.wannabuild/outputs/discovery/followup-questions.md`. Ask only questions that materially change scope, product direction, risk, or success.
+
+7. **Derive requirements after the vision is qualified.**
+   Turn the interview, research, and any agent outputs into:
    - feature priorities
    - user stories or jobs-to-be-done
    - scope boundaries
    - acceptance criteria
    - integration test scenarios
    - risks, assumptions, and success metrics
+   - research synthesis, qualified decisions, and Failure Forecast impact
 
    Derive test scenarios after the clarified vision, main flows, and desired behavior are understood.
 
-6. **Present the synthesized requirements when useful.**
+8. **Present the synthesized requirements when useful.**
    Show the captured vision, scope, assumptions, and verification direction when it helps clarity. Continue to planning by default unless user judgment is needed.
 
 ## Agent Invocation Pattern
 
-When agents are useful, pass the interview transcript and the specific question each agent should answer. Example shape:
+When agents are useful, pass the interview transcript and the specific question each agent should answer. The required research bundle must be represented by artifacts even when the host does not support delegation. Example shape:
 
 ```text
 Task(subagent_type="<selected specialist>", run_in_background=<true when independent>)
   prompt: "Analyze the discovery transcript and codebase for <specific ownership area>.
            Focus on <scope/UX/risk/etc.>.
-           Write full findings to .wannabuild/outputs/<agent>-requirements.md.
+           Write full findings to .wannabuild/outputs/discovery/<artifact>.md.
            Return ONLY: 'COMPLETE - [one sentence]. Report at <path>'"
 ```
 
@@ -118,10 +141,13 @@ Merge all inputs into one coherent spec:
 - user interview transcript
 - existing requirements or docs
 - codebase facts
+- required research outputs
 - specialist outputs, if any
 - orchestrator assumptions and decisions
 
 If specialist outputs conflict, resolve the conflict explicitly in the spec or ask the user when the choice changes product intent.
+
+Runtime verifies the durable artifacts and `.wannabuild/state.json` discovery evidence. It cannot prove a host truly spawned an agent, so the skill contract owns delegation behavior.
 
 ## Output Artifact
 
@@ -170,6 +196,19 @@ The phase produces `.wannabuild/spec/requirements.md`:
 ## Acceptance Criteria
 - [ ] [Testable criterion derived from the clarified vision]
 
+## Research Synthesis
+### Feasibility
+- [Implementation path, dependencies, unknowns, and effort risks]
+
+### Alternatives and Competition
+- [Direct competitors, adjacent alternatives, existing tools/libraries, manual workflow, do-nothing option]
+
+### Failure Forecast Impact
+- [Likely failure causes, warning signs, mitigations, and requirements changes]
+
+## Qualified Decisions
+- [Decision clarified after research and user follow-up]
+
 ## Scope
 ### In Scope
 - [Capability that will be built]
@@ -206,7 +245,7 @@ The phase produces `.wannabuild/spec/requirements.md`:
 
 ## State Update
 
-After writing `requirements.md`, update `.wannabuild/state.json`:
+After writing the required discovery artifacts and `requirements.md`, update `.wannabuild/state.json`:
 
 ```json
 {
@@ -214,7 +253,21 @@ After writing `requirements.md`, update `.wannabuild/state.json`:
   "phase_status": "complete",
   "public_stage": "discover",
   "artifacts": {
-    "requirements": ".wannabuild/spec/requirements.md"
+    "requirements": ".wannabuild/spec/requirements.md",
+    "discovery_feasibility": ".wannabuild/outputs/discovery/feasibility.md",
+    "discovery_alternatives_competition": ".wannabuild/outputs/discovery/alternatives-competition.md",
+    "discovery_failure_forecast": ".wannabuild/outputs/discovery/failure-forecast.md",
+    "discovery_followup_questions": ".wannabuild/outputs/discovery/followup-questions.md"
+  },
+  "discovery": {
+    "interview": {"status": "complete"},
+    "research": {
+      "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+      "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+      "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"}
+    },
+    "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+    "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"}
   }
 }
 ```
@@ -258,12 +311,18 @@ If the user changes the vision materially, re-run only the affected synthesis or
 - [ ] Scope boundaries are explicit
 - [ ] Size assessment is honest with rationale
 - [ ] Delegation rationale is recorded
+- [ ] Feasibility research artifact exists and affected follow-up questions or requirements
+- [ ] Alternatives/competition research artifact exists and affected follow-up questions or requirements
+- [ ] Failure Forecast artifact exists and affected follow-up questions or requirements
+- [ ] Research-informed qualifying questions were asked or explicitly recorded as unnecessary
+- [ ] `scripts/wannabuild-session.sh assert-discovery-ready .` passes before Plan
 
 ## Contract Validation
 
 Before handoff to Design:
 
 ```bash
+scripts/wannabuild-session.sh assert-discovery-ready .
 scripts/validate-wannabuild-artifacts.sh . design
 ```
 

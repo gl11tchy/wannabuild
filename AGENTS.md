@@ -76,6 +76,7 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 - Do not infer intent from git diff or uncommitted changes.
 - Exception: an explicit `wb-review` or `/wb-review` invocation is itself a concrete review task; if no target is named, review the current checkout changes by default and ask only when there is no reviewable diff.
 - Do not start planning or implementation without a concrete task.
+- Do not transition from Discover or Research to Plan until `scripts/wannabuild-session.sh assert-discovery-ready .` passes.
 - Do not start implementation until Plan is complete.
 - Before implementation edits, run `scripts/wannabuild-session.sh assert-plan-ready .`. If it fails or the runtime cannot execute, return to Plan and do not edit implementation files.
 - Do not browse externally when no concrete task exists.
@@ -87,7 +88,7 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 | Step | Operator obligation | Completion signal |
 |---|---|---|
-| Discover | Interview for vision, audience, desired feel, core flows, features, constraints, scope, and success signals. | A crisp problem brief and synthesized requirements direction exists. |
+| Discover | Interview for vision, audience, desired feel, core flows, features, constraints, scope, success signals, tradeoffs, and non-goals; then run feasibility, alternatives/competition, Failure Forecast, and any goal-relevant adaptive research. | Discovery research artifacts, qualifying questions, and a crisp requirements direction exist. |
 | Plan | Produce a concrete plan, run bounded research when needed, and verify architecture/direction. | Plan is actionable and internally consistent. |
 | Implement | Offer or choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
 | Validate | Run checks and reviewer hats that add real signal for this change; fix actionable findings autonomously. | Validation evidence is captured and blockers are resolved or reported. |
@@ -108,7 +109,7 @@ If the user explicitly asks for guided mode, pause at natural checkpoints.
 ## Parallelization Defaults
 
 - Keep work single-owner when coherence matters more than fan-out.
-- Use bounded multi-agent research only when it materially improves planning quality.
+- Use bounded multi-agent research during Discover and Plan when it materially improves requirements or planning quality.
 - Use parallelism for independent discovery perspectives, disjoint implementation slices, or concurrent review hats with distinct risk ownership.
 - Let the orchestrator choose the number of agents from task evidence: complexity, coupling, uncertainty, blast radius, and expertise required.
 - Do not hard-code agent counts. Stop adding agents when each one no longer has distinct ownership and expected evidence.
@@ -154,7 +155,7 @@ Target projects use `.wannabuild/` as workflow state:
 
 Artifact roles:
 
-- `requirements.md`: vision brief, audience, desired feel, core flows, feature priorities, scope, assumptions, acceptance criteria, and test scenarios.
+- `requirements.md`: vision brief, audience, desired feel, core flows, feature priorities, research synthesis, qualified decisions, scope, assumptions, acceptance criteria, and test scenarios.
 - `design.md`: architecture, contracts, risks, and testing direction.
 - `tasks.md`: ordered implementation slices with verification expectations.
 - `checkpoints/`: execution evidence and resume anchors.

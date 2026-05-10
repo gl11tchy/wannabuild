@@ -146,6 +146,44 @@
         "additionalProperties": true
       }
     },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "interview": {
+          "$ref": "#/$defs/discoveryStatus"
+        },
+        "research": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/discoveryArtifactStatus"
+          },
+          "properties": {
+            "feasibility": {
+              "$ref": "#/$defs/discoveryArtifactStatus"
+            },
+            "alternatives_competition": {
+              "$ref": "#/$defs/discoveryArtifactStatus"
+            },
+            "failure_forecast": {
+              "$ref": "#/$defs/discoveryArtifactStatus"
+            }
+          }
+        },
+        "adaptive_research": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/discoveryArtifactStatus"
+          }
+        },
+        "followup_questions": {
+          "$ref": "#/$defs/discoveryArtifactStatus"
+        },
+        "synthesis": {
+          "$ref": "#/$defs/discoveryArtifactStatus"
+        }
+      }
+    },
     "advisor": {
       "type": "object",
       "additionalProperties": true,
@@ -206,6 +244,44 @@
           }
         }
       }
+    }
+  },
+  "$defs": {
+    "discoveryStatus": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "in_progress",
+            "complete"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "discoveryArtifactStatus": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/discoveryStatus"
+        },
+        {
+          "type": "object",
+          "required": [
+            "artifact"
+          ],
+          "properties": {
+            "artifact": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
     }
   }
 }

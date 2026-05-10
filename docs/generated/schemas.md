@@ -115,6 +115,7 @@ Path: `skills/internal/build/schemas/state.schema.json`
 | `artifacts` | object | — |
 | `control_mode` | string | — |
 | `current_phase` | string | — |
+| `discovery` | object | — |
 | `mode` | string | — |
 | `phase_history` | array | — |
 | `phase_status` | string | — |

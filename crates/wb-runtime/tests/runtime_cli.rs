@@ -44,6 +44,45 @@ fn write_reviews(project: &Path, status: &str) {
     }
 }
 
+fn write_discovery_ready(project: &Path) {
+    write(
+        project.join(".wannabuild/outputs/discovery/feasibility.md"),
+        "feasible",
+    );
+    write(
+        project.join(".wannabuild/outputs/discovery/alternatives-competition.md"),
+        "alternatives",
+    );
+    write(
+        project.join(".wannabuild/outputs/discovery/failure-forecast.md"),
+        "forecast",
+    );
+    write(
+        project.join(".wannabuild/outputs/discovery/followup-questions.md"),
+        "questions",
+    );
+    write(
+        project.join(".wannabuild/spec/requirements.md"),
+        "requirements",
+    );
+    write(
+        project.join(".wannabuild/state.json"),
+        &serde_json::json!({
+            "discovery": {
+                "interview": {"status": "complete"},
+                "research": {
+                    "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+                    "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+                    "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"}
+                },
+                "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+                "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"}
+            }
+        })
+        .to_string(),
+    );
+}
+
 #[test]
 fn help_exposes_runtime_command_groups() {
     let output = wb_runtime().arg("--help").output().unwrap();
@@ -51,6 +90,7 @@ fn help_exposes_runtime_command_groups() {
 
     assert!(text.contains("status"));
     assert!(text.contains("assert-workflow-active"));
+    assert!(text.contains("assert-discovery-ready"));
     assert!(text.contains("assert-plan-ready"));
     assert!(text.contains("event"));
     assert!(text.contains("tasks"));
@@ -92,6 +132,51 @@ fn workflow_active_gate_rejects_label_only_runs() {
 }
 
 #[test]
+fn discovery_gate_blocks_and_allows_planning() {
+    let dir = tempdir().unwrap();
+    write(
+        dir.path().join(".wannabuild/spec/requirements.md"),
+        "requirements",
+    );
+
+    let blocked = wb_runtime()
+        .args([
+            "transition",
+            "--project",
+            &project_arg(dir.path()),
+            "--to",
+            "plan",
+        ])
+        .output()
+        .unwrap();
+    assert!(!blocked.status.success());
+    assert!(output_text(blocked).contains("Discovery gate failed"));
+
+    write_discovery_ready(dir.path());
+    let gate = wb_runtime()
+        .args([
+            "assert-discovery-ready",
+            "--project",
+            &project_arg(dir.path()),
+        ])
+        .output()
+        .unwrap();
+    assert!(gate.status.success());
+    assert!(output_text(gate).contains("Discovery gate OK"));
+
+    wb_runtime()
+        .args([
+            "transition",
+            "--project",
+            &project_arg(dir.path()),
+            "--to",
+            "plan",
+        ])
+        .assert()
+        .success();
+}
+
+#[test]
 fn no_task_blocks_planning() {
     let dir = tempdir().unwrap();
 
@@ -113,10 +198,7 @@ fn no_task_blocks_planning() {
 #[test]
 fn plan_gate_blocks_and_allows_implementation() {
     let dir = tempdir().unwrap();
-    write(
-        dir.path().join(".wannabuild/spec/requirements.md"),
-        "requirements",
-    );
+    write_discovery_ready(dir.path());
 
     wb_runtime()
         .args([
@@ -160,10 +242,7 @@ fn plan_gate_blocks_and_allows_implementation() {
 #[test]
 fn plan_complete_transition_requires_real_plan_evidence() {
     let dir = tempdir().unwrap();
-    write(
-        dir.path().join(".wannabuild/spec/requirements.md"),
-        "requirements",
-    );
+    write_discovery_ready(dir.path());
 
     wb_runtime()
         .args([
@@ -219,10 +298,7 @@ fn plan_complete_transition_requires_real_plan_evidence() {
 #[test]
 fn design_and_tasks_transitions_record_internal_phase_history() {
     let dir = tempdir().unwrap();
-    write(
-        dir.path().join(".wannabuild/spec/requirements.md"),
-        "requirements",
-    );
+    write_discovery_ready(dir.path());
 
     wb_runtime()
         .args([
@@ -930,7 +1006,7 @@ fn adapter_context_and_routes_are_host_equivalent() {
         claude_json["required_gates"]
             .as_array()
             .unwrap()
-            .contains(&Value::String("assert-plan-ready".to_string()))
+            .contains(&Value::String("assert-discovery-ready".to_string()))
     );
 
     let route = wb_runtime()

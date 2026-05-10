@@ -27,6 +27,7 @@ enum Commands {
     Transition(TransitionArgs),
     AssertWorkflowActive(ProjectArgs),
     AssertConcreteTask(ProjectArgs),
+    AssertDiscoveryReady(ProjectArgs),
     AssertPlanReady(ProjectArgs),
     AssertReviewReady(ProjectArgs),
     AssertQaReady(ProjectArgs),
@@ -234,6 +235,11 @@ pub fn run() -> Result<()> {
             &project_root(args.project)?,
             "concrete-task",
             gates::assert_concrete_task,
+        )?,
+        Commands::AssertDiscoveryReady(args) => run_gate(
+            &project_root(args.project)?,
+            "discovery",
+            gates::assert_discovery_ready,
         )?,
         Commands::AssertPlanReady(args) => run_gate(
             &project_root(args.project)?,

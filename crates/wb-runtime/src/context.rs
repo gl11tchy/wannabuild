@@ -50,6 +50,7 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         .unwrap_or("none")
         .to_string();
     let workflow_active = gates::assert_workflow_active(project_root).is_ok();
+    let discovery_ready = gates::assert_discovery_ready(project_root).is_ok();
     let plan_ready = gates::assert_plan_ready(project_root).is_ok();
     let pause_required = state
         .as_ref()
@@ -60,7 +61,11 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         forbidden_actions.push("host_only_wannabuild_claim".to_string());
         required_gates.push("assert-workflow-active".to_string());
     }
-    if !plan_ready {
+    if matches!(public_stage.as_str(), "discover" | "research") && !discovery_ready {
+        forbidden_actions.push("plan_before_discovery_ready".to_string());
+        required_gates.push("assert-discovery-ready".to_string());
+    }
+    if !plan_ready && !matches!(public_stage.as_str(), "discover" | "research") {
         forbidden_actions.push("implement_before_plan".to_string());
         forbidden_actions.push("edit_code_before_plan_gate".to_string());
         required_gates.push("assert-plan-ready".to_string());
@@ -83,8 +88,13 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         public_stage: public_stage.clone(),
         current_phase,
         phase_status,
-        allowed_next_action: allowed_next_action(&public_stage, workflow_active, plan_ready)
-            .to_string(),
+        allowed_next_action: allowed_next_action(
+            &public_stage,
+            workflow_active,
+            discovery_ready,
+            plan_ready,
+        )
+        .to_string(),
         forbidden_actions,
         required_gates,
         pause_required,
@@ -107,12 +117,14 @@ fn pause_required_from_state(state: &Value) -> bool {
 fn allowed_next_action(
     public_stage: &str,
     workflow_active: bool,
+    discovery_ready: bool,
     plan_ready: bool,
 ) -> &'static str {
     if !workflow_active {
         return "run_runtime_bootstrap";
     }
     match public_stage {
+        "discover" | "research" if !discovery_ready => "complete_discovery_research_then_qualify",
         "discover" => "continue_discover_then_plan",
         "research" => "finish_research_then_plan",
         "plan" if plan_ready => "transition_to_implement",
@@ -206,6 +218,29 @@ mod tests {
         assert_eq!(
             context.allowed_next_action,
             "complete_plan_before_implementation"
+        );
+    }
+
+    #[test]
+    fn context_reports_discovery_gate_before_plan() {
+        let dir = tempdir().unwrap();
+        state::ensure_state(dir.path()).unwrap();
+
+        let context = build_context(dir.path());
+
+        assert!(
+            context
+                .required_gates
+                .contains(&"assert-discovery-ready".to_string())
+        );
+        assert!(
+            context
+                .forbidden_actions
+                .contains(&"plan_before_discovery_ready".to_string())
+        );
+        assert_eq!(
+            context.allowed_next_action,
+            "complete_discovery_research_then_qualify"
         );
     }
 

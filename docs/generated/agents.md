@@ -6,6 +6,7 @@ Specialist agent prompts, derived from YAML frontmatter and headings.
 
 | Name | Model | Description |
 |---|---|---|
+| `wb-alternatives-analyst` | — | Researches alternatives and competition during WannaBuild discovery. Compares direct competitors, adjacent solutions, existing libraries/tools, manual workflows, and do-nothing options. |
 | `wb-api-doc-generator` | — | Generates API documentation for WannaBuild document phase. Documents endpoints, functions, types, and contracts from the actual code and design spec. |
 | `wb-architect` | — | Designs system architecture for WannaBuild design phase. Creates data models, API contracts, and architectural decisions with rationale. |
 | `wb-architecture-reviewer` | — | Reviews code for architectural quality in WannaBuild review phase. Validates separation of concerns, design pattern usage, and compliance with the design spec. |
@@ -13,6 +14,8 @@ Specialist agent prompts, derived from YAML frontmatter and headings.
 | `wb-ci-guardian` | — | Monitors CI pipeline and ensures all checks pass for WannaBuild ship phase. Verifies integration tests pass in CI before allowing merge. |
 | `wb-code-simplifier` | — | Reviews code for unnecessary complexity in WannaBuild review phase. Identifies over-engineering, dead code, and opportunities to simplify. |
 | `wb-dependency-mapper` | — | Maps task dependencies for WannaBuild tasks phase. Identifies blocking relationships, critical path, and parallelization opportunities. |
+| `wb-failure-forecast` | — | Runs a pre-mortem-style Failure Forecast during WannaBuild discovery. Assumes the project failed, identifies likely causes, warning signs, mitigations, and qualifying questions. |
+| `wb-feasibility-analyst` | — | Researches feasibility during WannaBuild discovery. Assesses implementation path, dependencies, unknowns, constraints, complexity, and effort risk before Plan. |
 | `wb-implementer-escalated` | — | Escalation implementer for WannaBuild review loops. Same implementation standards as wb-implementer, but inherits parent model for higher-complexity fixes and post-review remediation. |
 | `wb-implementer` | — | Implements code from the task spec for WannaBuild implement phase. Writes feature code and integration tests via micro-step execution with checkpoint evidence. |
 | `wb-integration-tester` | — | Validates integration test completeness and quality in WannaBuild review phase. Maps acceptance criteria to tests, runs the test suite, and hard-gates on missing integration tests. This agent's FAIL verdict blocks shipping. |

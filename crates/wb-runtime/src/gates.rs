@@ -17,6 +17,33 @@ const REQUIRED_REVIEWERS: &[&str] = &[
     "wb-code-simplifier",
 ];
 const INTEGRATION_TESTER: &str = "wb-integration-tester";
+const DISCOVERY_REQUIRED_ARTIFACTS: &[(&str, &[&str], &str)] = &[
+    (
+        "feasibility",
+        &["research", "feasibility"],
+        ".wannabuild/outputs/discovery/feasibility.md",
+    ),
+    (
+        "alternatives_competition",
+        &["research", "alternatives_competition"],
+        ".wannabuild/outputs/discovery/alternatives-competition.md",
+    ),
+    (
+        "failure_forecast",
+        &["research", "failure_forecast"],
+        ".wannabuild/outputs/discovery/failure-forecast.md",
+    ),
+    (
+        "followup_questions",
+        &["followup_questions"],
+        ".wannabuild/outputs/discovery/followup-questions.md",
+    ),
+    (
+        "synthesis",
+        &["synthesis"],
+        ".wannabuild/spec/requirements.md",
+    ),
+];
 
 #[derive(Debug, Clone)]
 struct ReviewVerdict {
@@ -150,6 +177,48 @@ pub fn assert_workflow_active(project_root: &Path) -> Result<GatePass> {
     })
 }
 
+pub fn assert_discovery_ready(project_root: &Path) -> Result<GatePass> {
+    let state = load_state(project_root)?
+        .ok_or_else(|| RuntimeError::message("Discovery gate failed: state.json missing"))?;
+    let discovery = state
+        .get("discovery")
+        .ok_or_else(|| RuntimeError::message("Discovery gate failed: state.discovery missing"))?;
+    let mut evidence = Vec::new();
+    let mut missing = Vec::new();
+
+    require_discovery_status(
+        discovery,
+        "interview",
+        &["interview"],
+        &mut evidence,
+        &mut missing,
+    );
+    for (label, path, artifact) in DISCOVERY_REQUIRED_ARTIFACTS {
+        require_discovery_status(discovery, label, path, &mut evidence, &mut missing);
+        require_discovery_artifact(
+            project_root,
+            discovery,
+            label,
+            path,
+            artifact,
+            &mut evidence,
+            &mut missing,
+        )?;
+    }
+
+    if !missing.is_empty() {
+        return Err(RuntimeError::message(format!(
+            "Discovery gate failed: complete Discovery before Plan (missing: {})",
+            missing.join(", ")
+        )));
+    }
+
+    Ok(GatePass {
+        gate: "discovery",
+        evidence,
+    })
+}
+
 pub fn assert_plan_ready(project_root: &Path) -> Result<GatePass> {
     let state = load_state(project_root)?.unwrap_or(Value::Object(Default::default()));
     let real_evidence = plan_completion_evidence(project_root, &state);
@@ -195,6 +264,62 @@ pub(crate) fn plan_completion_evidence(project_root: &Path, state: &Value) -> Ve
         evidence.push("phase_history.design+tasks".to_string());
     }
     evidence
+}
+
+fn require_discovery_status(
+    discovery: &Value,
+    label: &str,
+    path: &[&str],
+    evidence: &mut Vec<String>,
+    missing: &mut Vec<String>,
+) {
+    if status_complete(value_at_path(discovery, path)) {
+        evidence.push(format!("state.discovery.{label}.status"));
+    } else {
+        missing.push(format!("state.discovery.{label}.status=complete"));
+    }
+}
+
+fn require_discovery_artifact(
+    project_root: &Path,
+    discovery: &Value,
+    label: &str,
+    path: &[&str],
+    artifact: &str,
+    evidence: &mut Vec<String>,
+    missing: &mut Vec<String>,
+) -> Result<()> {
+    let configured = value_at_path(discovery, path)
+        .and_then(|value| value.get("artifact"))
+        .and_then(Value::as_str);
+    if configured == Some(artifact) {
+        evidence.push(format!("state.discovery.{label}.artifact"));
+    } else {
+        missing.push(format!("state.discovery.{label}.artifact={artifact}"));
+    }
+
+    let artifact_path = project_root.join(artifact);
+    if artifact_path.is_file() && !fs::read_to_string(&artifact_path)?.trim().is_empty() {
+        evidence.push(artifact.to_string());
+    } else {
+        missing.push(artifact.to_string());
+    }
+    Ok(())
+}
+
+fn value_at_path<'a>(value: &'a Value, path: &[&str]) -> Option<&'a Value> {
+    let mut current = value;
+    for key in path {
+        current = current.get(*key)?;
+    }
+    Some(current)
+}
+
+fn status_complete(value: Option<&Value>) -> bool {
+    value
+        .and_then(|item| item.get("status"))
+        .and_then(Value::as_str)
+        == Some("complete")
 }
 
 pub fn assert_review_ready(project_root: &Path) -> Result<GatePass> {
@@ -687,10 +812,126 @@ fn required_reviewers(project_root: &Path) -> BTreeSet<String> {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::path::Path;
 
     use tempfile::tempdir;
 
     use super::*;
+
+    fn write_discovery_ready(project_root: &Path) {
+        fs::create_dir_all(project_root.join(".wannabuild/outputs/discovery")).unwrap();
+        fs::create_dir_all(project_root.join(".wannabuild/spec")).unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/feasibility.md"),
+            "feasible",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/alternatives-competition.md"),
+            "alternatives",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/failure-forecast.md"),
+            "forecast",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/discovery/followup-questions.md"),
+            "questions",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/spec/requirements.md"),
+            "requirements",
+        )
+        .unwrap();
+        fs::write(
+            project_root.join(".wannabuild/state.json"),
+            r#"{
+  "discovery": {
+    "interview": {"status": "complete"},
+    "research": {
+      "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+      "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+      "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"}
+    },
+    "followup_questions": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/followup-questions.md"},
+    "synthesis": {"status": "complete", "artifact": ".wannabuild/spec/requirements.md"}
+  }
+}"#,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn discovery_gate_fails_without_interview_evidence() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/state.json"),
+            r#"{"discovery":{}}"#,
+        )
+        .unwrap();
+
+        let err = assert_discovery_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("state.discovery.interview.status=complete"));
+    }
+
+    #[test]
+    fn discovery_gate_requires_research_artifacts() {
+        let dir = tempdir().unwrap();
+        write_discovery_ready(dir.path());
+        fs::remove_file(
+            dir.path()
+                .join(".wannabuild/outputs/discovery/feasibility.md"),
+        )
+        .unwrap();
+
+        let err = assert_discovery_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains(".wannabuild/outputs/discovery/feasibility.md"));
+    }
+
+    #[test]
+    fn discovery_gate_requires_followup_and_synthesis() {
+        let dir = tempdir().unwrap();
+        write_discovery_ready(dir.path());
+        fs::write(
+            dir.path().join(".wannabuild/state.json"),
+            r#"{
+  "discovery": {
+    "interview": {"status": "complete"},
+    "research": {
+      "feasibility": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/feasibility.md"},
+      "alternatives_competition": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/alternatives-competition.md"},
+      "failure_forecast": {"status": "complete", "artifact": ".wannabuild/outputs/discovery/failure-forecast.md"}
+    }
+  }
+}"#,
+        )
+        .unwrap();
+
+        let err = assert_discovery_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("state.discovery.followup_questions.status=complete"));
+        assert!(err.contains("state.discovery.synthesis.status=complete"));
+    }
+
+    #[test]
+    fn discovery_gate_passes_with_required_bundle() {
+        let dir = tempdir().unwrap();
+        write_discovery_ready(dir.path());
+
+        let pass = assert_discovery_ready(dir.path()).unwrap();
+
+        assert_eq!(pass.gate, "discovery");
+        assert!(
+            pass.evidence
+                .contains(&".wannabuild/spec/requirements.md".to_string())
+        );
+    }
 
     #[test]
     fn plan_gate_passes_with_artifacts() {
