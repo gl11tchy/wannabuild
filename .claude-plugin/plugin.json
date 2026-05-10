@@ -8,7 +8,30 @@
   "homepage": "https://github.com/gl11tchy/wannabuild",
   "repository": "https://github.com/gl11tchy/wannabuild",
   "license": "MIT",
-  "hooks": "./hooks/hooks.json",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/wannabuild-route.py\" || python \"${CLAUDE_PLUGIN_ROOT}/hooks/wannabuild-route.py\" || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/wannabuild-route.py\" || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/wannabuild-route.py\" || python \"${CLAUDE_PLUGIN_ROOT}/hooks/wannabuild-route.py\" || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/wannabuild-route.py\" || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
   "keywords": [
     "sdd",
     "spec-driven",
