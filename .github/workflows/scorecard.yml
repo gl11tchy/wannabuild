@@ -55,13 +55,13 @@ jobs:
       - name: Upload SARIF to Code Scanning
         # github/codeql-action v3.27.5 (commit SHA, not tag-object SHA — see
         # https://github.com/ossf/scorecard-action#workflow-restrictions)
-        uses: github/codeql-action/upload-sarif@f09c1c0a94de965c15400f5634aa42fac8fb8f88
+        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e
         with:
           sarif_file: results.sarif
 
       - name: Upload SARIF artifact
         # actions/upload-artifact v4.6.2
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: SARIF file
           path: results.sarif
