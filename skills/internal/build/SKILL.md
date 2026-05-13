@@ -1,5 +1,11 @@
 # WannaBuild — SDD Orchestrator
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 > "What do you wanna build?"
 
 WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts. It supports the full loop from natural language and from any phase skill entrypoint.

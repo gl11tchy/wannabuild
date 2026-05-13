@@ -116,11 +116,16 @@ extract_skill_display_name() {
 }
 
 # Extract first non-empty paragraph after the first H1 heading. Used as a
-# fallback description when frontmatter description is missing.
+# fallback description when frontmatter description is missing. Skip the shared
+# contract block so generated descriptions keep the role-specific summary.
 extract_first_paragraph() {
   awk '
-    BEGIN { seen_h1 = 0; collecting = 0; buf = "" }
+    BEGIN { seen_h1 = 0; collecting = 0; skip_contract = 0; contract_content = 0; buf = "" }
     /^# / { seen_h1 = 1; next }
+    seen_h1 && /^## Contract Standard/ { skip_contract = 1; contract_content = 0; next }
+    skip_contract && /^[[:space:]]*$/ && contract_content { skip_contract = 0; next }
+    skip_contract && /^[[:space:]]*$/ { next }
+    skip_contract { contract_content = 1; next }
     seen_h1 && /^[[:space:]]*$/ {
       if (collecting) { exit }
       next
@@ -217,6 +222,7 @@ generate_agents_md() {
     printf '%s Source: agents/*.md -->\n\n' "${GENERATED_BY}"
     printf '# Agents\n\n'
     printf 'Specialist agent prompts, derived from YAML frontmatter and headings.\n\n'
+    printf 'Contract standard: docs/contract-standard.md\n\n'
 
     if [ -z "${sources}" ]; then
       printf '_No agents found._\n'
@@ -259,6 +265,7 @@ generate_skills_md() {
     printf '%s Source: skills/**/SKILL.md -->\n\n' "${GENERATED_BY}"
     printf '# Skills\n\n'
     printf 'Workflow and phase contracts available to the orchestrator.\n\n'
+    printf 'Contract standard: docs/contract-standard.md\n\n'
 
     if [ -z "${sources}" ]; then
       printf '_No skills found._\n'
@@ -365,6 +372,7 @@ generate_index_md() {
     printf '```bash\n'
     printf 'bash scripts/generate-docs.sh\n'
     printf '```\n\n'
+    printf 'Contract standard: docs/contract-standard.md\n\n'
     printf '## Contents\n\n'
     printf -- '- [Scripts](scripts.md) — every `scripts/*.sh` with description, functions, and flags\n'
     printf -- '- [Agents](agents.md) — specialist agent prompts (`agents/*.md`)\n'

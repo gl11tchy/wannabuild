@@ -4,6 +4,8 @@
 
 Workflow and phase contracts available to the orchestrator.
 
+Contract standard: docs/contract-standard.md
+
 | Skill | Display Name | Path | Description |
 |---|---|---|---|
 | `build` | — | `skills/internal/build/SKILL.md` | > "What do you wanna build?" |

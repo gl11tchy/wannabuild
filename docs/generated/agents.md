@@ -4,6 +4,8 @@
 
 Specialist agent prompts, derived from YAML frontmatter and headings.
 
+Contract standard: docs/contract-standard.md
+
 | Name | Model | Description |
 |---|---|---|
 | `wb-alternatives-analyst` | — | Researches alternatives and competition during WannaBuild discovery. Compares direct competitors, adjacent solutions, existing libraries/tools, manual workflows, and do-nothing options. |

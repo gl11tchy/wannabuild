@@ -24,6 +24,8 @@ pub struct AdapterContext {
     pub allowed_next_action: String,
     pub forbidden_actions: Vec<String>,
     pub required_gates: Vec<String>,
+    pub required_evidence: Vec<String>,
+    pub next_handoff: String,
     pub pause_required: bool,
 }
 
@@ -42,6 +44,8 @@ pub fn adapter_context(
         allowed_next_action: runtime_context.allowed_next_action.clone(),
         forbidden_actions: runtime_context.forbidden_actions.clone(),
         required_gates: runtime_context.required_gates.clone(),
+        required_evidence: runtime_context.required_evidence.clone(),
+        next_handoff: runtime_context.next_handoff.clone(),
         pause_required: runtime_context.pause_required,
         runtime_context,
         route,

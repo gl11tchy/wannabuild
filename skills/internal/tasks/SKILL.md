@@ -1,5 +1,11 @@
 # WannaBuild Tasks Phase
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 > Phase 3 of 7 in the WannaBuild SDD pipeline. Decomposes the design into ordered, atomic implementation tasks with dependencies, acceptance criteria, and required integration tests.
 
 ## Agents

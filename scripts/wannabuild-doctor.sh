@@ -365,6 +365,7 @@ check_file "scripts/wb-trace.sh" || status=1
 check_file "scripts/scrub-log.sh" || status=1
 check_file "scripts/apply-rulesets.sh" || status=1
 check_file "scripts/generate-docs.sh" || status=1
+check_file "scripts/validate-contracts.sh" || status=1
 check_file "tests/run.sh" || status=1
 check_file "tests/test_helper.bash" || status=1
 check_dir "tests/unit" || status=1
@@ -424,6 +425,7 @@ echo "Golden path validation"
 check_command "golden path artifacts validate" "$ROOT/scripts/validate-wannabuild-artifacts.sh" "$ROOT/docs/golden-path-demo" document || status=1
 check_command "golden path summary gate passes" "$ROOT/scripts/wannabuild-gate-check.sh" "$ROOT/docs/golden-path-demo" summary || status=1
 check_command "daily-use dry runs pass" "$ROOT/scripts/validate-wannabuild-dry-runs.sh" "$ROOT" || status=1
+check_command "contract prompts validate" bash "$ROOT/scripts/validate-contracts.sh" || status=1
 echo
 echo "Codex install"
 echo "Target: ${CODEX_SKILLS_DIR}"

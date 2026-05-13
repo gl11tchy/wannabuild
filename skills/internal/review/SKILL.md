@@ -1,5 +1,11 @@
 # WannaBuild: Review Phase (Elite Code Review)
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 > "Does the code match the spec?"
 
 Phase 5 of 7 in the WannaBuild SDD pipeline. Specialist reviewers validate the implementation against the spec artifacts. The active reviewer set for each iteration must unanimously PASS for code to ship. The integration tester is a hard gate — no override for missing tests.

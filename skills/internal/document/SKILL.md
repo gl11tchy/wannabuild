@@ -1,5 +1,11 @@
 # WannaBuild: Document Phase
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 > "What would confuse future-you? Write that down."
 
 Phase 7 of 7 in the WannaBuild SDD pipeline. Updates documentation to reflect what was built — README, API docs, and changelog. Documentation is generated from spec artifacts, not from memory.

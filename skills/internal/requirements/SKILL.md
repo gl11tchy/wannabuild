@@ -5,6 +5,12 @@ description: Vision-first requirements discovery for WannaBuild. Interviews the 
 
 # WannaBuild Requirements Phase
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Discover is a conversational interview and synthesis phase. It should feel like a strong product-minded engineer helping the user articulate what they actually want, not like a test-case intake form.
 
 The user does not need to arrive with complete requirements. The orchestrator should draw out the vision, infer structure from the conversation, mark assumptions honestly, and only then derive acceptance criteria and verification scenarios.

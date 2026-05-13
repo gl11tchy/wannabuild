@@ -13,6 +13,8 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 Use the `wannabuild` skill for the full workflow contract.
 
+Contracts live in the owning skill; this command is only a shortcut.
+
 Command-layer constraints:
 
 - Do not emit start or resume banners from this command.

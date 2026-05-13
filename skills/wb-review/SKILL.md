@@ -5,6 +5,12 @@ description: WannaBuild review phase entrypoint for adaptive code, spec, and ris
 
 # wb-review
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this phase skill when the user wants review or the active WannaBuild workflow is in Validate/Review. A `wb-review` or `wannabuild:wb-review` invocation starts or resumes the full WannaBuild loop unless the user explicitly says review only.
 
 ## Phase Bootstrap

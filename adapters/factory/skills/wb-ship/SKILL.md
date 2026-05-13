@@ -5,6 +5,12 @@ description: WannaBuild ship/summary phase entrypoint for preparing verified wor
 
 # wb-ship
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this phase skill when the user wants to ship, merge, push, create a PR, or prepare final delivery. A `wb-ship` or `wannabuild:wb-ship` invocation starts or resumes the full WannaBuild loop; if review or QA evidence is missing, resume the missing phase before declaring the work ready.
 
 ## Phase Bootstrap
