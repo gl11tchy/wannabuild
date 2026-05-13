@@ -208,6 +208,19 @@ PY
   [[ "$output" == *"FAIL  wb-review defaults to current checkout changes when target is omitted"* ]]
 }
 
+@test "doctor: FAILs when contract validator finds a weak skill contract" {
+  copy="$(_copy_repo)"
+  python3 - "$copy/skills/wb-build/SKILL.md" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace("Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.", "Shared contract removed."))
+PY
+  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL  contract prompts validate"* ]]
+}
+
 @test "doctor: WARNs when Codex skill symlink is absent in fake HOME" {
   copy="$(_copy_repo)"
   # with_clean_env redirects HOME to an empty tmp dir, so install symlinks

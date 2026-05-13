@@ -100,6 +100,10 @@ else
   skip_check "scripts/check-tech-debt.sh" "rg not installed or not executable"
 fi
 
+# 9. WannaBuild prompt contracts
+run_check "scripts/validate-contracts.sh" \
+  bash scripts/validate-contracts.sh
+
 echo
 echo "================ lint summary ================"
 printf '  %s\n' "${results[@]}"

@@ -16,6 +16,8 @@ pub struct RuntimeContext {
     pub allowed_next_action: String,
     pub forbidden_actions: Vec<String>,
     pub required_gates: Vec<String>,
+    pub required_evidence: Vec<String>,
+    pub next_handoff: String,
     pub pause_required: bool,
     pub vague_acknowledgment_policy: String,
     pub state_file: String,
@@ -97,6 +99,14 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         .to_string(),
         forbidden_actions,
         required_gates,
+        required_evidence: required_evidence(
+            &public_stage,
+            workflow_active,
+            discovery_ready,
+            plan_ready,
+        ),
+        next_handoff: next_handoff(&public_stage, workflow_active, discovery_ready, plan_ready)
+            .to_string(),
         pause_required,
         vague_acknowledgment_policy: "continue current phase; do not skip required gates or phases"
             .to_string(),
@@ -139,6 +149,86 @@ fn allowed_next_action(
     }
 }
 
+fn required_evidence(
+    public_stage: &str,
+    workflow_active: bool,
+    discovery_ready: bool,
+    plan_ready: bool,
+) -> Vec<String> {
+    let evidence: Vec<&str> = if !workflow_active {
+        vec!["active .wannabuild/state.json runtime state"]
+    } else {
+        match public_stage {
+            "discover" | "research" if !discovery_ready => vec![
+                "requirements direction",
+                "feasibility research",
+                "alternatives/competition research",
+                "failure forecast",
+                "qualifying questions recorded or resolved",
+            ],
+            "discover" => vec!["requirements direction", "discovery readiness gate"],
+            "research" => vec!["bounded research synthesis", "discovery readiness gate"],
+            "plan" if !plan_ready => vec![
+                ".wannabuild/spec/design.md",
+                ".wannabuild/spec/tasks.md",
+                "implementation verification plan",
+            ],
+            "plan" => vec!["plan readiness gate"],
+            "implement" => vec![
+                "assert-plan-ready pass",
+                "task checkpoints",
+                "task verification commands",
+            ],
+            "review" => vec![
+                "review verdicts",
+                "actionable findings fixed or accepted",
+                "assert-review-ready pass",
+            ],
+            "qa" => vec![
+                "QA summary",
+                "acceptance criteria coverage",
+                "integration behavior evidence",
+                "assert-qa-ready pass",
+            ],
+            "ship" => vec![
+                "delivery mode decision",
+                "post-delivery CI status",
+                "summary gate pass",
+            ],
+            "summary" => vec!["review ready", "QA ready", "handoff summary"],
+            _ => vec!["concrete task or exploratory idea intent"],
+        }
+    };
+    evidence
+        .into_iter()
+        .map(std::string::ToString::to_string)
+        .collect()
+}
+
+fn next_handoff(
+    public_stage: &str,
+    workflow_active: bool,
+    discovery_ready: bool,
+    plan_ready: bool,
+) -> &'static str {
+    if !workflow_active {
+        return "wannabuild";
+    }
+    match public_stage {
+        "discover" | "research" if !discovery_ready => "wb-discover",
+        "discover" | "research" => "wb-plan",
+        "plan" if plan_ready => "wb-build",
+        "plan" => "wb-plan",
+        "implement" if plan_ready => "wb-review",
+        "implement" => "wb-plan",
+        "review" => "wb-qa",
+        "qa" => "wb-ship",
+        "ship" => "wb-ship",
+        "summary" => "complete",
+        _ => "wannabuild",
+    }
+}
+
 pub fn render_text(context: &RuntimeContext) -> String {
     let first = if context.runtime_active {
         "WannaBuild runtime state is active."
@@ -165,6 +255,13 @@ pub fn render_text(context: &RuntimeContext) -> String {
             context.required_gates.join(", ")
         ));
     }
+    if !context.required_evidence.is_empty() {
+        lines.push(format!(
+            "- required_evidence: {}",
+            context.required_evidence.join(", ")
+        ));
+    }
+    lines.push(format!("- next_handoff: {}", context.next_handoff));
     lines.push(format!(
         "- vague_acknowledgment_policy: {}",
         context.vague_acknowledgment_policy
@@ -199,6 +296,10 @@ mod tests {
                 .contains(&"host_only_wannabuild_claim".to_string())
         );
         assert_eq!(context.allowed_next_action, "run_runtime_bootstrap");
+        assert_eq!(context.next_handoff, "wannabuild");
+        assert!(context
+            .required_evidence
+            .contains(&"active .wannabuild/state.json runtime state".to_string()));
     }
 
     #[test]
@@ -219,6 +320,10 @@ mod tests {
             context.allowed_next_action,
             "complete_plan_before_implementation"
         );
+        assert_eq!(context.next_handoff, "wb-plan");
+        assert!(context
+            .required_evidence
+            .contains(&".wannabuild/spec/design.md".to_string()));
     }
 
     #[test]
@@ -242,6 +347,10 @@ mod tests {
             context.allowed_next_action,
             "complete_discovery_research_then_qualify"
         );
+        assert_eq!(context.next_handoff, "wb-discover");
+        assert!(context
+            .required_evidence
+            .contains(&"failure forecast".to_string()));
     }
 
     #[test]
@@ -260,5 +369,9 @@ mod tests {
             context.allowed_next_action,
             "run_planning_gate_then_implement_smallest_slice"
         );
+        assert_eq!(context.next_handoff, "wb-review");
+        assert!(context
+            .required_evidence
+            .contains(&"task checkpoints".to_string()));
     }
 }

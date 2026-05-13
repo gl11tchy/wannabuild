@@ -5,6 +5,12 @@ description: WannaBuild debugging implementation entrypoint for reproducing, dia
 
 # wb-debug
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this phase skill when the user wants a bug investigated or fixed. A `wb-debug` or `wannabuild:wb-debug` invocation starts or resumes the full WannaBuild loop unless the user explicitly says debug only.
 
 ## Phase Bootstrap

@@ -5,6 +5,12 @@ description: Automatic repo-native WannaBuild full-loop workflow for natural "I 
 
 # WannaBuild
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this skill when the user wants WannaBuild itself, not generic coding help.
 
 ## Skill-First Dispatch

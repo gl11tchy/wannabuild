@@ -5,6 +5,12 @@ description: WannaBuild planning phase entrypoint for turning a brief or concret
 
 # wb-plan
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this phase skill when the user invokes planning or the active WannaBuild workflow is in Plan. A `wb-plan` or `wannabuild:wb-plan` invocation starts or resumes the full WannaBuild loop unless the user explicitly says plan only or do not implement.
 
 ## Phase Bootstrap

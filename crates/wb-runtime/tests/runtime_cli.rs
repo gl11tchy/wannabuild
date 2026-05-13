@@ -854,7 +854,7 @@ fn status_is_read_only_when_state_is_missing() {
 fn context_and_adapter_route_are_read_only_when_state_is_missing() {
     let dir = tempdir().unwrap();
 
-    wb_runtime()
+    let context = wb_runtime()
         .args([
             "context",
             "--project",
@@ -862,8 +862,17 @@ fn context_and_adapter_route_are_read_only_when_state_is_missing() {
             "--format",
             "json",
         ])
-        .assert()
-        .success();
+        .output()
+        .unwrap();
+    assert!(context.status.success());
+    let context_json: Value = serde_json::from_slice(&context.stdout).unwrap();
+    assert_eq!(context_json["next_handoff"], "wannabuild");
+    assert!(context_json["required_evidence"]
+        .as_array()
+        .unwrap()
+        .contains(&Value::String(
+            "active .wannabuild/state.json runtime state".to_string()
+        )));
     assert!(!dir.path().join(".wannabuild").exists());
 
     wb_runtime()
@@ -1000,6 +1009,16 @@ fn adapter_context_and_routes_are_host_equivalent() {
     );
     assert_eq!(claude_json["required_gates"], codex_json["required_gates"]);
     assert_eq!(claude_json["required_gates"], cursor_json["required_gates"]);
+    assert_eq!(
+        claude_json["required_evidence"],
+        codex_json["required_evidence"]
+    );
+    assert_eq!(
+        claude_json["required_evidence"],
+        cursor_json["required_evidence"]
+    );
+    assert_eq!(claude_json["next_handoff"], codex_json["next_handoff"]);
+    assert_eq!(claude_json["next_handoff"], cursor_json["next_handoff"]);
     assert_eq!(claude_json["pause_required"], codex_json["pause_required"]);
     assert_eq!(claude_json["pause_required"], cursor_json["pause_required"]);
     assert!(
@@ -1008,6 +1027,11 @@ fn adapter_context_and_routes_are_host_equivalent() {
             .unwrap()
             .contains(&Value::String("assert-discovery-ready".to_string()))
     );
+    assert_eq!(claude_json["next_handoff"], "wb-discover");
+    assert!(claude_json["required_evidence"]
+        .as_array()
+        .unwrap()
+        .contains(&Value::String("failure forecast".to_string())));
 
     let route = wb_runtime()
         .args([

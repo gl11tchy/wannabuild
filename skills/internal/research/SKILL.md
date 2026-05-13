@@ -1,5 +1,11 @@
 # WannaBuild Research Burst
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 > Optional multi-agent research before planning.
 
 Use this when discovery has surfaced meaningful uncertainty and the user chooses research before planning.

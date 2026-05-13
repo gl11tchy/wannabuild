@@ -6,6 +6,8 @@ description: Brief intro to WannaBuild, then hand off to the main workflow
 
 Explain WannaBuild briefly, then route to `wannabuild` for the full loop or the matching `wb-*` skill for a toolbox request.
 
+Contracts live in the owning skill; this command is only a shortcut.
+
 Keep the intro short:
 
 - Spec-driven development framework

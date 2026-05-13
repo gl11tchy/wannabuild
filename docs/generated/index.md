@@ -8,6 +8,8 @@ Auto-generated indexes of WannaBuild surfaces. Regenerate with:
 bash scripts/generate-docs.sh
 ```
 
+Contract standard: docs/contract-standard.md
+
 ## Contents
 
 - [Scripts](scripts.md) — every `scripts/*.sh` with description, functions, and flags

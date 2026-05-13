@@ -5,6 +5,12 @@ description: WannaBuild QA phase entrypoint for validating acceptance criteria, 
 
 # wb-qa
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this phase skill when the user wants QA or the active WannaBuild workflow is in QA. A `wb-qa` or `wannabuild:wb-qa` invocation starts or resumes the full WannaBuild loop unless the user explicitly says QA only.
 
 ## Phase Bootstrap

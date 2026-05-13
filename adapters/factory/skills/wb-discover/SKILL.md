@@ -5,6 +5,12 @@ description: WannaBuild discovery phase entrypoint for clarifying vision, audien
 
 # wb-discover
 
+## Contract Standard
+
+This prompt follows `docs/contract-standard.md`.
+Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
+Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+
 Use this phase skill when the user invokes discovery or the active WannaBuild workflow is in Discover. A `wb-discover` or `wannabuild:wb-discover` invocation starts or resumes the full WannaBuild loop unless the user explicitly says discovery only.
 
 ## Phase Bootstrap

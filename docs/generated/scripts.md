@@ -521,6 +521,38 @@ Exit 0 = contract holds, non-zero = a real consumer would hit an error.
 - `-e`
 - `-f`
 
+## `validate-contracts.sh`
+
+Path: `scripts/validate-contracts.sh`
+
+### Description
+
+```text
+validate-contracts.sh — fail closed on weak WannaBuild prompt contracts.
+```
+
+### Functions
+
+- `check_prompt_contract`
+- `fail`
+- `pass`
+- `require_contains`
+- `require_file`
+- `require_same_file`
+
+### CLI flags / options observed
+
+- `-F`
+- `-e`
+- `-f`
+- `-m`
+- `-n`
+- `-p`
+- `-r`
+- `-s`
+- `-t`
+- `-u`
+
 ## `validate-wannabuild-artifacts.sh`
 
 Path: `scripts/validate-wannabuild-artifacts.sh`
