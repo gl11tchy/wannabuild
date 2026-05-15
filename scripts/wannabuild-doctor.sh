@@ -405,9 +405,10 @@ check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /w
 check_contains ".claude-plugin/plugin.json" "\"hooks\": {" "Claude plugin declares hooks inline" || status=1
 check_contains ".claude-plugin/plugin.json" "\"SessionStart\"" "Claude plugin inline hooks include SessionStart" || status=1
 check_contains ".claude-plugin/plugin.json" "\"UserPromptSubmit\"" "Claude plugin inline hooks include UserPromptSubmit" || status=1
-check_contains ".claude-plugin/marketplace.json" "\"hooks\": \"./hooks/hooks.json\"" "Claude marketplace declares hooks manifest" || status=1
+check_not_contains ".claude-plugin/marketplace.json" "\"hooks\":" "Claude marketplace omits stray hooks field (a path string here crashes /plugin with v?.reduce is not a function)" || status=1
 check_contains ".factory-plugin/marketplace.json" "\"source\": \"./adapters/factory\"" "Factory marketplace routes to Factory adapter" || status=1
 check_contains "adapters/factory/.factory-plugin/plugin.json" "\"hooks\": \"./hooks/hooks.json\"" "Factory plugin declares hooks manifest" || status=1
+check_contains "hooks/hooks.json" "\"hooks\": {" "Claude hooks file is wrapped under a top-level hooks key (loader requires record shape)" || status=1
 check_contains "hooks/hooks.json" "SessionStart" "Claude hooks include SessionStart autoroute context" || status=1
 check_contains "hooks/hooks.json" "UserPromptSubmit" "Claude hooks include UserPromptSubmit autorouter" || status=1
 check_contains "hooks/wannabuild-route.py" "WannaBuild automatic routing is active" "Claude autorouter injects session routing context" || status=1

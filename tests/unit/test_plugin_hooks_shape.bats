@@ -1,9 +1,16 @@
 #!/usr/bin/env bats
 #
-# Regression: hooks/hooks.json must be the unwrapped event-map shape that
-# Claude Code's plugin loader expects. A previous wrapped shape made
-# `/reload-plugins` crash with `TypeError: X?.reduce is not a function`
-# because the loader iterated the inner object as if it were an array.
+# Regression: hooks/hooks.json must be wrapped under a top-level `hooks` key
+# that maps to the event record Claude Code's plugin loader expects:
+#
+#   { "hooks": { "SessionStart": [...], "UserPromptSubmit": [...] } }
+#
+# Earlier WannaBuild releases (≤ 2.2.5) shipped the unwrapped shape because
+# an older Claude Code accepted it. The current plugin loader rejects the
+# unwrapped shape with `expected record, received undefined` at path `hooks`
+# and a stray `"hooks": "./hooks/hooks.json"` declaration in marketplace.json
+# crashes `/plugin` with `TypeError: v?.reduce is not a function`. See
+# docs/runbooks/install-and-load-failures.md.
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
@@ -18,11 +25,11 @@ py() {
   py "import json; json.load(open('$HOOKS_FILE'))"
 }
 
-@test "plugin hooks.json: top level is NOT wrapped under a 'hooks' key" {
+@test "plugin hooks.json: top level IS wrapped under a 'hooks' key" {
   run py "
 import json,sys
 d=json.load(open('$HOOKS_FILE'))
-sys.exit(0 if 'hooks' not in d else 1)
+sys.exit(0 if list(d.keys())==['hooks'] and isinstance(d['hooks'],dict) else 1)
 "
   [ "$status" -eq 0 ]
 }
@@ -31,7 +38,7 @@ sys.exit(0 if 'hooks' not in d else 1)
   run py "
 import json,sys
 d=json.load(open('$HOOKS_FILE'))
-v=d.get('SessionStart')
+v=d['hooks'].get('SessionStart')
 sys.exit(0 if isinstance(v,list) and len(v)>=1 else 1)
 "
   [ "$status" -eq 0 ]
@@ -41,7 +48,7 @@ sys.exit(0 if isinstance(v,list) and len(v)>=1 else 1)
   run py "
 import json,sys
 d=json.load(open('$HOOKS_FILE'))
-v=d.get('UserPromptSubmit')
+v=d['hooks'].get('UserPromptSubmit')
 sys.exit(0 if isinstance(v,list) and len(v)>=1 else 1)
 "
   [ "$status" -eq 0 ]
@@ -51,7 +58,7 @@ sys.exit(0 if isinstance(v,list) and len(v)>=1 else 1)
   run py "
 import json,sys
 d=json.load(open('$HOOKS_FILE'))
-for ev,groups in d.items():
+for ev,groups in d['hooks'].items():
     assert isinstance(groups,list), f'{ev} not a list'
     for g in groups:
         assert isinstance(g,dict), f'{ev} group not a dict'

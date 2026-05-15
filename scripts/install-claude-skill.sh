@@ -239,9 +239,10 @@ if [[ ! -f "${PLUGIN_CACHE}/hooks/hooks.json" ]]; then
   exit 1
 fi
 
-# Verify the hooks file is in the unwrapped event-map shape Claude Code's
-# plugin loader actually accepts. Catches the v2.2.4-style /reload-plugins
-# crash at install time instead of in the user's first session.
+# Verify the hooks file is in the wrapped event-map shape Claude Code's
+# current plugin loader requires: {"hooks": {"SessionStart": [...], ...}}.
+# Catches the "expected record, received undefined" load failure at install
+# time instead of in the user's first /plugin invocation.
 verify_hooks_shape() {
   "$PYTHON" - "$1" <<'PY'
 import json, sys
@@ -250,12 +251,15 @@ try:
 except Exception as e:
     print(f"hooks.json is not valid JSON: {e}", file=sys.stderr)
     sys.exit(1)
-if "hooks" in d:
-    print("hooks.json is double-wrapped under a 'hooks' key — Claude Code's", file=sys.stderr)
-    print("plugin loader will crash /reload-plugins. Expected the file body", file=sys.stderr)
-    print("to be the event map directly, e.g. {\"SessionStart\": [...]}.", file=sys.stderr)
+if list(d.keys()) != ["hooks"] or not isinstance(d.get("hooks"), dict):
+    print("hooks.json must be wrapped under a single top-level 'hooks' key", file=sys.stderr)
+    print("mapping to the event record, e.g.", file=sys.stderr)
+    print("  {\"hooks\": {\"SessionStart\": [...], \"UserPromptSubmit\": [...]}}", file=sys.stderr)
+    print("Claude Code's plugin loader rejects other shapes with", file=sys.stderr)
+    print("\"expected record, received undefined\" at path 'hooks'.", file=sys.stderr)
     sys.exit(1)
-if not isinstance(d.get("SessionStart"), list) or not isinstance(d.get("UserPromptSubmit"), list):
+events = d["hooks"]
+if not isinstance(events.get("SessionStart"), list) or not isinstance(events.get("UserPromptSubmit"), list):
     print("hooks.json is missing SessionStart or UserPromptSubmit event arrays.", file=sys.stderr)
     sys.exit(1)
 PY

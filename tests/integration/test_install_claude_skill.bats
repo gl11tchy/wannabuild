@@ -7,7 +7,7 @@
 # Code's plugin loader would actually consume:
 #
 #   - plugin cache symlink resolves into the repo
-#   - hooks/hooks.json is reachable AND in the unwrapped shape
+#   - hooks/hooks.json is reachable AND in the wrapped event-map shape
 #   - plugin manifest is reachable
 #   - known_marketplaces.json, installed_plugins.json, settings.json
 #     register and enable the plugin
@@ -47,7 +47,7 @@ run_install() {
   [ ! -e "$cache/skills/ship/SKILL.md" ]
 }
 
-@test "install-claude-skill: installed hooks.json is the unwrapped event-map shape" {
+@test "install-claude-skill: installed hooks.json is the wrapped event-map shape" {
   fake_home="$(setup_tmpdir)/host"
   mkdir -p "$fake_home"
 
@@ -57,9 +57,9 @@ run_install() {
   run python3 -c "
 import json,sys
 d=json.load(open('$hooks'))
-assert 'hooks' not in d, 'hooks.json is double-wrapped under a hooks key'
-assert isinstance(d.get('SessionStart'),list), 'SessionStart not an array'
-assert isinstance(d.get('UserPromptSubmit'),list), 'UserPromptSubmit not an array'
+assert list(d.keys())==['hooks'] and isinstance(d['hooks'],dict), 'hooks.json must be wrapped under a top-level hooks key'
+assert isinstance(d['hooks'].get('SessionStart'),list), 'SessionStart not an array'
+assert isinstance(d['hooks'].get('UserPromptSubmit'),list), 'UserPromptSubmit not an array'
 "
   [ "$status" -eq 0 ]
 }
