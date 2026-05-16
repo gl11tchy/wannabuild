@@ -8,6 +8,23 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.4.0](https://github.com/gl11tchy/wannabuild/compare/v2.3.0...v2.4.0) (2026-05-16)
+
+
+### Features
+
+* enforce thorough discovery readiness ([#42](https://github.com/gl11tchy/wannabuild/issues/42)) ([ec74c08](https://github.com/gl11tchy/wannabuild/commit/ec74c086f3f648ee2efde515ed002a0e40b39627))
+* harden WannaBuild contracts ([38e6b14](https://github.com/gl11tchy/wannabuild/commit/38e6b14c3f0d9a02608630978130522f6e2e9dfb))
+
+
+### Fixes
+
+* **claude-plugin:** align hooks schema with current Claude Code loader ([#45](https://github.com/gl11tchy/wannabuild/issues/45)) ([a2cb8d0](https://github.com/gl11tchy/wannabuild/commit/a2cb8d0301c315aecf32389be8ecd44004320216))
+* **claude-plugin:** inline hooks definition in plugin.json ([9ee45e1](https://github.com/gl11tchy/wannabuild/commit/9ee45e1fd23a5f26af60ec65a18bd323746093bc))
+* clean release PR title pattern ([ed0abe3](https://github.com/gl11tchy/wannabuild/commit/ed0abe33b233d440b4ec4d862825bf8c4355b206))
+* **contracts:** align doctor + marketplace validator with inline hooks ([34027d7](https://github.com/gl11tchy/wannabuild/commit/34027d759dc56326fef4bd584b54552c72f628fb))
+* harden release automation checks ([641bc31](https://github.com/gl11tchy/wannabuild/commit/641bc31a2cbd46a945f1adb22808899f33ccf5ad))
+
 ## [2.3.0](https://github.com/gl11tchy/wannabuild/compare/v2.2.5...v2.3.0) (2026-05-09)
 
 
