@@ -7,32 +7,82 @@ issue history.
 
 ---
 
-## `/reload-plugins` crashes with `TypeError: X?.reduce is not a function`
+## `/plugin` Errors tab shows `TypeError: v?.reduce is not a function`
 
-**Symptom.** Claude Code throws
+**Symptom.** Opening `/plugin` in Claude Code surfaces an entry under the
+Errors tab attributed to `plugin-system`:
 
 ```text
-TypeError: X?.reduce is not a function. (In 'X?.reduce((P,G)=>P+G.hooks.length,0)', 'X?.reduce' is undefined)
+v?.reduce is not a function.
+(In 'v?.reduce((E,h)=>E+h.hooks.length,0)', 'v?.reduce' is undefined)
 ```
 
-immediately after running `/reload-plugins`.
+The same error pattern (`?.reduce` over `h.hooks.length`) was previously
+caused by a wrapped `hooks/hooks.json`; this is a different surface in
+Claude Code's plugin UI.
 
-**Cause.** `hooks/hooks.json` is double-wrapped under an outer `"hooks"` key.
-Claude Code's plugin loader expects the file body to be the event map directly
-(`{ "SessionStart": [...], "UserPromptSubmit": [...] }`), not nested.
+**Cause.** A stray `"hooks": "./hooks/hooks.json"` field on the plugin entry
+inside `.claude-plugin/marketplace.json`. Every other plugin in every
+marketplace leaves this field undefined, so Claude Code's UI reducer
+short-circuits the optional chain. The wannabuild entry held a string left
+over from before inline hooks landed in `.claude-plugin/plugin.json`, and the
+reducer crashes trying to call `.reduce` on it.
 
-**Diagnose.** Print the first key of the file:
+The canonical hook definition lives inline in `.claude-plugin/plugin.json`;
+the marketplace.json field was redundant.
+
+**Diagnose.**
 
 ```bash
-python3 -c 'import json,sys; print(list(json.load(open(sys.argv[1])).keys())[:3])' \
+jq '.plugins[] | select(.name=="wannabuild") | .hooks' \
+  ~/.claude/plugins/marketplaces/gl11tchy/.claude-plugin/marketplace.json
+```
+
+If the output is anything other than `null`, you have the broken declaration.
+
+**Fix.** Upgrade WannaBuild (`/plugin update wannabuild@gl11tchy`). The
+release removes the stray field; `scripts/wannabuild-doctor.sh` now asserts
+its absence to prevent regression.
+
+---
+
+## `/plugin` reports `Failed to load hooks from .../hooks/hooks.json`
+
+**Symptom.** Per-plugin error under wannabuild:
+
+```text
+Failed to load hooks from .../hooks/hooks.json: [
+  { "expected": "record", "code": "invalid_type", "path": ["hooks"],
+    "message": "Invalid input: expected record, received undefined" }
+]
+```
+
+**Cause.** `hooks/hooks.json` is in the legacy unwrapped event-map shape
+(`{ "SessionStart": [...], "UserPromptSubmit": [...] }`). Claude Code's
+current plugin loader requires the file to be wrapped under a top-level
+`hooks` key:
+
+```json
+{ "hooks": { "SessionStart": [...], "UserPromptSubmit": [...] } }
+```
+
+The unwrapped shape was adopted in WannaBuild 2.2.5 to fix a different
+`?.reduce` crash from an earlier Claude Code build. That code path has since
+been rewritten, and the current loader rejects the unwrapped shape.
+
+**Diagnose.**
+
+```bash
+python3 -c 'import json,sys; print(list(json.load(open(sys.argv[1])).keys()))' \
   ~/.claude/plugins/cache/gl11tchy/wannabuild/*/hooks/hooks.json
 ```
 
-If the output is `['hooks']`, you have the wrapped shape.
+If you see event names (`['SessionStart', 'UserPromptSubmit']`) instead of
+`['hooks']`, you have the legacy unwrapped shape.
 
-**Fix.** Upgrade to ≥ 2.2.5 (`/plugin update wannabuild@gl11tchy`). The fix
-landed in [PR #8](https://github.com/gl11tchy/wannabuild/pull/8) and is
-regression-pinned by `tests/unit/test_plugin_hooks_shape.bats`.
+**Fix.** Upgrade WannaBuild (`/plugin update wannabuild@gl11tchy`). The
+release re-wraps the file; `tests/unit/test_plugin_hooks_shape.bats` pins
+the new shape.
 
 ---
 
