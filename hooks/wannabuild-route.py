@@ -197,7 +197,7 @@ def fallback_runtime_context(
     public_stage = safe_context_value(state.get("public_stage"), "unknown")
     current_phase = safe_context_value(state.get("current_phase"), "unknown")
     phase_status = safe_context_value(state.get("phase_status"), "unknown")
-    control_mode = safe_context_value(state.get("control_mode"), "autonomous")
+    control_mode = safe_context_value(state.get("control_mode"), "guided")
     ready = plan_ready(state, project_root)
     next_action = NEXT_ACTIONS.get(public_stage, "continue the active WannaBuild phase")
 

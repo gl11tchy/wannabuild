@@ -21,7 +21,7 @@ setup() {
   [ "$status" -eq 0 ]
   [ -f "$TARGET/.wannabuild/state.json" ]
   assert_file_contains "$TARGET/.wannabuild/state.json" '"public_stage": "discover"'
-  assert_file_contains "$TARGET/.wannabuild/state.json" '"control_mode": "autonomous"'
+  assert_file_contains "$TARGET/.wannabuild/state.json" '"control_mode": "guided"'
   assert_file_contains "$TARGET/.wannabuild/state.json" '"workflow_status": "in_progress"'
 }
 

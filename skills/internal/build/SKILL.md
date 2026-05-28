@@ -117,13 +117,13 @@ WannaBuild now runs one standard full-loop workflow mode at the top level.
 - proceed into Discover immediately
 - route explicit `wb-*` requests to the matching toolbox skill instead of starting the full loop
 
-## Autonomy After Discover
+## Control Mode After Discover
 
-After Discover, continue autonomously by default. Do not ask whether to stay guided or switch to autonomous.
+Default to guided mode. Pause at every phase boundary (Discover -> Plan -> Implement -> Validate -> QA -> Summary) and require explicit user approval before advancing across each one.
 
-Use `control_mode: "autonomous"` unless the user explicitly asks for guided mode.
+Use `control_mode: "guided"` unless the user explicitly asks for autonomous or unattended execution.
 
-Ask only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
+In guided mode, present what each phase produced, name the next phase, and wait for an explicit approval ("go", "proceed", "continue", "approved") before crossing the boundary; a vague acknowledgment is not approval to advance. In autonomous mode, continue through the phases without per-boundary approval, asking only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
 
 ## Adaptive Research
 
@@ -509,7 +509,7 @@ Then write `.wannabuild/state.json` with all required fields:
   "phase_status": "pending",
   "public_stage": "discover",
   "workflow_status": "in_progress",
-  "control_mode": "autonomous",
+  "control_mode": "guided",
   "started_at": "<RFC3339 timestamp>",
   "updated_at": "<RFC3339 timestamp>",
   "artifacts": {},

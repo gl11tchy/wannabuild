@@ -87,13 +87,13 @@ Run this condensed workflow:
 5. QA
 6. Summary
 
-In full-loop mode, Discover should interview until the goal is crisp enough to form requirements, then hand off to Plan automatically unless user judgment is needed.
+In full-loop mode, Discover always runs an interview before any planning, even when the prompt looks detailed. Once the goal is crisp enough to form requirements, stop and ask the user for explicit approval before handing off to Plan.
 
 ## Defaults
 
-- Discover is a vision-first interview before it is a requirements document.
+- Discover is a vision-first interview before it is a requirements document, and the interview always runs.
 - Keep Discover, Plan, QA, and Summary single-lane unless parallel specialists materially improve quality.
-- Default to autonomous execution after discovery.
+- Default to guided execution: pause at every phase boundary and require explicit user approval before advancing.
 - Run optional research before planning when uncertainty is materially high.
 - Choose implementation shape adaptively.
 - For explicit phase-limited work, do only the requested step and keep exploratory work bounded to the decision at hand.
@@ -151,26 +151,27 @@ To prevent duplicate user-visible outputs:
 - If the most recent assistant message already contains the exact question and the user has not answered yet, do not repeat it; wait for user input.
 - If repetition is necessary for clarity, restate with new wording instead of sending the exact same message text.
 
-## Autonomy After Discover
+## Control Mode After Discover
 
-After Discover, continue autonomously by default. Do not ask whether to stay guided or switch to autonomous.
+Default to guided mode. Pause at every phase boundary and require explicit user approval before advancing.
 
 Use:
 
-- `control_mode: "autonomous"`
+- `control_mode: "guided"`
 
-Continue through planning, implementation, validation, QA, and summary unless user judgment is required.
+Gate each of these transitions and wait for explicit user approval before crossing it:
 
-If the user invoked a `wb-*` phase skill, continue from that phase into the next natural phase once its completion signal is met. A vague acknowledgment is not an exit, approval to skip planning, or instruction to stop.
+- Discover -> Plan
+- Plan -> Implement
+- Implement -> Validate
+- Validate -> QA
+- QA -> Summary
 
-Ask only when:
+At each gate, present what the phase produced, state the next phase, and ask for approval to proceed. A vague acknowledgment ("ok", "sounds good") is not approval to skip a phase, but an explicit "go", "proceed", "continue", or "approved" advances exactly one boundary.
 
-- ambiguity changes product direction or scope materially
-- credentials, paid services, production data, or destructive actions are involved
-- merge, push, PR, or direct-to-main strategy is needed
-- the user explicitly requested guided mode
+If the user invoked a `wb-*` phase skill, complete that phase, then stop at its boundary and ask before entering the next phase.
 
-If the user requests guided mode, set `control_mode: "guided"` and pause at natural checkpoints.
+Switch to `control_mode: "autonomous"` only when the user explicitly asks for autonomous or unattended execution. In autonomous mode, continue through the phases without per-boundary approval, asking only when ambiguity changes product direction or scope, credentials/paid services/production data/destructive actions are involved, or merge/push/PR strategy is needed.
 
 ## Research
 
@@ -229,7 +230,7 @@ Write verdicts into `.wannabuild/review/`.
 
 Update `.wannabuild/state.json` — set `public_stage: "review"`, `workflow_status: "in_progress"`, `updated_at: <RFC3339 timestamp, e.g. 2026-04-06T14:23:45Z>`.
 
-Do not stop for validation approval unless a blocker requires user judgment.
+In guided mode, stop at the Implement -> Validate boundary and ask for approval before running validation, then stop again at the Validate -> QA boundary before continuing. In autonomous mode, do not stop for validation approval unless a blocker requires user judgment.
 
 ## QA
 
@@ -245,7 +246,7 @@ Update `.wannabuild/state.json` — set `public_stage: "qa"`, `workflow_status: 
 
 Do not collapse QA into implementation verification.
 
-Proceed through QA automatically unless it requires user-controlled systems, credentials, paid services, or destructive actions.
+In guided mode, stop at the Validate -> QA boundary and ask for approval before running QA, then stop again at the QA -> Summary boundary before summarizing. In autonomous mode, proceed through QA automatically unless it requires user-controlled systems, credentials, paid services, or destructive actions.
 
 ## Summary Guard
 

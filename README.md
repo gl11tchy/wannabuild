@@ -119,11 +119,10 @@ DISCOVER -> PLAN -> IMPLEMENT -> VALIDATE -> QA -> SUMMARY
 - Infer and synthesize requirements after the interview instead of expecting the user to arrive with everything ready.
 - Derive acceptance criteria and integration scenarios from the clarified vision rather than making tests the center of discovery.
 
-### Autonomy
+### Control mode
 
-- After Discover, WannaBuild continues autonomously by default.
-- It asks only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
-- Guided mode remains available when explicitly requested.
+- WannaBuild runs in guided mode by default: it always interviews in Discover and pauses at every phase boundary for your explicit approval before advancing.
+- Ask for autonomous mode explicitly ("run autonomously") for unattended end-to-end runs; it then asks only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
 
 ### Plan
 
