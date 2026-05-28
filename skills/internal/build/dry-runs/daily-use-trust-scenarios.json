@@ -60,7 +60,7 @@
     },
     {
       "id": "implementation-workspace-selection",
-      "description": "Implementation can use an isolated worktree when selected, while earlier stages stay in the current checkout.",
+      "description": "Under explicitly selected autonomous mode, implementation can use an isolated worktree when selected, while earlier stages stay in the current checkout.",
       "fixture": "workspace-bootstrap-state.json",
       "workspace_fixture": "workspace-bootstrap-workspace.json",
       "branch_prefixes": [
@@ -107,13 +107,14 @@
     },
     {
       "id": "implementation-selection",
-      "description": "After planning, implementation starts with the selected adaptive execution shape instead of pausing for a gate.",
+      "description": "In explicitly selected autonomous mode, after planning, implementation starts with the selected adaptive execution shape without pausing for a per-boundary gate. (In the default guided mode the Plan -> Implement boundary requires explicit user approval.)",
       "fixture": "implement-gate-denied-state.json",
       "expect": {
         "current_phase": "implement",
         "phase_status": "in_progress",
         "public_stage": "implement",
-        "workflow_status": "in_progress"
+        "workflow_status": "in_progress",
+        "control_mode": "autonomous"
       },
       "latest_public_stage_expect": {
         "stage": "implement",

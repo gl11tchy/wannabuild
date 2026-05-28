@@ -318,12 +318,18 @@ def runtime_context_from_adapter(
         f"- phase_status: {safe_context_value(runtime.get('phase_status'))}",
         f"- allowed_next_action: {safe_context_value(adapter_context.get('allowed_next_action') or runtime.get('allowed_next_action'))}",
     ]
+    control_mode = safe_context_value(
+        adapter_context.get("control_mode") or runtime.get("control_mode"), "guided"
+    )
+    lines.append(f"- control_mode: {control_mode}")
     if forbidden_actions:
         lines.append(f"- forbidden_actions: {', '.join(forbidden_actions)}")
     if required_gates:
         lines.append(f"- required_gates: {', '.join(required_gates)}")
     if pause_required:
-        lines.append("- pause_required: true")
+        lines.append(
+            "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"
+        )
     lines.append("- preserve this workflow across turns until completion or explicit user stop/exit")
     if prompt and vague_ack(prompt):
         lines.append(
