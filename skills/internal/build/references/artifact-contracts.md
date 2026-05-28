@@ -23,7 +23,7 @@ Use these with `scripts/validate-wannabuild-artifacts.sh`.
 - `phase_status` (`pending` | `in_progress` | `complete`): Current internal phase status
 - `public_stage` (string): Current public-facing stage (`discover` | `research` | `plan` | `implement` | `review` | `qa` | `summary`)
 - `workflow_status` (`in_progress` | `complete`): Current public workflow status
-- `control_mode` (`guided` | `autonomous`): Execution preference; defaults to `autonomous`
+- `control_mode` (`guided` | `autonomous`): Execution preference; defaults to `guided`
 - `artifacts` (object): Paths to generated artifacts
 - `started_at`, `updated_at` (ISO timestamps)
 - `phase_history` (array): Chronological internal phase status records
@@ -59,7 +59,7 @@ Example:
   "phase_status": "in_progress",
   "public_stage": "review",
   "workflow_status": "in_progress",
-  "control_mode": "autonomous",
+  "control_mode": "guided",
   "artifacts": {
     "requirements": ".wannabuild/spec/requirements.md",
     "design": ".wannabuild/spec/design.md",

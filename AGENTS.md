@@ -95,16 +95,15 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 | QA | Validate acceptance criteria and integration behavior. | Integration hard gate passes. |
 | Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
 
-## Autonomy Defaults
+## Control Mode Defaults
 
-After discovery, default to autonomous execution. Do not ask the user to approve every internal gate.
+Default to guided execution. Always run the Discover interview, then pause at every phase boundary (Discover -> Plan -> Implement -> Validate -> QA -> Summary) and require explicit user approval before advancing across each one.
 
-- Ask when scope, product direction, destructive actions, credentials, paid/external services, or merge/push strategy require user judgment.
-- Otherwise plan, implement, validate, QA, and summarize.
+- At each boundary, present what the phase produced, name the next phase, and wait for explicit approval ("go", "proceed", "continue", "approved"). A vague acknowledgment is not approval to advance.
 - Choose research, single-owner implementation, parallel implementation, reviewer hats, and validation depth from task evidence.
 - Keep user-facing summaries concise.
 
-If the user explicitly asks for guided mode, pause at natural checkpoints.
+If the user explicitly asks for autonomous or unattended execution, switch to autonomous mode: plan, implement, validate, QA, and summarize without per-boundary approval, asking only when scope, product direction, destructive actions, credentials, paid/external services, or merge/push strategy require user judgment.
 
 ## Parallelization Defaults
 

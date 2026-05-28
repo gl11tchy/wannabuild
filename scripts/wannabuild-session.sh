@@ -159,7 +159,7 @@ if command == "init":
         "current_phase": "requirements",
         "phase_status": "pending",
         "public_stage": "discover",
-        "control_mode": "autonomous",
+        "control_mode": "guided",
         "workflow_status": "in_progress",
         "started_at": ts,
         "updated_at": ts,

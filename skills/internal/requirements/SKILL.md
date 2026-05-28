@@ -282,7 +282,7 @@ After writing the required discovery artifacts and `requirements.md`, update `.w
 
 Next public step: Plan.
 
-Continue autonomously by default. Ask only when unresolved ambiguity changes product direction, scope, or risk.
+In guided mode (the default), stop at the Discover -> Plan boundary and ask for explicit approval before planning. In autonomous mode, continue automatically, asking only when unresolved ambiguity changes product direction, scope, or risk.
 
 ## User Interaction
 
@@ -290,8 +290,8 @@ After synthesis, present the requirements to the user:
 
 ```text
 Here's what I've captured so far: the vision, core flows, feature priorities,
-scope boundaries, assumptions, and how we'll verify the work. I'll continue
-unless something here changes the direction.
+scope boundaries, assumptions, and how we'll verify the work. Approve this to
+move on to Plan, or tell me what to change.
 ```
 
 The user can:

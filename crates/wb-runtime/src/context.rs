@@ -18,6 +18,7 @@ pub struct RuntimeContext {
     pub required_gates: Vec<String>,
     pub required_evidence: Vec<String>,
     pub next_handoff: String,
+    pub control_mode: String,
     pub pause_required: bool,
     pub vague_acknowledgment_policy: String,
     pub state_file: String,
@@ -54,9 +55,15 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
     let workflow_active = gates::assert_workflow_active(project_root).is_ok();
     let discovery_ready = gates::assert_discovery_ready(project_root).is_ok();
     let plan_ready = gates::assert_plan_ready(project_root).is_ok();
+    let control_mode = state
+        .as_ref()
+        .and_then(|value| get_str(value, "control_mode"))
+        .unwrap_or("guided")
+        .to_string();
     let pause_required = state
         .as_ref()
-        .is_some_and(|value| pause_required_from_state(value));
+        .is_some_and(|value| pause_required_from_state(value))
+        || (runtime_active && control_mode == "guided");
     let mut forbidden_actions = Vec::new();
     let mut required_gates = Vec::new();
     if !workflow_active {
@@ -107,6 +114,7 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         ),
         next_handoff: next_handoff(&public_stage, workflow_active, discovery_ready, plan_ready)
             .to_string(),
+        control_mode,
         pause_required,
         vague_acknowledgment_policy: "continue current phase; do not skip required gates or phases"
             .to_string(),
@@ -242,7 +250,14 @@ pub fn render_text(context: &RuntimeContext) -> String {
         format!("- current_phase: {}", context.current_phase),
         format!("- phase_status: {}", context.phase_status),
         format!("- allowed_next_action: {}", context.allowed_next_action),
+        format!("- control_mode: {}", context.control_mode),
     ];
+    if context.pause_required {
+        lines.push(
+            "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"
+                .to_string(),
+        );
+    }
     if !context.forbidden_actions.is_empty() {
         lines.push(format!(
             "- forbidden: {}",
@@ -351,6 +366,45 @@ mod tests {
         assert!(context
             .required_evidence
             .contains(&"failure forecast".to_string()));
+    }
+
+    #[test]
+    fn context_requires_pause_for_guided_control_mode() {
+        let dir = tempdir().unwrap();
+        let mut value = state::ensure_state(dir.path()).unwrap();
+        state::set_str(&mut value, "public_stage", "implement").unwrap();
+        state::set_str(&mut value, "control_mode", "guided").unwrap();
+        state::save_state(dir.path(), &value).unwrap();
+        fs::write(dir.path().join(".wannabuild/spec/design.md"), "design").unwrap();
+        fs::write(dir.path().join(".wannabuild/spec/tasks.md"), "tasks").unwrap();
+
+        let context = build_context(dir.path());
+
+        assert_eq!(context.control_mode, "guided");
+        assert!(
+            context.pause_required,
+            "guided mode must require a pause at the phase boundary"
+        );
+        assert!(render_text(&context).contains("pause_required: true"));
+    }
+
+    #[test]
+    fn context_does_not_pause_for_autonomous_control_mode() {
+        let dir = tempdir().unwrap();
+        let mut value = state::ensure_state(dir.path()).unwrap();
+        state::set_str(&mut value, "public_stage", "implement").unwrap();
+        state::set_str(&mut value, "control_mode", "autonomous").unwrap();
+        state::save_state(dir.path(), &value).unwrap();
+        fs::write(dir.path().join(".wannabuild/spec/design.md"), "design").unwrap();
+        fs::write(dir.path().join(".wannabuild/spec/tasks.md"), "tasks").unwrap();
+
+        let context = build_context(dir.path());
+
+        assert_eq!(context.control_mode, "autonomous");
+        assert!(
+            !context.pause_required,
+            "autonomous mode must not force a per-boundary pause"
+        );
     }
 
     #[test]

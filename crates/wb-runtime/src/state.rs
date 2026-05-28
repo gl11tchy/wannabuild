@@ -89,7 +89,7 @@ pub fn merge_defaults(state: &mut Value, project_root: &Path) -> Result<bool> {
     changed |= insert_default(map, "phase_status", json!("pending"));
     changed |= insert_default(map, "public_stage", json!("discover"));
     changed |= insert_default(map, "workflow_status", json!("in_progress"));
-    changed |= insert_default(map, "control_mode", json!("autonomous"));
+    changed |= insert_default(map, "control_mode", json!("guided"));
     changed |= insert_default(map, "started_at", json!(ts));
     changed |= insert_default(map, "updated_at", json!(now()?));
     changed |= insert_default(map, "artifacts", json!({}));

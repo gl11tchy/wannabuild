@@ -26,6 +26,7 @@ pub struct AdapterContext {
     pub required_gates: Vec<String>,
     pub required_evidence: Vec<String>,
     pub next_handoff: String,
+    pub control_mode: String,
     pub pause_required: bool,
 }
 
@@ -46,6 +47,7 @@ pub fn adapter_context(
         required_gates: runtime_context.required_gates.clone(),
         required_evidence: runtime_context.required_evidence.clone(),
         next_handoff: runtime_context.next_handoff.clone(),
+        control_mode: runtime_context.control_mode.clone(),
         pause_required: runtime_context.pause_required,
         runtime_context,
         route,
