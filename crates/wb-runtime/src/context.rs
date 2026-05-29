@@ -464,6 +464,53 @@ mod tests {
     }
 
     #[test]
+    fn context_does_not_pause_at_review_without_review_gate_evidence() {
+        // A review phase marked complete but missing required PASS verdicts is
+        // not an approvable boundary: continue/fail review rather than pause.
+        let dir = tempdir().unwrap();
+        let mut value = state::ensure_state(dir.path()).unwrap();
+        state::set_str(&mut value, "public_stage", "review").unwrap();
+        state::set_str(&mut value, "phase_status", "complete").unwrap();
+        state::save_state(dir.path(), &value).unwrap();
+
+        let context = build_context(dir.path());
+
+        assert_eq!(context.public_stage, "review");
+        assert_eq!(context.control_mode, "guided");
+        assert!(
+            !context.pause_required,
+            "review boundary must require review-gate evidence before pausing"
+        );
+        assert!(
+            context
+                .required_gates
+                .contains(&"assert-review-ready".to_string())
+        );
+    }
+
+    #[test]
+    fn context_does_not_pause_at_qa_without_qa_gate_evidence() {
+        let dir = tempdir().unwrap();
+        let mut value = state::ensure_state(dir.path()).unwrap();
+        state::set_str(&mut value, "public_stage", "qa").unwrap();
+        state::set_str(&mut value, "phase_status", "complete").unwrap();
+        state::save_state(dir.path(), &value).unwrap();
+
+        let context = build_context(dir.path());
+
+        assert_eq!(context.public_stage, "qa");
+        assert!(
+            !context.pause_required,
+            "qa boundary must require qa-gate evidence before pausing"
+        );
+        assert!(
+            context
+                .required_gates
+                .contains(&"assert-qa-ready".to_string())
+        );
+    }
+
+    #[test]
     fn context_does_not_pause_guided_mid_phase_before_boundary() {
         // A freshly initialized guided workflow sits at discover with the
         // discovery gate not yet satisfied. That is not a boundary, so it

@@ -531,6 +531,38 @@ mod tests {
     }
 
     #[test]
+    fn adapter_recognizes_multiple_approval_words() {
+        for word in ["proceed", "approved", "lgtm", "ship it", "continue", "next"] {
+            let dir = tempdir().unwrap();
+            plan_boundary_state(dir.path());
+
+            let ctx = adapter_context(dir.path(), "codex", "bootstrap", Some(word)).unwrap();
+
+            assert!(
+                !ctx.pause_required,
+                "approval word `{word}` should release the boundary pause"
+            );
+            assert!(ctx.approval_acknowledged, "`{word}` should be acknowledged");
+        }
+    }
+
+    #[test]
+    fn adapter_does_not_acknowledge_without_pending_boundary() {
+        // No boundary pending (fresh discover, in progress): an approval-like
+        // word must not be acknowledged as a boundary advance.
+        let dir = tempdir().unwrap();
+        state::ensure_state(dir.path()).unwrap();
+
+        let ctx = adapter_context(dir.path(), "codex", "bootstrap", Some("continue")).unwrap();
+
+        assert!(!ctx.pause_required);
+        assert!(
+            !ctx.approval_acknowledged,
+            "no pending boundary means nothing to acknowledge"
+        );
+    }
+
+    #[test]
     fn adapter_does_not_clear_explicit_pause_on_approval() {
         let dir = tempdir().unwrap();
         plan_boundary_state(dir.path());
