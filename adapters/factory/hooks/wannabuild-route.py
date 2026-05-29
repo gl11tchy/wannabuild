@@ -116,6 +116,40 @@ def vague_ack(prompt: str) -> bool:
     }
 
 
+def approval_ack(prompt: str) -> bool:
+    """An explicit approval to cross exactly one guided phase boundary.
+
+    Distinct from vague acknowledgments: these advance the workflow one phase.
+    """
+    return normalized(prompt) in {
+        "go",
+        "go ahead",
+        "proceed",
+        "continue",
+        "approved",
+        "approve",
+        "lgtm",
+        "ship it",
+        "do it",
+        "next",
+    }
+
+
+def at_phase_boundary(state: dict[str, Any], project_root: Path) -> bool:
+    """Degraded-path mirror of the runtime boundary check.
+
+    A guided pause is only warranted at a real boundary: when the current
+    phase has produced an approvable result. A phase still in progress is not
+    a boundary, so the work (e.g. the Discover interview) keeps running.
+    """
+    public_stage = state.get("public_stage")
+    if public_stage in {"plan", "implement"}:
+        return plan_ready(state, project_root)
+    if state.get("phase_status") == "complete":
+        return True
+    return has_complete(state.get("public_stage_history"), "stage", public_stage)
+
+
 def load_event() -> dict[str, Any]:
     try:
         raw = sys.stdin.read()
@@ -211,6 +245,24 @@ def fallback_runtime_context(
         f"- allowed_next_action: {next_action}",
         "- preserve this workflow across turns until completion or explicit user stop/exit",
     ]
+    paused_state = (
+        state.get("pause_reason") not in (None, "")
+        or state.get("workflow_status") == "paused"
+    )
+    guided_pause = (
+        control_mode == "guided" and at_phase_boundary(state, project_root)
+    ) or paused_state
+    if prompt and approval_ack(prompt):
+        # The user just supplied the approval for this boundary: advance one
+        # phase rather than re-emitting the pause and looping in place.
+        guided_pause = False
+        lines.append(
+            "- approval_received: advance exactly one phase boundary, then resume guided gating"
+        )
+    if guided_pause:
+        lines.append(
+            "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"
+        )
     if prompt and vague_ack(prompt):
         lines.append(
             "- vague_acknowledgment: continue the current phase; do not skip phases or treat this as implementation approval"
@@ -326,6 +378,13 @@ def runtime_context_from_adapter(
         lines.append(f"- forbidden_actions: {', '.join(forbidden_actions)}")
     if required_gates:
         lines.append(f"- required_gates: {', '.join(required_gates)}")
+    if prompt and approval_ack(prompt):
+        # The user just supplied the approval for this boundary: advance one
+        # phase rather than re-emitting the pause and looping in place.
+        pause_required = False
+        lines.append(
+            "- approval_received: advance exactly one phase boundary, then resume guided gating"
+        )
     if pause_required:
         lines.append(
             "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"

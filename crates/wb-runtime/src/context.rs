@@ -55,15 +55,29 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
     let workflow_active = gates::assert_workflow_active(project_root).is_ok();
     let discovery_ready = gates::assert_discovery_ready(project_root).is_ok();
     let plan_ready = gates::assert_plan_ready(project_root).is_ok();
+    let review_ready = gates::assert_review_ready(project_root).is_ok();
+    let qa_ready = gates::assert_qa_ready(project_root).is_ok();
     let control_mode = state
         .as_ref()
         .and_then(|value| get_str(value, "control_mode"))
         .unwrap_or("guided")
         .to_string();
+    // Guided mode forces a pause only when the current phase is actually
+    // complete (a real boundary to approve), not for every active guided
+    // state. A freshly initialized, not-yet-ready phase must not be paused,
+    // or it would stall the work that should still be running (e.g. the
+    // Discover interview). Explicit pause_reason/paused state always pauses.
+    let at_boundary = at_phase_boundary(
+        &public_stage,
+        discovery_ready,
+        plan_ready,
+        review_ready,
+        qa_ready,
+    );
     let pause_required = state
         .as_ref()
         .is_some_and(|value| pause_required_from_state(value))
-        || (runtime_active && control_mode == "guided");
+        || (runtime_active && control_mode == "guided" && at_boundary);
     let mut forbidden_actions = Vec::new();
     let mut required_gates = Vec::new();
     if !workflow_active {
@@ -119,6 +133,31 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         vague_acknowledgment_policy: "continue current phase; do not skip required gates or phases"
             .to_string(),
         state_file: state_path(project_root).display().to_string(),
+    }
+}
+
+/// A guided phase boundary is reached when the current phase has produced a
+/// result that the user can approve before advancing. This is true once the
+/// phase's readiness gate passes. Phases that are still in progress (gate not
+/// yet satisfied) are not boundaries: the work should continue, not pause.
+fn at_phase_boundary(
+    public_stage: &str,
+    discovery_ready: bool,
+    plan_ready: bool,
+    review_ready: bool,
+    qa_ready: bool,
+) -> bool {
+    match public_stage {
+        "discover" | "research" => discovery_ready,
+        "plan" => plan_ready,
+        // Implement has no dedicated readiness gate here; reaching the
+        // implement stage with a satisfied plan gate is the boundary before
+        // Validate.
+        "implement" => plan_ready,
+        "review" => review_ready,
+        "qa" => qa_ready,
+        // Summary/ship are terminal-facing; gating happens upstream.
+        _ => false,
     }
 }
 
@@ -405,6 +444,38 @@ mod tests {
             !context.pause_required,
             "autonomous mode must not force a per-boundary pause"
         );
+    }
+
+    #[test]
+    fn context_does_not_pause_guided_mid_phase_before_boundary() {
+        // A freshly initialized guided workflow sits at discover with the
+        // discovery gate not yet satisfied. That is not a boundary, so it
+        // must not pause -- the Discover interview should keep running.
+        let dir = tempdir().unwrap();
+        state::ensure_state(dir.path()).unwrap();
+
+        let context = build_context(dir.path());
+
+        assert_eq!(context.control_mode, "guided");
+        assert!(
+            !context.pause_required,
+            "guided mode must not pause before the current phase reaches a boundary"
+        );
+    }
+
+    #[test]
+    fn at_phase_boundary_only_true_when_current_phase_is_ready() {
+        // Boundary is reached only once the current phase's readiness gate
+        // passes (an approvable result exists); in-progress phases are not.
+        assert!(super::at_phase_boundary("plan", false, true, false, false));
+        assert!(super::at_phase_boundary("implement", false, true, false, false));
+        assert!(super::at_phase_boundary("discover", true, false, false, false));
+        assert!(super::at_phase_boundary("review", false, false, true, false));
+        assert!(super::at_phase_boundary("qa", false, false, false, true));
+        // Not boundaries: phase not yet ready, or terminal-facing stage.
+        assert!(!super::at_phase_boundary("discover", false, false, false, false));
+        assert!(!super::at_phase_boundary("plan", false, false, false, false));
+        assert!(!super::at_phase_boundary("summary", true, true, true, true));
     }
 
     #[test]
