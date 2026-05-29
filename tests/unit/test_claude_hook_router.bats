@@ -194,6 +194,167 @@ JSON
   [[ "$output" == *'`wannabuild`'* ]]
 }
 
+@test "hook: guided plan boundary pauses for approval" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/spec"
+  printf 'design\n' >"$target/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$target/.wannabuild/spec/tasks.md"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "public_stage_history": [
+    {"stage": "discover", "status": "complete", "timestamp": "2026-05-06T10:00:00Z"},
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"keep building","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'pause_required: true'* ]]
+}
+
+@test "hook: approval clears guided boundary pause and advances one boundary" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/spec"
+  printf 'design\n' >"$target/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$target/.wannabuild/spec/tasks.md"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "public_stage_history": [
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"go","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'approval_received'* ]]
+  [[ "$output" != *'pause_required: true'* ]]
+}
+
+@test "hook: explicit pause survives approval prompt" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/spec"
+  printf 'design\n' >"$target/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$target/.wannabuild/spec/tasks.md"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "plan",
+  "workflow_status": "paused",
+  "control_mode": "guided",
+  "pause_reason": "user requested hold",
+  "public_stage_history": [
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"go","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'pause_required: true'* ]]
+  [[ "$output" != *'approval_received'* ]]
+}
+
+fallback_gate() {
+  local target="$1" fn="$2"
+  run python3 - "$REPO_ROOT/hooks/wannabuild-route.py" "$target" "$fn" <<'PY'
+import importlib.util, json, sys
+from pathlib import Path
+mod_path, target, fn = sys.argv[1], sys.argv[2], sys.argv[3]
+spec = importlib.util.spec_from_file_location("wbroute", mod_path)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+state = json.loads((Path(target) / ".wannabuild" / "state.json").read_text())
+print(getattr(m, fn)(state, Path(target)))
+PY
+}
+
+@test "fallback: review boundary pauses when all required verdicts PASS" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/review"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{ "public_stage": "review", "phase_status": "complete", "control_mode": "guided", "workflow_status": "in_progress" }
+JSON
+  cat >"$target/.wannabuild/loop-state.json" <<'JSON'
+{ "iterations": [ { "iteration": 1, "active_reviewers": ["wb-security-reviewer"], "verdicts": { "wb-security-reviewer": {"agent": "wb-security-reviewer", "status": "PASS"}, "wb-integration-tester": {"agent": "wb-integration-tester", "status": "PASS"} } } ] }
+JSON
+  fallback_gate "$target" review_ready
+  [ "$status" -eq 0 ]
+  [[ "$output" == "True" ]]
+  fallback_gate "$target" at_phase_boundary
+  [[ "$output" == "True" ]]
+}
+
+@test "fallback: review boundary does not pause when a required verdict fails" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/review"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{ "public_stage": "review", "phase_status": "complete", "control_mode": "guided", "workflow_status": "in_progress" }
+JSON
+  cat >"$target/.wannabuild/loop-state.json" <<'JSON'
+{ "iterations": [ { "iteration": 1, "active_reviewers": ["wb-security-reviewer"], "verdicts": { "wb-security-reviewer": {"agent": "wb-security-reviewer", "status": "PASS"}, "wb-integration-tester": {"agent": "wb-integration-tester", "status": "FAIL"} } } ] }
+JSON
+  fallback_gate "$target" at_phase_boundary
+  [ "$status" -eq 0 ]
+  [[ "$output" == "False" ]]
+}
+
+@test "fallback: qa boundary pauses on a positive qa summary" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/outputs"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{ "public_stage": "qa", "phase_status": "complete", "control_mode": "guided", "workflow_status": "in_progress" }
+JSON
+  printf -- '- Status: PASS\n- Acceptance criteria: covered\n- Integration behavior: verified\n' >"$target/.wannabuild/outputs/qa-summary.md"
+  fallback_gate "$target" qa_ready
+  [ "$status" -eq 0 ]
+  [[ "$output" == "True" ]]
+  fallback_gate "$target" at_phase_boundary
+  [[ "$output" == "True" ]]
+}
+
+@test "fallback: qa boundary does not pause when the summary marks failure" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/outputs"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{ "public_stage": "qa", "phase_status": "complete", "control_mode": "guided", "workflow_status": "in_progress" }
+JSON
+  printf -- '- Status: FAILED\n- Acceptance criteria: covered\n- Integration behavior: verified\n' >"$target/.wannabuild/outputs/qa-summary.md"
+  fallback_gate "$target" at_phase_boundary
+  [ "$status" -eq 0 ]
+  [[ "$output" == "False" ]]
+}
+
 @test "hook: explicit command is left alone" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"/wannabuild I want to build billing"}'
   [ "$status" -eq 0 ]

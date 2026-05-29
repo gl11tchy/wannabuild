@@ -116,6 +116,433 @@ def vague_ack(prompt: str) -> bool:
     }
 
 
+def approval_ack(prompt: str) -> bool:
+    """An explicit approval to cross exactly one guided phase boundary.
+
+    Distinct from vague acknowledgments: these advance the workflow one phase.
+    """
+    # "ship it" is intentionally excluded: the prompt classifier routes any
+    # "ship" language to wb-ship, so treating it as a boundary approval would
+    # both clear the pause and steer toward final delivery instead of
+    # advancing exactly one boundary.
+    return normalized(prompt) in {
+        "go",
+        "go ahead",
+        "proceed",
+        "continue",
+        "approved",
+        "approve",
+        "lgtm",
+        "do it",
+        "next",
+    }
+
+
+# Canonical discovery artifact requirements, mirroring
+# DISCOVERY_REQUIRED_ARTIFACTS in crates/wb-runtime/src/gates.rs. Each entry is
+# (state lookup path under "discovery", canonical artifact path).
+_DISCOVERY_REQUIRED_ARTIFACTS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("research", "feasibility"), ".wannabuild/outputs/discovery/feasibility.md"),
+    (
+        ("research", "alternatives_competition"),
+        ".wannabuild/outputs/discovery/alternatives-competition.md",
+    ),
+    (("research", "failure_forecast"), ".wannabuild/outputs/discovery/failure-forecast.md"),
+    (("followup_questions",), ".wannabuild/outputs/discovery/followup-questions.md"),
+    (("synthesis",), ".wannabuild/spec/requirements.md"),
+)
+
+
+def discovery_ready(state: dict[str, Any], project_root: Path) -> bool:
+    """Degraded-path mirror of wb-runtime's assert_discovery_ready.
+
+    The real gate requires the completed discovery interview plus the research
+    artifacts (feasibility, alternatives/competition, failure forecast),
+    follow-up questions, and the synthesized requirements brief. For each it
+    verifies the node is marked complete, its recorded artifact path matches
+    the canonical expected path, and the file at that path exists and is
+    non-empty. The fallback mirrors all three checks so it does not pause
+    Discover on a partial brief, a touched/empty file, or a non-canonical
+    artifact path.
+    """
+    discovery = state.get("discovery")
+    if not isinstance(discovery, dict):
+        return False
+
+    def node_at(path: tuple[str, ...]) -> Any:
+        node: Any = discovery
+        for key in path:
+            if not isinstance(node, dict):
+                return None
+            node = node.get(key)
+        return node
+
+    def status_complete(node: Any) -> bool:
+        return isinstance(node, dict) and node.get("status") == "complete"
+
+    if not status_complete(discovery.get("interview")):
+        return False
+    for path, expected in _DISCOVERY_REQUIRED_ARTIFACTS:
+        node = node_at(path)
+        if not status_complete(node) or node.get("artifact") != expected:
+            return False
+        artifact_path = project_root / expected
+        try:
+            if not artifact_path.is_file() or not artifact_path.read_text(
+                encoding="utf-8"
+            ).strip():
+                return False
+        except OSError:
+            return False
+    return True
+
+
+# Default required reviewers, mirroring REQUIRED_REVIEWERS / INTEGRATION_TESTER
+# in crates/wb-runtime/src/gates.rs.
+_REQUIRED_REVIEWERS = (
+    "wb-security-reviewer",
+    "wb-performance-reviewer",
+    "wb-architecture-reviewer",
+    "wb-testing-reviewer",
+    "wb-integration-tester",
+    "wb-code-simplifier",
+)
+_INTEGRATION_TESTER = "wb-integration-tester"
+_QA_NEGATIVE_TOKENS = {
+    "blocked",
+    "fail",
+    "failed",
+    "failure",
+    "missing",
+    "no",
+    "none",
+    "not",
+    "pending",
+    "todo",
+}
+_QA_POSITIVE_TOKENS = {
+    "checked",
+    "complete",
+    "covered",
+    "ok",
+    "pass",
+    "passed",
+    "success",
+    "successful",
+    "validated",
+    "verified",
+}
+_FAILURE_STATUSES = {"blocked", "failed", "fail", "failure"}
+
+
+def _read_json_file(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _latest_loop_iteration(project_root: Path) -> Optional[dict[str, Any]]:
+    data = _read_json_file(project_root / ".wannabuild" / "loop-state.json")
+    if not isinstance(data, dict):
+        return None
+    iterations = data.get("iterations")
+    if not isinstance(iterations, list):
+        return None
+    dict_items = [item for item in iterations if isinstance(item, dict)]
+    if not dict_items:
+        return None
+
+    def iteration_number(item: dict[str, Any]) -> int:
+        value = item.get("iteration")
+        return value if isinstance(value, int) else 0
+
+    return max(dict_items, key=iteration_number)
+
+
+def _verdict_from_payload(payload: Any, fallback_agent: str) -> Optional[tuple[str, str]]:
+    agent = fallback_agent
+    status = "UNKNOWN"
+    if isinstance(payload, dict):
+        if isinstance(payload.get("agent"), str):
+            agent = payload["agent"]
+        if isinstance(payload.get("status"), str):
+            status = payload["status"]
+    if agent == "unknown" or not agent.strip():
+        return None
+    return (agent, status)
+
+
+def _required_reviewers(project_root: Path) -> set[str]:
+    latest = _latest_loop_iteration(project_root)
+    if isinstance(latest, dict):
+        active = latest.get("active_reviewers")
+        if isinstance(active, list):
+            names = {item for item in active if isinstance(item, str)}
+            if names:
+                return names
+    return set(_REQUIRED_REVIEWERS)
+
+
+def _loop_state_verdicts(project_root: Path) -> Optional[tuple[set[str], dict[str, str]]]:
+    latest = _latest_loop_iteration(project_root)
+    if not isinstance(latest, dict):
+        return None
+    active = latest.get("active_reviewers")
+    active_set = {item for item in active if isinstance(item, str)} if isinstance(active, list) else set()
+    verdicts: dict[str, str] = {}
+    payloads = latest.get("verdicts")
+    if isinstance(payloads, dict):
+        for key, payload in payloads.items():
+            verdict = _verdict_from_payload(payload, key)
+            if verdict is not None:
+                verdicts[verdict[0]] = verdict[1]
+    if not verdicts:
+        return None
+    return (active_set, verdicts)
+
+
+def _iteration_from_path(path: Path) -> int:
+    name = path.name
+    for marker in ("iter-", "iter_"):
+        index = name.find(marker)
+        if index != -1:
+            digits = ""
+            for ch in name[index + len(marker):]:
+                if ch.isdigit():
+                    digits += ch
+                else:
+                    break
+            if digits:
+                return int(digits)
+    return 0
+
+
+def _file_verdicts(project_root: Path) -> Optional[dict[str, str]]:
+    review_dir = project_root / ".wannabuild" / "review"
+    if not review_dir.is_dir():
+        return None
+    files = sorted(p for p in review_dir.iterdir() if p.suffix == ".json")
+    if not files:
+        return None
+    best: dict[str, tuple[tuple[int, str, str], str]] = {}
+    for path in files:
+        payload = _read_json_file(path)
+        if payload is None:
+            return None
+        iteration = _iteration_from_path(path)
+        timestamp = ""
+        if isinstance(payload, dict):
+            if isinstance(payload.get("iteration"), int):
+                iteration = payload["iteration"]
+            if isinstance(payload.get("timestamp"), str):
+                timestamp = payload["timestamp"]
+        verdict = _verdict_from_payload(payload, "unknown")
+        if verdict is None:
+            continue
+        agent, status = verdict
+        sort_key = (iteration, timestamp, path.name)
+        if agent not in best or sort_key >= best[agent][0]:
+            best[agent] = (sort_key, status)
+    return {agent: value[1] for agent, value in best.items()}
+
+
+def review_ready(state: dict[str, Any], project_root: Path) -> bool:
+    """Degraded-path mirror of wb-runtime's assert_review_ready.
+
+    Requires a PASS verdict from every required reviewer (loop-state active
+    reviewers when present, else the default reviewer set) plus the
+    integration tester. Verdicts come from the latest loop-state iteration,
+    falling back to per-agent files under .wannabuild/review only to fill
+    gaps, exactly as the runtime gate does.
+    """
+    required = _required_reviewers(project_root)
+    required.add(_INTEGRATION_TESTER)
+    verdicts: dict[str, str] = {}
+    loop = _loop_state_verdicts(project_root)
+    if loop is not None:
+        active, verdicts = loop[0], dict(loop[1])
+        if active:
+            required = set(active)
+            required.add(_INTEGRATION_TESTER)
+    if not verdicts or any(agent not in verdicts for agent in required):
+        files = _file_verdicts(project_root)
+        if files is None:
+            return False
+        for agent, status in files.items():
+            verdicts.setdefault(agent, status)
+    if any(agent not in verdicts for agent in required):
+        return False
+    return all(
+        verdicts[agent].upper() == "PASS" for agent in required if agent in verdicts
+    )
+
+
+def _is_failure_status(status: str) -> bool:
+    return status in _FAILURE_STATUSES
+
+
+def _normalized_field(field: str) -> str:
+    return "".join(ch for ch in field if ch.isalnum()).lower()
+
+
+def _is_status_field(field: str) -> bool:
+    return _normalized_field(field) in {"status", "qastatus", "result", "verdict"}
+
+
+def _qa_summary_field(line: str) -> Optional[tuple[str, str]]:
+    line = line.strip().lstrip("-*# ").strip()
+    if ":" not in line:
+        return None
+    field, value = line.split(":", 1)
+    return (field.strip().lower(), value.strip())
+
+
+def _alnum_tokens(value: str) -> list[str]:
+    return [token.lower() for token in re.split(r"[^A-Za-z0-9]", value) if token]
+
+
+def _value_is_positive(value: str) -> bool:
+    tokens = _alnum_tokens(value)
+    if any(token in _QA_NEGATIVE_TOKENS for token in tokens):
+        return False
+    return any(token in _QA_POSITIVE_TOKENS for token in tokens)
+
+
+def _latest_history_status(history: Any, key: str, value: str) -> Optional[str]:
+    if not isinstance(history, list):
+        return None
+    for item in reversed(history):
+        if isinstance(item, dict) and item.get(key) == value:
+            status = item.get("status")
+            if isinstance(status, str):
+                return status
+    return None
+
+
+def _qa_current_state_failed(state: dict[str, Any]) -> bool:
+    qa_active = state.get("public_stage") == "qa" or state.get("current_phase") == "qa"
+    if not qa_active:
+        return False
+    phase_status = state.get("phase_status")
+    workflow_status = state.get("workflow_status")
+    return (isinstance(phase_status, str) and _is_failure_status(phase_status)) or (
+        isinstance(workflow_status, str) and _is_failure_status(workflow_status)
+    )
+
+
+def _qa_summary_failure_marker(qa_summary: Path) -> bool:
+    try:
+        raw = qa_summary.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    for line in raw.splitlines():
+        parsed = _qa_summary_field(line)
+        if parsed is None:
+            continue
+        field, value = parsed
+        if _is_status_field(field) and any(
+            _is_failure_status(token) for token in _alnum_tokens(value)
+        ):
+            return True
+    return False
+
+
+def _latest_qa_event(project_root: Path) -> Optional[str]:
+    """Latest qa_failed/qa_passed event type, or raises ValueError on a
+    malformed events file (mirroring the runtime, which fails the gate)."""
+    path = project_root / ".wannabuild" / "events.jsonl"
+    if not path.is_file():
+        return None
+    latest: Optional[str] = None
+    with path.open(encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            event = json.loads(line)
+            if isinstance(event, dict) and event.get("type") in ("qa_failed", "qa_passed"):
+                latest = event["type"]
+    return latest
+
+
+def _qa_failed(state: dict[str, Any], project_root: Path, qa_summary: Path) -> bool:
+    if isinstance(state, dict):
+        if _qa_current_state_failed(state):
+            return True
+        status = _latest_history_status(state.get("public_stage_history"), "stage", "qa")
+        if status is None:
+            status = _latest_history_status(state.get("phase_history"), "phase", "qa")
+        if status is not None and _is_failure_status(status):
+            return True
+    if _qa_summary_failure_marker(qa_summary):
+        return True
+    return _latest_qa_event(project_root) == "qa_failed"
+
+
+def _qa_has_pass_evidence(qa_summary: Path) -> bool:
+    try:
+        raw = qa_summary.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    pass_marker = acceptance = integration = False
+    for line in raw.splitlines():
+        parsed = _qa_summary_field(line)
+        if parsed is None:
+            continue
+        field, value = parsed
+        if _is_status_field(field) and _value_is_positive(value):
+            pass_marker = True
+        normalized = _normalized_field(field)
+        if "acceptance" in normalized and _value_is_positive(value):
+            acceptance = True
+        if "integration" in normalized and _value_is_positive(value):
+            integration = True
+    return pass_marker and acceptance and integration
+
+
+def qa_ready(state: dict[str, Any], project_root: Path) -> bool:
+    """Degraded-path mirror of wb-runtime's assert_qa_ready.
+
+    Requires .wannabuild/outputs/qa-summary.md to exist with positive PASS
+    evidence covering acceptance and integration, and no QA failure signal in
+    state, phase/stage history, the summary markers, or QA events.
+    """
+    qa_summary = project_root / ".wannabuild" / "outputs" / "qa-summary.md"
+    if not qa_summary.is_file():
+        return False
+    try:
+        if _qa_failed(state, project_root, qa_summary):
+            return False
+        return _qa_has_pass_evidence(qa_summary)
+    except (OSError, ValueError):
+        return False
+
+
+def at_phase_boundary(state: dict[str, Any], project_root: Path) -> bool:
+    """Degraded-path mirror of the runtime boundary check.
+
+    A guided pause is only warranted at a real boundary: the current phase is
+    marked complete AND there is verifiable evidence that it produced an
+    approvable result. Phases still in progress keep running (e.g. the
+    Discover interview). Every gate is mirrored from wb-runtime so degraded
+    installs (no runtime binary) still pause for the documented approvals,
+    including Validate -> QA (review gate) and QA -> Summary (qa gate).
+    """
+    if state.get("phase_status") != "complete":
+        return False
+    public_stage = state.get("public_stage")
+    if public_stage in {"plan", "implement"}:
+        return plan_ready(state, project_root)
+    if public_stage in {"discover", "research"}:
+        return discovery_ready(state, project_root)
+    if public_stage == "review":
+        return review_ready(state, project_root)
+    if public_stage == "qa":
+        return qa_ready(state, project_root)
+    return False
+
+
 def load_event() -> dict[str, Any]:
     try:
         raw = sys.stdin.read()
@@ -190,7 +617,13 @@ def fallback_runtime_context(
         state = json.loads(state_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return ""
-    if not isinstance(state, dict) or state.get("workflow_status") != "in_progress":
+    # A manually paused workflow must still surface its runtime/pause context
+    # in the fallback path, so an explicit hold is preserved even when
+    # wb-runtime is unavailable.
+    if not isinstance(state, dict) or state.get("workflow_status") not in (
+        "in_progress",
+        "paused",
+    ):
         return ""
 
     project_root = state_path.parent.parent
@@ -211,6 +644,24 @@ def fallback_runtime_context(
         f"- allowed_next_action: {next_action}",
         "- preserve this workflow across turns until completion or explicit user stop/exit",
     ]
+    # An explicit pause (pause_reason / workflow paused) is never cleared by an
+    # approval word; only a computed guided boundary pause is releasable.
+    explicit_pause = (
+        state.get("pause_reason") not in (None, "")
+        or state.get("workflow_status") == "paused"
+    )
+    boundary_pause = control_mode == "guided" and at_phase_boundary(state, project_root)
+    if prompt and approval_ack(prompt) and boundary_pause and not explicit_pause:
+        # The user just supplied the approval for this pending boundary:
+        # advance exactly one phase rather than re-emitting the pause.
+        boundary_pause = False
+        lines.append(
+            "- approval_received: advance exactly one phase boundary, then resume guided gating"
+        )
+    if boundary_pause or explicit_pause:
+        lines.append(
+            "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"
+        )
     if prompt and vague_ack(prompt):
         lines.append(
             "- vague_acknowledgment: continue the current phase; do not skip phases or treat this as implementation approval"
@@ -308,7 +759,14 @@ def runtime_context_from_adapter(
         adapter_context.get("forbidden_actions", runtime.get("forbidden_actions"))
     )
     required_gates = string_list(adapter_context.get("required_gates", runtime.get("required_gates")))
-    pause_required = bool(adapter_context.get("pause_required") or runtime.get("pause_required"))
+    # The adapter's top-level pause_required is authoritative: it already
+    # reflects approval clearing. Only fall back to the nested runtime value
+    # when the adapter omits the key entirely, otherwise an approval-cleared
+    # false would be ORed back to the stale nested true and keep the loop.
+    if "pause_required" in adapter_context:
+        pause_required = bool(adapter_context.get("pause_required"))
+    else:
+        pause_required = bool(runtime.get("pause_required"))
 
     lines = [
         "WannaBuild runtime state is active.",
@@ -326,6 +784,19 @@ def runtime_context_from_adapter(
         lines.append(f"- forbidden_actions: {', '.join(forbidden_actions)}")
     if required_gates:
         lines.append(f"- required_gates: {', '.join(required_gates)}")
+    # The runtime adapter already clears a guided boundary pause when the
+    # prompt is an approval (and never clears an explicit pause), surfacing it
+    # via approval_acknowledged. Trust that signal here rather than re-deriving
+    # it from the raw prompt, which would risk clearing explicit pauses or
+    # acknowledging when no boundary was pending.
+    approval_acknowledged = bool(
+        adapter_context.get("approval_acknowledged")
+        or runtime.get("approval_acknowledged")
+    )
+    if approval_acknowledged:
+        lines.append(
+            "- approval_received: advance exactly one phase boundary, then resume guided gating"
+        )
     if pause_required:
         lines.append(
             "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"
