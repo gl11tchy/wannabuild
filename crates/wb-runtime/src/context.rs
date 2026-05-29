@@ -20,6 +20,11 @@ pub struct RuntimeContext {
     pub next_handoff: String,
     pub control_mode: String,
     pub pause_required: bool,
+    /// True when `pause_required` is a clearable guided phase-boundary pause
+    /// (as opposed to an explicit `pause_reason`/paused state, which must not
+    /// be cleared by an approval prompt). Lets the adapter release the pause
+    /// when the user supplies an approval without bypassing explicit pauses.
+    pub guided_boundary_pause: bool,
     pub vague_acknowledgment_policy: String,
     pub state_file: String,
 }
@@ -62,22 +67,27 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
         .and_then(|value| get_str(value, "control_mode"))
         .unwrap_or("guided")
         .to_string();
-    // Guided mode forces a pause only when the current phase is actually
-    // complete (a real boundary to approve), not for every active guided
-    // state. A freshly initialized, not-yet-ready phase must not be paused,
-    // or it would stall the work that should still be running (e.g. the
-    // Discover interview). Explicit pause_reason/paused state always pauses.
+    // Guided mode forces a pause only at a real, approvable phase boundary:
+    // the current phase has completed (phase_status == "complete") AND its
+    // readiness gate is satisfied. Entry preconditions alone are not a
+    // boundary -- e.g. `plan_ready` is necessarily true the moment a workflow
+    // enters `implement`, so gating on it would pause before any
+    // implementation result exists. A freshly initialized or in-progress
+    // phase must keep running (e.g. the Discover interview).
     let at_boundary = at_phase_boundary(
         &public_stage,
+        &phase_status,
         discovery_ready,
         plan_ready,
         review_ready,
         qa_ready,
     );
-    let pause_required = state
+    let explicit_pause = state
         .as_ref()
-        .is_some_and(|value| pause_required_from_state(value))
-        || (runtime_active && control_mode == "guided" && at_boundary);
+        .is_some_and(|value| pause_required_from_state(value));
+    let guided_boundary_pause =
+        runtime_active && control_mode == "guided" && at_boundary && !explicit_pause;
+    let pause_required = explicit_pause || guided_boundary_pause;
     let mut forbidden_actions = Vec::new();
     let mut required_gates = Vec::new();
     if !workflow_active {
@@ -130,29 +140,36 @@ pub fn build_context(project_root: &Path) -> RuntimeContext {
             .to_string(),
         control_mode,
         pause_required,
+        guided_boundary_pause,
         vague_acknowledgment_policy: "continue current phase; do not skip required gates or phases"
             .to_string(),
         state_file: state_path(project_root).display().to_string(),
     }
 }
 
-/// A guided phase boundary is reached when the current phase has produced a
-/// result that the user can approve before advancing. This is true once the
-/// phase's readiness gate passes. Phases that are still in progress (gate not
-/// yet satisfied) are not boundaries: the work should continue, not pause.
+/// A guided phase boundary is reached when the current phase has produced an
+/// approvable result: its `phase_status` is `complete` AND the corresponding
+/// readiness gate is satisfied (real evidence exists). Requiring completion
+/// avoids pausing on entry preconditions -- for example, `plan_ready` is
+/// necessarily true the moment a workflow enters `implement`, so it is not a
+/// boundary until the implementation phase itself is marked complete. Phases
+/// that are pending or in progress are not boundaries: the work continues.
 fn at_phase_boundary(
     public_stage: &str,
+    phase_status: &str,
     discovery_ready: bool,
     plan_ready: bool,
     review_ready: bool,
     qa_ready: bool,
 ) -> bool {
+    if phase_status != "complete" {
+        return false;
+    }
     match public_stage {
         "discover" | "research" => discovery_ready,
         "plan" => plan_ready,
-        // Implement has no dedicated readiness gate here; reaching the
-        // implement stage with a satisfied plan gate is the boundary before
-        // Validate.
+        // Implement has no dedicated forward gate; a completed implement phase
+        // with a satisfied plan gate is the boundary before Validate/Review.
         "implement" => plan_ready,
         "review" => review_ready,
         "qa" => qa_ready,
@@ -464,18 +481,23 @@ mod tests {
     }
 
     #[test]
-    fn at_phase_boundary_only_true_when_current_phase_is_ready() {
-        // Boundary is reached only once the current phase's readiness gate
-        // passes (an approvable result exists); in-progress phases are not.
-        assert!(super::at_phase_boundary("plan", false, true, false, false));
-        assert!(super::at_phase_boundary("implement", false, true, false, false));
-        assert!(super::at_phase_boundary("discover", true, false, false, false));
-        assert!(super::at_phase_boundary("review", false, false, true, false));
-        assert!(super::at_phase_boundary("qa", false, false, false, true));
-        // Not boundaries: phase not yet ready, or terminal-facing stage.
-        assert!(!super::at_phase_boundary("discover", false, false, false, false));
-        assert!(!super::at_phase_boundary("plan", false, false, false, false));
-        assert!(!super::at_phase_boundary("summary", true, true, true, true));
+    fn at_phase_boundary_only_true_when_phase_complete_and_gate_ready() {
+        // A boundary requires the phase to be complete (an approvable result)
+        // AND its readiness gate satisfied.
+        assert!(super::at_phase_boundary("plan", "complete", false, true, false, false));
+        assert!(super::at_phase_boundary("implement", "complete", false, true, false, false));
+        assert!(super::at_phase_boundary("discover", "complete", true, false, false, false));
+        assert!(super::at_phase_boundary("review", "complete", false, false, true, false));
+        assert!(super::at_phase_boundary("qa", "complete", false, false, false, true));
+        // Not boundaries: phase still in progress even if entry gate passes
+        // (e.g. just entered implement with plan_ready true).
+        assert!(!super::at_phase_boundary("implement", "in_progress", false, true, false, false));
+        assert!(!super::at_phase_boundary("discover", "in_progress", true, false, false, false));
+        // Not boundaries: complete but gate evidence missing.
+        assert!(!super::at_phase_boundary("discover", "complete", false, false, false, false));
+        assert!(!super::at_phase_boundary("plan", "complete", false, false, false, false));
+        // Terminal-facing stage never gates here.
+        assert!(!super::at_phase_boundary("summary", "complete", true, true, true, true));
     }
 
     #[test]

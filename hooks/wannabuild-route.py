@@ -135,19 +135,35 @@ def approval_ack(prompt: str) -> bool:
     }
 
 
+def discovery_ready(state: dict[str, Any], project_root: Path) -> bool:
+    """Lightweight degraded-path discovery evidence check.
+
+    The full discovery gate lives in wb-runtime; in the fallback we can only
+    verify the synthesized requirements brief exists, which is the minimum
+    real evidence that Discover produced an approvable result.
+    """
+    return (project_root / ".wannabuild" / "spec" / "requirements.md").is_file()
+
+
 def at_phase_boundary(state: dict[str, Any], project_root: Path) -> bool:
     """Degraded-path mirror of the runtime boundary check.
 
-    A guided pause is only warranted at a real boundary: when the current
-    phase has produced an approvable result. A phase still in progress is not
-    a boundary, so the work (e.g. the Discover interview) keeps running.
+    A guided pause is only warranted at a real boundary: the current phase is
+    marked complete AND there is verifiable evidence that it produced an
+    approvable result. Phases still in progress keep running (e.g. the
+    Discover interview). For stages whose gate evidence cannot be verified
+    without the runtime (review/qa/ship), the degraded path does not force a
+    pause -- it defers to the wb-runtime adapter when available rather than
+    risk pausing on a `phase_status: complete` with no real gate evidence.
     """
+    if state.get("phase_status") != "complete":
+        return False
     public_stage = state.get("public_stage")
     if public_stage in {"plan", "implement"}:
         return plan_ready(state, project_root)
-    if state.get("phase_status") == "complete":
-        return True
-    return has_complete(state.get("public_stage_history"), "stage", public_stage)
+    if public_stage in {"discover", "research"}:
+        return discovery_ready(state, project_root)
+    return False
 
 
 def load_event() -> dict[str, Any]:
@@ -245,21 +261,21 @@ def fallback_runtime_context(
         f"- allowed_next_action: {next_action}",
         "- preserve this workflow across turns until completion or explicit user stop/exit",
     ]
-    paused_state = (
+    # An explicit pause (pause_reason / workflow paused) is never cleared by an
+    # approval word; only a computed guided boundary pause is releasable.
+    explicit_pause = (
         state.get("pause_reason") not in (None, "")
         or state.get("workflow_status") == "paused"
     )
-    guided_pause = (
-        control_mode == "guided" and at_phase_boundary(state, project_root)
-    ) or paused_state
-    if prompt and approval_ack(prompt):
-        # The user just supplied the approval for this boundary: advance one
-        # phase rather than re-emitting the pause and looping in place.
-        guided_pause = False
+    boundary_pause = control_mode == "guided" and at_phase_boundary(state, project_root)
+    if prompt and approval_ack(prompt) and boundary_pause and not explicit_pause:
+        # The user just supplied the approval for this pending boundary:
+        # advance exactly one phase rather than re-emitting the pause.
+        boundary_pause = False
         lines.append(
             "- approval_received: advance exactly one phase boundary, then resume guided gating"
         )
-    if guided_pause:
+    if boundary_pause or explicit_pause:
         lines.append(
             "- pause_required: true (guided mode: stop at this phase boundary and get explicit user approval before advancing)"
         )
@@ -378,10 +394,16 @@ def runtime_context_from_adapter(
         lines.append(f"- forbidden_actions: {', '.join(forbidden_actions)}")
     if required_gates:
         lines.append(f"- required_gates: {', '.join(required_gates)}")
-    if prompt and approval_ack(prompt):
-        # The user just supplied the approval for this boundary: advance one
-        # phase rather than re-emitting the pause and looping in place.
-        pause_required = False
+    # The runtime adapter already clears a guided boundary pause when the
+    # prompt is an approval (and never clears an explicit pause), surfacing it
+    # via approval_acknowledged. Trust that signal here rather than re-deriving
+    # it from the raw prompt, which would risk clearing explicit pauses or
+    # acknowledging when no boundary was pending.
+    approval_acknowledged = bool(
+        adapter_context.get("approval_acknowledged")
+        or runtime.get("approval_acknowledged")
+    )
+    if approval_acknowledged:
         lines.append(
             "- approval_received: advance exactly one phase boundary, then resume guided gating"
         )

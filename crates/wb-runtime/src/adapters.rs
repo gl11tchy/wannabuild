@@ -28,6 +28,9 @@ pub struct AdapterContext {
     pub next_handoff: String,
     pub control_mode: String,
     pub pause_required: bool,
+    /// Set when the current prompt is an explicit approval that releases a
+    /// pending guided boundary pause (advance exactly one boundary).
+    pub approval_acknowledged: bool,
 }
 
 pub fn adapter_context(
@@ -38,7 +41,17 @@ pub fn adapter_context(
 ) -> Result<AdapterContext> {
     let host = normalize_host(host)?;
     let runtime_context = context::build_context(project_root);
-    let route = classify_prompt(prompt.unwrap_or(""));
+    let prompt = prompt.unwrap_or("");
+    let route = classify_prompt(prompt);
+    // An explicit approval releases only a clearable guided boundary pause;
+    // explicit pause_reason/paused state is never cleared this way.
+    let approval_acknowledged =
+        runtime_context.guided_boundary_pause && approval_ack(&normalized(prompt));
+    let pause_required = if approval_acknowledged {
+        false
+    } else {
+        runtime_context.pause_required
+    };
     Ok(AdapterContext {
         host,
         event: event.to_string(),
@@ -48,7 +61,8 @@ pub fn adapter_context(
         required_evidence: runtime_context.required_evidence.clone(),
         next_handoff: runtime_context.next_handoff.clone(),
         control_mode: runtime_context.control_mode.clone(),
-        pause_required: runtime_context.pause_required,
+        pause_required,
+        approval_acknowledged,
         runtime_context,
         route,
     })
@@ -340,6 +354,24 @@ fn vague_ack(text: &str) -> bool {
     )
 }
 
+/// An explicit approval to advance exactly one guided phase boundary.
+/// Distinct from a vague acknowledgment, which only continues the current
+/// phase. `text` must already be normalized.
+fn approval_ack(text: &str) -> bool {
+    matches!(
+        text,
+        "go" | "go ahead"
+            | "proceed"
+            | "continue"
+            | "approved"
+            | "approve"
+            | "lgtm"
+            | "ship it"
+            | "do it"
+            | "next"
+    )
+}
+
 fn explicit_phase_limit(text: &str) -> bool {
     contains_any(
         text,
@@ -460,5 +492,59 @@ mod tests {
         assert_eq!(claude.allowed_next_action, codex.allowed_next_action);
         assert_eq!(claude.host, "claude-code");
         assert_eq!(codex.host, "codex");
+    }
+
+    fn plan_boundary_state(dir: &Path) {
+        fs::create_dir_all(dir.join(".wannabuild/spec")).unwrap();
+        fs::write(dir.join(".wannabuild/spec/design.md"), "design").unwrap();
+        fs::write(dir.join(".wannabuild/spec/tasks.md"), "tasks").unwrap();
+        let mut value = state::ensure_state(dir).unwrap();
+        state::set_str(&mut value, "public_stage", "plan").unwrap();
+        state::set_str(&mut value, "phase_status", "complete").unwrap();
+        state::save_state(dir, &value).unwrap();
+    }
+
+    #[test]
+    fn adapter_pauses_at_guided_boundary_without_approval() {
+        let dir = tempdir().unwrap();
+        plan_boundary_state(dir.path());
+
+        let ctx = adapter_context(dir.path(), "codex", "bootstrap", None).unwrap();
+
+        assert!(ctx.pause_required, "guided boundary must pause");
+        assert!(ctx.runtime_context.guided_boundary_pause);
+        assert!(!ctx.approval_acknowledged);
+    }
+
+    #[test]
+    fn adapter_clears_guided_boundary_pause_on_approval() {
+        let dir = tempdir().unwrap();
+        plan_boundary_state(dir.path());
+
+        let ctx = adapter_context(dir.path(), "codex", "bootstrap", Some("go")).unwrap();
+
+        assert!(
+            !ctx.pause_required,
+            "approval must release the guided boundary pause"
+        );
+        assert!(ctx.approval_acknowledged);
+    }
+
+    #[test]
+    fn adapter_does_not_clear_explicit_pause_on_approval() {
+        let dir = tempdir().unwrap();
+        plan_boundary_state(dir.path());
+        let mut value = state::load_state(dir.path()).unwrap().unwrap();
+        state::set_str(&mut value, "pause_reason", "user requested hold").unwrap();
+        state::save_state(dir.path(), &value).unwrap();
+
+        let ctx = adapter_context(dir.path(), "codex", "bootstrap", Some("go")).unwrap();
+
+        assert!(
+            ctx.pause_required,
+            "an explicit pause must not be cleared by an approval prompt"
+        );
+        assert!(!ctx.runtime_context.guided_boundary_pause);
+        assert!(!ctx.approval_acknowledged);
     }
 }
