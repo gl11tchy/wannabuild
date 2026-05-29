@@ -429,6 +429,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let mut value = state::ensure_state(dir.path()).unwrap();
         state::set_str(&mut value, "public_stage", "implement").unwrap();
+        // A real boundary: the implement phase is complete, with the plan gate
+        // satisfied -- this is the point where guided mode must pause.
+        state::set_str(&mut value, "phase_status", "complete").unwrap();
         state::set_str(&mut value, "control_mode", "guided").unwrap();
         state::save_state(dir.path(), &value).unwrap();
         fs::write(dir.path().join(".wannabuild/spec/design.md"), "design").unwrap();
@@ -441,6 +444,7 @@ mod tests {
             context.pause_required,
             "guided mode must require a pause at the phase boundary"
         );
+        assert!(context.guided_boundary_pause);
         assert!(render_text(&context).contains("pause_required: true"));
     }
 

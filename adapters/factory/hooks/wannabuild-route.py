@@ -136,13 +136,41 @@ def approval_ack(prompt: str) -> bool:
 
 
 def discovery_ready(state: dict[str, Any], project_root: Path) -> bool:
-    """Lightweight degraded-path discovery evidence check.
+    """Degraded-path mirror of wb-runtime's assert_discovery_ready.
 
-    The full discovery gate lives in wb-runtime; in the fallback we can only
-    verify the synthesized requirements brief exists, which is the minimum
-    real evidence that Discover produced an approvable result.
+    The real gate requires the completed discovery interview plus the research
+    artifacts (feasibility, alternatives/competition, failure forecast),
+    follow-up questions, and the synthesized requirements brief -- each marked
+    complete in state AND present on disk. The fallback verifies the same
+    evidence so it does not pause Discover for approval on a partial brief.
     """
-    return (project_root / ".wannabuild" / "spec" / "requirements.md").is_file()
+    discovery = state.get("discovery")
+    if not isinstance(discovery, dict):
+        return False
+
+    def status_complete(node: Any) -> bool:
+        return isinstance(node, dict) and node.get("status") == "complete"
+
+    def artifact_present(node: Any) -> bool:
+        if not isinstance(node, dict):
+            return False
+        rel = node.get("artifact")
+        return isinstance(rel, str) and (project_root / rel).is_file()
+
+    if not status_complete(discovery.get("interview")):
+        return False
+    research = discovery.get("research")
+    if not isinstance(research, dict):
+        return False
+    for key in ("feasibility", "alternatives_competition", "failure_forecast"):
+        node = research.get(key)
+        if not (status_complete(node) and artifact_present(node)):
+            return False
+    for key in ("followup_questions", "synthesis"):
+        node = discovery.get(key)
+        if not (status_complete(node) and artifact_present(node)):
+            return False
+    return True
 
 
 def at_phase_boundary(state: dict[str, Any], project_root: Path) -> bool:
@@ -240,7 +268,13 @@ def fallback_runtime_context(
         state = json.loads(state_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return ""
-    if not isinstance(state, dict) or state.get("workflow_status") != "in_progress":
+    # A manually paused workflow must still surface its runtime/pause context
+    # in the fallback path, so an explicit hold is preserved even when
+    # wb-runtime is unavailable.
+    if not isinstance(state, dict) or state.get("workflow_status") not in (
+        "in_progress",
+        "paused",
+    ):
         return ""
 
     project_root = state_path.parent.parent
@@ -376,7 +410,14 @@ def runtime_context_from_adapter(
         adapter_context.get("forbidden_actions", runtime.get("forbidden_actions"))
     )
     required_gates = string_list(adapter_context.get("required_gates", runtime.get("required_gates")))
-    pause_required = bool(adapter_context.get("pause_required") or runtime.get("pause_required"))
+    # The adapter's top-level pause_required is authoritative: it already
+    # reflects approval clearing. Only fall back to the nested runtime value
+    # when the adapter omits the key entirely, otherwise an approval-cleared
+    # false would be ORed back to the stale nested true and keep the loop.
+    if "pause_required" in adapter_context:
+        pause_required = bool(adapter_context.get("pause_required"))
+    else:
+        pause_required = bool(runtime.get("pause_required"))
 
     lines = [
         "WannaBuild runtime state is active.",

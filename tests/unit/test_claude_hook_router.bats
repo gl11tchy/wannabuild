@@ -194,6 +194,97 @@ JSON
   [[ "$output" == *'`wannabuild`'* ]]
 }
 
+@test "hook: guided plan boundary pauses for approval" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/spec"
+  printf 'design\n' >"$target/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$target/.wannabuild/spec/tasks.md"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "public_stage_history": [
+    {"stage": "discover", "status": "complete", "timestamp": "2026-05-06T10:00:00Z"},
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"keep building","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'pause_required: true'* ]]
+}
+
+@test "hook: approval clears guided boundary pause and advances one boundary" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/spec"
+  printf 'design\n' >"$target/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$target/.wannabuild/spec/tasks.md"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "plan",
+  "workflow_status": "in_progress",
+  "control_mode": "guided",
+  "public_stage_history": [
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"go","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'approval_received'* ]]
+  [[ "$output" != *'pause_required: true'* ]]
+}
+
+@test "hook: explicit pause survives approval prompt" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/spec"
+  printf 'design\n' >"$target/.wannabuild/spec/design.md"
+  printf 'tasks\n' >"$target/.wannabuild/spec/tasks.md"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{
+  "project": "proj",
+  "mode": "standard",
+  "current_phase": "tasks",
+  "phase_status": "complete",
+  "public_stage": "plan",
+  "workflow_status": "paused",
+  "control_mode": "guided",
+  "pause_reason": "user requested hold",
+  "public_stage_history": [
+    {"stage": "plan", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ],
+  "phase_history": [
+    {"phase": "design", "status": "complete", "timestamp": "2026-05-06T10:03:00Z"},
+    {"phase": "tasks", "status": "complete", "timestamp": "2026-05-06T10:05:00Z"}
+  ]
+}
+JSON
+  json="$(printf '{"hook_event_name":"UserPromptSubmit","prompt":"go","cwd":"%s"}' "$target")"
+  run_hook "$json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'pause_required: true'* ]]
+  [[ "$output" != *'approval_received'* ]]
+}
+
 @test "hook: explicit command is left alone" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"/wannabuild I want to build billing"}'
   [ "$status" -eq 0 ]

@@ -430,6 +430,8 @@ fn no_route(reason: &str, vague_acknowledgment: bool, explicit_phase_limit: bool
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use tempfile::tempdir;
 
     use crate::state;
