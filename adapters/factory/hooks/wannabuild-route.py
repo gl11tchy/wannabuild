@@ -135,40 +135,61 @@ def approval_ack(prompt: str) -> bool:
     }
 
 
+# Canonical discovery artifact requirements, mirroring
+# DISCOVERY_REQUIRED_ARTIFACTS in crates/wb-runtime/src/gates.rs. Each entry is
+# (state lookup path under "discovery", canonical artifact path).
+_DISCOVERY_REQUIRED_ARTIFACTS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("research", "feasibility"), ".wannabuild/outputs/discovery/feasibility.md"),
+    (
+        ("research", "alternatives_competition"),
+        ".wannabuild/outputs/discovery/alternatives-competition.md",
+    ),
+    (("research", "failure_forecast"), ".wannabuild/outputs/discovery/failure-forecast.md"),
+    (("followup_questions",), ".wannabuild/outputs/discovery/followup-questions.md"),
+    (("synthesis",), ".wannabuild/spec/requirements.md"),
+)
+
+
 def discovery_ready(state: dict[str, Any], project_root: Path) -> bool:
     """Degraded-path mirror of wb-runtime's assert_discovery_ready.
 
     The real gate requires the completed discovery interview plus the research
     artifacts (feasibility, alternatives/competition, failure forecast),
-    follow-up questions, and the synthesized requirements brief -- each marked
-    complete in state AND present on disk. The fallback verifies the same
-    evidence so it does not pause Discover for approval on a partial brief.
+    follow-up questions, and the synthesized requirements brief. For each it
+    verifies the node is marked complete, its recorded artifact path matches
+    the canonical expected path, and the file at that path exists and is
+    non-empty. The fallback mirrors all three checks so it does not pause
+    Discover on a partial brief, a touched/empty file, or a non-canonical
+    artifact path.
     """
     discovery = state.get("discovery")
     if not isinstance(discovery, dict):
         return False
 
+    def node_at(path: tuple[str, ...]) -> Any:
+        node: Any = discovery
+        for key in path:
+            if not isinstance(node, dict):
+                return None
+            node = node.get(key)
+        return node
+
     def status_complete(node: Any) -> bool:
         return isinstance(node, dict) and node.get("status") == "complete"
 
-    def artifact_present(node: Any) -> bool:
-        if not isinstance(node, dict):
-            return False
-        rel = node.get("artifact")
-        return isinstance(rel, str) and (project_root / rel).is_file()
-
     if not status_complete(discovery.get("interview")):
         return False
-    research = discovery.get("research")
-    if not isinstance(research, dict):
-        return False
-    for key in ("feasibility", "alternatives_competition", "failure_forecast"):
-        node = research.get(key)
-        if not (status_complete(node) and artifact_present(node)):
+    for path, expected in _DISCOVERY_REQUIRED_ARTIFACTS:
+        node = node_at(path)
+        if not status_complete(node) or node.get("artifact") != expected:
             return False
-    for key in ("followup_questions", "synthesis"):
-        node = discovery.get(key)
-        if not (status_complete(node) and artifact_present(node)):
+        artifact_path = project_root / expected
+        try:
+            if not artifact_path.is_file() or not artifact_path.read_text(
+                encoding="utf-8"
+            ).strip():
+                return False
+        except OSError:
             return False
     return True
 
