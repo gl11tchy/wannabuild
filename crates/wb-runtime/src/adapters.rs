@@ -358,6 +358,10 @@ fn vague_ack(text: &str) -> bool {
 /// Distinct from a vague acknowledgment, which only continues the current
 /// phase. `text` must already be normalized.
 fn approval_ack(text: &str) -> bool {
+    // "ship it" is intentionally excluded: the prompt classifier routes any
+    // "ship" language to wb-ship, so treating it as a boundary approval would
+    // both clear the pause and steer toward final delivery instead of
+    // advancing exactly one boundary.
     matches!(
         text,
         "go" | "go ahead"
@@ -366,7 +370,6 @@ fn approval_ack(text: &str) -> bool {
             | "approved"
             | "approve"
             | "lgtm"
-            | "ship it"
             | "do it"
             | "next"
     )
@@ -534,7 +537,7 @@ mod tests {
 
     #[test]
     fn adapter_recognizes_multiple_approval_words() {
-        for word in ["proceed", "approved", "lgtm", "ship it", "continue", "next"] {
+        for word in ["proceed", "approved", "lgtm", "do it", "continue", "next"] {
             let dir = tempdir().unwrap();
             plan_boundary_state(dir.path());
 
@@ -546,6 +549,22 @@ mod tests {
             );
             assert!(ctx.approval_acknowledged, "`{word}` should be acknowledged");
         }
+    }
+
+    #[test]
+    fn adapter_treats_ship_it_as_ship_route_not_boundary_approval() {
+        // "ship it" routes to wb-ship via the classifier, so it must not clear
+        // a guided boundary pause (which would conflict with final delivery).
+        let dir = tempdir().unwrap();
+        plan_boundary_state(dir.path());
+
+        let ctx = adapter_context(dir.path(), "codex", "bootstrap", Some("ship it")).unwrap();
+
+        assert!(
+            ctx.pause_required,
+            "`ship it` must not release the boundary pause"
+        );
+        assert!(!ctx.approval_acknowledged);
     }
 
     #[test]
