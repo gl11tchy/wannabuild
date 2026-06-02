@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Harden runner (audit)
         # step-security/harden-runner v2.19.1
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
         with:
           egress-policy: audit
       - name: Checkout
@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
       - name: Run gitleaks
         # gitleaks/gitleaks-action v2.3.9
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false"
@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Harden runner (audit)
         # step-security/harden-runner v2.19.1
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
         with:
           egress-policy: audit
       - name: Checkout
@@ -69,7 +69,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Dependency review
         # actions/dependency-review-action v4.9.0
-        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
@@ -81,7 +81,7 @@ jobs:
     steps:
       - name: Harden runner (audit)
         # step-security/harden-runner v2.19.1
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
         with:
           egress-policy: audit
       - name: Checkout
