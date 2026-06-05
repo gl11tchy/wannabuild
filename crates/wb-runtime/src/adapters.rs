@@ -194,6 +194,17 @@ pub fn classify_prompt(prompt: &str) -> PromptRoute {
             phase_limit,
         );
     }
+    // Grill requests must beat plan-language routing — "grill me on this plan"
+    // is a discovery request, not a planning request. Use exact phrase needles
+    // (not bare "grill") so contains_any does not match "grilling recipes" or
+    // "grill the chicken".
+    if contains_any(&text, &["grill me", "grill this"]) {
+        if phase_limit {
+            return skill("wb-discover", "grill request, discovery-only", phase_limit);
+        }
+        return skill("wannabuild", "grill request", phase_limit);
+    }
+
     if contains_any(
         &text,
         &[
@@ -226,8 +237,6 @@ pub fn classify_prompt(prompt: &str) -> PromptRoute {
             "idea",
             "ideas",
             "brainstorming-only",
-            "grill",
-            "grill me",
         ],
     );
     if has_discovery && phase_limit {
@@ -475,6 +484,24 @@ mod tests {
         );
         assert_eq!(
             classify_prompt("grill me, discovery only").route,
+            "wb-discover"
+        );
+        // Grill must beat plan-language routing.
+        assert_eq!(
+            classify_prompt("grill me on this plan").route,
+            "wannabuild"
+        );
+        assert_eq!(
+            classify_prompt("grill me on this architecture").route,
+            "wannabuild"
+        );
+        // "grilling" is not a grill trigger — contains_any was previously buggy.
+        assert_ne!(
+            classify_prompt("show me grilling recipes").route,
+            "wannabuild"
+        );
+        assert_ne!(
+            classify_prompt("show me grilling recipes").route,
             "wb-discover"
         );
         assert_eq!(classify_prompt("ok").route, "continue-current-phase");

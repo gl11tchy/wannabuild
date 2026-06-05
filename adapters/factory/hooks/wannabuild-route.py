@@ -889,10 +889,6 @@ def classify(prompt: str) -> Optional[tuple[str, str]]:
     ):
         return ("wb-build", "focused planned implementation language")
 
-    if has(r"\b(plan|planning|architect|architecture|design direction|technical approach|break.*tasks|task breakdown|decompose)\b", text):
-        return ("wb-plan", "planning/architecture language")
-
-    discovery_terms = r"\b(brainstorm|discover|discovery|requirements|scope|clarify|figure out what|talk through|idea|ideas|grill|grill me)\b"
     discovery_only_terms = (
         r"\b(requirements-only|discovery-only|brainstorming-only)\b"
         r"|\b(discovery only|discover only|requirements only|brainstorm only|"
@@ -900,6 +896,20 @@ def classify(prompt: str) -> Optional[tuple[str, str]]:
         r"just brainstorm|just discover|just discovery|just requirements|"
         r"before we plan|before planning|before we build|before building)\b"
     )
+
+    # Grill requests must beat plan-language routing — "grill me on this plan"
+    # is a discovery request, not a planning request. Match exact phrases only
+    # so "grilling recipes" / "grill the chicken" do not false-positive.
+    grill_terms = r"\b(grill me|grill this)\b"
+    if has(grill_terms, text):
+        if has(discovery_only_terms, text):
+            return ("wb-discover", "grill request, discovery-only")
+        return ("wannabuild", "grill request")
+
+    if has(r"\b(plan|planning|architect|architecture|design direction|technical approach|break.*tasks|task breakdown|decompose)\b", text):
+        return ("wb-plan", "planning/architecture language")
+
+    discovery_terms = r"\b(brainstorm|discover|discovery|requirements|scope|clarify|figure out what|talk through|idea|ideas)\b"
 
     if has(discovery_terms, text) and has(discovery_only_terms, text):
         return ("wb-discover", "discovery-only/requirements language")

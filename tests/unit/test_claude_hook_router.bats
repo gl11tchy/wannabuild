@@ -150,6 +150,13 @@ JSON
   [[ "$output" == *'`wb-discover`'* ]]
 }
 
+@test "hook: grill request about a plan beats plan-language routing" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"grill me on this plan"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+  [[ "$output" != *'`wb-plan`'* ]]
+}
+
 @test "hook: open-ended ideation routes to full WannaBuild loop" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I want to work on this some, I was thinking of some ideas we could add"}'
   [ "$status" -eq 0 ]
