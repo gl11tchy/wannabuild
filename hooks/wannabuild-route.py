@@ -872,6 +872,24 @@ def classify(prompt: str) -> Optional[tuple[str, str]]:
     if leave_prompt_alone(text):
         return None
 
+    discovery_only_terms = (
+        r"\b(requirements-only|discovery-only|brainstorming-only)\b"
+        r"|\b(discovery only|discover only|requirements only|brainstorm only|"
+        r"only brainstorm|only discover|only discovery|only clarify|"
+        r"just brainstorm|just discover|just discovery|just requirements|"
+        r"before we plan|before planning|before we build|before building)\b"
+    )
+
+    # Grill requests are always Discover, regardless of other keywords in the
+    # prompt ("grill me on this plan/bug/PR/architecture" / "grill me before
+    # we build"). Hoisted above every skill-language check so it wins. Match
+    # exact phrases only so "grilling recipes" / "show me grill menu" do not
+    # false-positive.
+    if has(r"\b(grill me|grill this)\b", text):
+        if has(discovery_only_terms, text):
+            return ("wb-discover", "grill request, discovery-only")
+        return ("wannabuild", "grill request")
+
     if has(r"\b(debug|diagnose|reproduce|trace|traceback|exception|crash|broken|failing|failure|bug|regression)\b", text):
         return ("wb-debug", "bug/failure language")
 
@@ -888,23 +906,6 @@ def classify(prompt: str) -> Optional[tuple[str, str]]:
         r"\b(next planned|planned slice|from the plan|existing plan|task \d+|slice)\b", text
     ):
         return ("wb-build", "focused planned implementation language")
-
-    discovery_only_terms = (
-        r"\b(requirements-only|discovery-only|brainstorming-only)\b"
-        r"|\b(discovery only|discover only|requirements only|brainstorm only|"
-        r"only brainstorm|only discover|only discovery|only clarify|"
-        r"just brainstorm|just discover|just discovery|just requirements|"
-        r"before we plan|before planning|before we build|before building)\b"
-    )
-
-    # Grill requests must beat plan-language routing — "grill me on this plan"
-    # is a discovery request, not a planning request. Match exact phrases only
-    # so "grilling recipes" / "grill the chicken" do not false-positive.
-    grill_terms = r"\b(grill me|grill this)\b"
-    if has(grill_terms, text):
-        if has(discovery_only_terms, text):
-            return ("wb-discover", "grill request, discovery-only")
-        return ("wannabuild", "grill request")
 
     if has(r"\b(plan|planning|architect|architecture|design direction|technical approach|break.*tasks|task breakdown|decompose)\b", text):
         return ("wb-plan", "planning/architecture language")

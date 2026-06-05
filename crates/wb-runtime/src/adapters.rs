@@ -95,6 +95,17 @@ pub fn classify_prompt(prompt: &str) -> PromptRoute {
     ) {
         return no_route("explicit WannaBuild opt-out", false, phase_limit);
     }
+    // Grill requests are always Discover, regardless of other keywords in the
+    // prompt ("grill me on this plan/bug/PR/architecture" / "grill me before
+    // we build"). Hoisted above every skill-language check so it wins. Uses
+    // word-boundary phrase matching so "show me grill menu options" and
+    // "grilling recipes" do not false-positive.
+    if contains_phrase(&text, &["grill me", "grill this"]) {
+        if phase_limit {
+            return skill("wb-discover", "grill request, discovery-only", phase_limit);
+        }
+        return skill("wannabuild", "grill request", phase_limit);
+    }
     if vague_ack(&text) {
         return PromptRoute {
             route: "continue-current-phase".to_string(),
@@ -194,17 +205,6 @@ pub fn classify_prompt(prompt: &str) -> PromptRoute {
             phase_limit,
         );
     }
-    // Grill requests must beat plan-language routing — "grill me on this plan"
-    // is a discovery request, not a planning request. Use exact phrase needles
-    // (not bare "grill") so contains_any does not match "grilling recipes" or
-    // "grill the chicken".
-    if contains_any(&text, &["grill me", "grill this"]) {
-        if phase_limit {
-            return skill("wb-discover", "grill request, discovery-only", phase_limit);
-        }
-        return skill("wannabuild", "grill request", phase_limit);
-    }
-
     if contains_any(
         &text,
         &[
@@ -358,6 +358,32 @@ fn contains_any(text: &str, needles: &[&str]) -> bool {
     needles.iter().any(|needle| text.contains(needle))
 }
 
+fn is_word_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_'
+}
+
+/// Like `contains_any` but requires word-boundary edges around the needle.
+/// Use for phrase needles where substring matching would over-route — e.g.
+/// "grill me" must NOT match "show me grill menu options" or "grilling".
+fn contains_phrase(text: &str, needles: &[&str]) -> bool {
+    let bytes = text.as_bytes();
+    needles.iter().any(|needle| {
+        let nb = needle.as_bytes();
+        if nb.is_empty() || nb.len() > bytes.len() {
+            return false;
+        }
+        (0..=bytes.len() - nb.len()).any(|i| {
+            if &bytes[i..i + nb.len()] != nb {
+                return false;
+            }
+            let before_ok = i == 0 || !is_word_byte(bytes[i - 1]);
+            let after_ok =
+                i + nb.len() == bytes.len() || !is_word_byte(bytes[i + nb.len()]);
+            before_ok && after_ok
+        })
+    })
+}
+
 fn vague_ack(text: &str) -> bool {
     matches!(
         text,
@@ -503,6 +529,27 @@ mod tests {
         assert_ne!(
             classify_prompt("show me grilling recipes").route,
             "wb-discover"
+        );
+        // Word-boundary phrase matching: "grill me" inside "grill menu"
+        // must not satisfy the grill trigger (regression for substring match).
+        assert_ne!(
+            classify_prompt("show me grill menu options").route,
+            "wannabuild"
+        );
+        assert_ne!(
+            classify_prompt("show me grill menu options").route,
+            "wb-discover"
+        );
+        // Grill must beat wb-build routing when the user asks for discovery
+        // before a planned build slice.
+        assert_eq!(
+            classify_prompt("grill me before we build the next planned slice").route,
+            "wb-discover"
+        );
+        // Grill must beat wb-debug when the user wants to be grilled about a bug.
+        assert_eq!(
+            classify_prompt("grill me on this bug").route,
+            "wannabuild"
         );
         assert_eq!(classify_prompt("ok").route, "continue-current-phase");
         assert_eq!(

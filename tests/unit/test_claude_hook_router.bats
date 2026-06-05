@@ -157,6 +157,20 @@ JSON
   [[ "$output" != *'`wb-plan`'* ]]
 }
 
+@test "hook: grill request before a planned build routes to discovery-only" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"grill me before we build the next planned slice"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wb-discover`'* ]]
+  [[ "$output" != *'`wb-build`'* ]]
+}
+
+@test "hook: grill request about a bug beats debug routing" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"grill me on this bug"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+  [[ "$output" != *'`wb-debug`'* ]]
+}
+
 @test "hook: open-ended ideation routes to full WannaBuild loop" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I want to work on this some, I was thinking of some ideas we could add"}'
   [ "$status" -eq 0 ]

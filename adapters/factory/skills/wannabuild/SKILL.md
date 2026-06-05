@@ -89,9 +89,17 @@ Run this condensed workflow:
 
 In full-loop mode, Discover always runs an interview before any planning, even when the prompt looks detailed. Once the goal is crisp enough to form requirements, stop and ask the user for explicit approval before handing off to Plan.
 
+The Discover interview is a Grill. It is mandatory — full-loop discovery cannot progress to research or planning without it — and it follows the same contract as `wb-discover`:
+
+- Ask one question at a time. Do not batch.
+- For every question, propose a recommended answer with the reasoning. The user confirms, redirects, or overrides — they should never have to invent the answer from scratch.
+- Walk the decision tree depth-first; resolve each decision before asking ones that depend on it.
+- If a question can be answered by exploring the codebase, explore instead of asking. Cite what you found and move on.
+- Within Discover, treat short affirmatives ("ok", "sure", "fine") to a single-recommendation question as accepting that recommendation and advance. Multi-option questions require an explicit choice. Phase boundaries (Discover → Plan, etc.) require an explicit approval word ("go", "proceed", "approved", "lgtm", "do it", "continue", "next") regardless of question shape.
+
 ## Defaults
 
-- Discover is a vision-first interview before it is a requirements document, and the interview always runs.
+- Discover is a vision-first Grill before it is a requirements document, and the Grill always runs.
 - Keep Discover, Plan, QA, and Summary single-lane unless parallel specialists materially improve quality.
 - Default to guided execution: pause at every phase boundary and require explicit user approval before advancing.
 - Run optional research before planning when uncertainty is materially high.
