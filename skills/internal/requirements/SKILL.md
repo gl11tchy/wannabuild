@@ -66,7 +66,14 @@ The first user prompt is raw material, not a complete spec. Treat it as the begi
    - If the task is missing, ask for the actual goal.
    - If the task is too broad or exploratory, keep interviewing before narrowing.
 
-2. **Run the vision interview before planning.**
+2. **Run the vision interview before planning, using the Grill rules.**
+   The vision interview is a Grill. It is mandatory — discovery cannot progress to research or planning without it — and it follows the same contract as `wb-discover`:
+   - Ask one question at a time. Do not batch.
+   - For every question, propose a recommended answer with the reasoning behind it. The user confirms, redirects, or overrides — they should never have to invent the answer from scratch.
+   - Walk the decision tree depth-first; resolve each decision before asking ones that depend on it.
+   - If a question can be answered by exploring the codebase, explore instead of asking. Cite what you found and move on.
+   - Within Discover, treat short affirmatives ("ok", "sure", "fine") to a single-recommendation question as accepting that recommendation and advance. Multi-option questions require an explicit choice. Phase boundaries (Discover → Plan, etc.) require an explicit approval word ("go", "proceed", "approved", "lgtm", "do it", "continue", "next") regardless of question shape.
+
    Explore, in natural language:
    - the product vision and why it matters
    - audience, users, and contexts of use
