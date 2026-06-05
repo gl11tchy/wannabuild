@@ -1,6 +1,6 @@
 ---
 name: wb-discover
-description: WannaBuild discovery phase entrypoint for clarifying vision, audience, flows, constraints, scope, and success signals before continuing the full loop.
+description: WannaBuild discovery phase entrypoint that grills the user — one question at a time, each with a recommended answer — to clarify vision, audience, flows, constraints, scope, and success signals before continuing the full loop. Also triggers on "grill me", "stress-test this plan", or any request to interview the user relentlessly about a design.
 ---
 
 # wb-discover
@@ -38,16 +38,27 @@ Turn a rough idea or unclear request into a deeply qualified problem brief and r
 - Add adaptive research only when goal evidence justifies it: UX, security/privacy, integrations, data/migration, compliance, performance, monetization, or domain research.
 - Use sub-agents where the host supports them for distinct discovery perspectives; otherwise produce the same artifacts directly.
 
+## Grill
+
+Discovery requires a grill pass. It is mandatory — skipping it is forbidden, even when the user sounds eager to move on. The grill is how vague intent becomes crisp enough to research without guessing.
+
+- Interview relentlessly until shared understanding. "Crisp" means every branch of the decision tree that materially affects scope, design, acceptance, or success has been resolved — not until the user sounds tired.
+- Ask one question at a time. Do not batch.
+- For every question, propose a recommended answer with the reasoning behind it. The user confirms, redirects, or overrides — they should never have to invent the answer from scratch.
+- Walk the decision tree depth-first. Resolve each decision before asking ones that depend on it; answering a downstream question before its parent wastes the answer.
+- If a question can be answered by exploring the codebase, explore instead of asking. Cite what you found and move on.
+- Treat short affirmatives ("ok", "sure", "fine", "uh ok") as accepting the current recommended answer and advance. Reject them only when the question offered multiple options and either the reply does not map to the current recommendation or the acknowledgment lands at a phase boundary; then ask for an explicit choice or approval.
+
 ## Flow
 
-1. Identify the vision, audience, desired feel, core flows, features, constraints, priorities, non-goals, success signals, budget/time tolerance, and decision tradeoffs.
+1. Run the Grill to identify the vision, audience, desired feel, core flows, features, constraints, priorities, non-goals, success signals, budget/time tolerance, and decision tradeoffs.
 2. State assumptions explicitly and surface meaningful ambiguity instead of resolving it silently.
 3. Once the intent is clear enough to research, run the required research bundle:
    - feasibility: implementation path, dependencies, unknowns, and effort risk
    - alternatives/competition: direct competitors, adjacent alternatives, existing tools/libraries, and manual or do-nothing options
    - Failure Forecast: assume the project failed, identify likely causes, and turn them into questions or mitigations
 4. Add adaptive specialist research only when the user's goal makes it relevant.
-5. Synthesize research into sharper qualifying questions and ask only those that change scope, success, or product direction.
+5. Synthesize research into sharper qualifying questions and ask only those that change scope, success, or product direction. Continue to apply the Grill rules — one question, recommended answer, codebase first.
 6. Write the final requirements direction with scope, non-goals, acceptance signals, research synthesis, qualified decisions, Failure Forecast impact, and remaining open questions.
 7. If the user did not explicitly request discovery only, hand off to Plan automatically after `assert-discovery-ready` passes.
 

@@ -88,7 +88,7 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 | Step | Operator obligation | Completion signal |
 |---|---|---|
-| Discover | Interview for vision, audience, desired feel, core flows, features, constraints, scope, success signals, tradeoffs, and non-goals; then run feasibility, alternatives/competition, Failure Forecast, and any goal-relevant adaptive research. | Discovery research artifacts, qualifying questions, and a crisp requirements direction exist. |
+| Discover | Grill the user — one question at a time, recommended answer per question, codebase first when possible — for vision, audience, desired feel, core flows, features, constraints, scope, success signals, tradeoffs, and non-goals; then run feasibility, alternatives/competition, Failure Forecast, and any goal-relevant adaptive research. | Discovery research artifacts, qualifying questions, and a crisp requirements direction exist. |
 | Plan | Produce a concrete plan, run bounded research when needed, and verify architecture/direction. | Plan is actionable and internally consistent. |
 | Implement | Offer or choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
 | Validate | Run checks and reviewer hats that add real signal for this change; fix actionable findings autonomously. | Validation evidence is captured and blockers are resolved or reported. |
