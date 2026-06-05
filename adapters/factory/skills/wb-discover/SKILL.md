@@ -1,6 +1,6 @@
 ---
 name: wb-discover
-description: WannaBuild discovery phase entrypoint that grills the user — one question at a time, each with a recommended answer — to clarify vision, audience, flows, constraints, scope, and success signals before continuing the full loop. Also triggers on "grill me" or any request to interview the user relentlessly about a design or idea.
+description: WannaBuild discovery phase entrypoint that grills the user — one question at a time, each with a recommended answer — to clarify vision, audience, flows, constraints, scope, and success signals before continuing the full loop. Also triggers on "grill me" or "grill this idea".
 ---
 
 # wb-discover
