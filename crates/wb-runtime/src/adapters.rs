@@ -226,6 +226,8 @@ pub fn classify_prompt(prompt: &str) -> PromptRoute {
             "idea",
             "ideas",
             "brainstorming-only",
+            "grill",
+            "grill me",
         ],
     );
     if has_discovery && phase_limit {
@@ -465,6 +467,14 @@ mod tests {
         assert_eq!(classify_prompt("Create a PR").route, "wb-ship");
         assert_eq!(
             classify_prompt("Talk through requirements-only").route,
+            "wb-discover"
+        );
+        assert_eq!(
+            classify_prompt("grill me on this billing redesign").route,
+            "wannabuild"
+        );
+        assert_eq!(
+            classify_prompt("grill me, discovery only").route,
             "wb-discover"
         );
         assert_eq!(classify_prompt("ok").route, "continue-current-phase");

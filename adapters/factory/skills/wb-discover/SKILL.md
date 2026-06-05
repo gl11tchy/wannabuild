@@ -1,6 +1,6 @@
 ---
 name: wb-discover
-description: WannaBuild discovery phase entrypoint that grills the user — one question at a time, each with a recommended answer — to clarify vision, audience, flows, constraints, scope, and success signals before continuing the full loop. Also triggers on "grill me", "stress-test this plan", or any request to interview the user relentlessly about a design.
+description: WannaBuild discovery phase entrypoint that grills the user — one question at a time, each with a recommended answer — to clarify vision, audience, flows, constraints, scope, and success signals before continuing the full loop. Also triggers on "grill me" or any request to interview the user relentlessly about a design or idea.
 ---
 
 # wb-discover
@@ -47,7 +47,9 @@ Discovery requires a grill pass. It is mandatory — skipping it is forbidden, e
 - For every question, propose a recommended answer with the reasoning behind it. The user confirms, redirects, or overrides — they should never have to invent the answer from scratch.
 - Walk the decision tree depth-first. Resolve each decision before asking ones that depend on it; answering a downstream question before its parent wastes the answer.
 - If a question can be answered by exploring the codebase, explore instead of asking. Cite what you found and move on.
-- Treat short affirmatives ("ok", "sure", "fine", "uh ok") as accepting the current recommended answer and advance. Reject them only when the question offered multiple options and either the reply does not map to the current recommendation or the acknowledgment lands at a phase boundary; then ask for an explicit choice or approval.
+- Within the Discover phase, treat short affirmatives ("ok", "sure", "fine", "uh ok") to a single-recommendation question as accepting that recommendation, and advance.
+- Phase boundaries are different. A short affirmative never crosses Discover → Plan (or any other phase boundary) on its own — guided mode requires an explicit approval word ("go", "proceed", "approved", "lgtm", "do it", "continue", "next") regardless of how the prior question was shaped.
+- Multi-option questions also never accept a short affirmative. If the reply does not map to a specific option, ask for the explicit choice.
 
 ## Flow
 

@@ -892,7 +892,7 @@ def classify(prompt: str) -> Optional[tuple[str, str]]:
     if has(r"\b(plan|planning|architect|architecture|design direction|technical approach|break.*tasks|task breakdown|decompose)\b", text):
         return ("wb-plan", "planning/architecture language")
 
-    discovery_terms = r"\b(brainstorm|discover|discovery|requirements|scope|clarify|figure out what|talk through|idea|ideas)\b"
+    discovery_terms = r"\b(brainstorm|discover|discovery|requirements|scope|clarify|figure out what|talk through|idea|ideas|grill|grill me)\b"
     discovery_only_terms = (
         r"\b(requirements-only|discovery-only|brainstorming-only)\b"
         r"|\b(discovery only|discover only|requirements only|brainstorm only|"

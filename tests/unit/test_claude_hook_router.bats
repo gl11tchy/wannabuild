@@ -138,6 +138,18 @@ JSON
   [[ "$output" == *'`wb-discover`'* ]]
 }
 
+@test "hook: grill-me request routes to full WannaBuild loop via discovery" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"grill me on this billing redesign"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wannabuild`'* ]]
+}
+
+@test "hook: grill-only discovery request routes to wb-discover" {
+  run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"grill me on this idea, discovery only"}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'`wb-discover`'* ]]
+}
+
 @test "hook: open-ended ideation routes to full WannaBuild loop" {
   run_hook '{"hook_event_name":"UserPromptSubmit","prompt":"I want to work on this some, I was thinking of some ideas we could add"}'
   [ "$status" -eq 0 ]
