@@ -259,8 +259,8 @@ check_absent_file "skills/research/SKILL.md" "internal phase must not be at top 
 check_file "skills/wannabuild/SKILL.md" || status=1
 check_file "skills/using-wannabuild/SKILL.md" || status=1
 check_file "skills/internal/research/SKILL.md" || status=1
-check_file "commands/wannabuild.md" || status=1
-check_file "commands/using-wannabuild.md" || status=1
+check_file "adapters/factory/commands/wannabuild.md" || status=1
+check_file "adapters/factory/commands/using-wannabuild.md" || status=1
 check_file "hooks/hooks.json" || status=1
 check_file "hooks/wannabuild-route.py" || status=1
 check_file "scripts/validate-wannabuild-artifacts.sh" || status=1
@@ -303,14 +303,14 @@ check_same_file "hooks/hooks.json" "adapters/factory/hooks/hooks.json" "Factory 
 check_same_file "hooks/wannabuild-route.py" "adapters/factory/hooks/wannabuild-route.py" "Factory adapter hook router mirrors canonical hook router" || status=1
 for skill in "${UI_SKILLS[@]}"; do
   check_file "adapters/factory/commands/${skill}.md" || status=1
-  check_same_file "commands/${skill}.md" "adapters/factory/commands/${skill}.md" "Factory adapter command /${skill} mirrors canonical command" || status=1
+  check_contains "adapters/factory/commands/${skill}.md" "Contracts live in the owning skill" "Factory command /${skill} forwards to its skill" || status=1
 done
 check_file ".claude-plugin/plugin.json" || status=1
 check_file ".claude-plugin/marketplace.json" || status=1
 echo
 echo "Phase skill surfaces"
 check_dir "skills" || status=1
-check_dir "commands" || status=1
+check_dir "adapters/factory/commands" || status=1
 for skill in "${UI_SKILLS[@]}"; do
   display_name="$(skill_display_name "${skill}")"
   check_file "skills/${skill}/agents/openai.yaml" || status=1
@@ -320,9 +320,9 @@ for skill in "${UI_SKILLS[@]}"; do
 done
 for skill in "${TOOLBOX_SKILLS[@]}"; do
   check_file "skills/${skill}/SKILL.md" || status=1
-  check_file "commands/${skill}.md" || status=1
+  check_file "adapters/factory/commands/${skill}.md" || status=1
   check_contains "skills/${skill}/SKILL.md" "Phase Bootstrap" "Phase skill ${skill} defines bootstrap behavior" || status=1
-  check_contains "commands/${skill}.md" "Use the \`${skill}\` skill" "Phase command /${skill} routes to skill" || status=1
+  check_contains "adapters/factory/commands/${skill}.md" "Use the \`${skill}\` skill" "Phase command /${skill} routes to skill" || status=1
   check_contains ".codex/INSTALL.md" "${skill}" "Codex manual install includes ${skill}" || status=1
   check_contains "README.md" "/${skill}" "README docs expose /${skill}" || status=1
 done
@@ -400,8 +400,8 @@ echo
 echo "Host-native invocation surfaces"
 check_contains "AGENTS.md" "Do not tell the user to invoke a slash command" "Operator contract prevents command-first handoff" || status=1
 check_contains "skills/wannabuild/SKILL.md" "Select the skill and begin the appropriate workflow" "WannaBuild skill starts matching workflows directly" || status=1
-check_contains "commands/using-wannabuild.md" "Commands are optional shortcuts, not the normal path" "Intro command preserves skill-first positioning" || status=1
-check_contains "commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
+check_contains "adapters/factory/commands/using-wannabuild.md" "Commands are optional shortcuts, not the normal path" "Intro command preserves skill-first positioning" || status=1
+check_contains "adapters/factory/commands/wannabuild.md" "/wannabuild" "Claude command exposes /wannabuild" || status=1
 check_contains ".claude-plugin/plugin.json" "\"hooks\": {" "Claude plugin declares hooks inline" || status=1
 check_contains ".claude-plugin/plugin.json" "\"SessionStart\"" "Claude plugin inline hooks include SessionStart" || status=1
 check_contains ".claude-plugin/plugin.json" "\"UserPromptSubmit\"" "Claude plugin inline hooks include UserPromptSubmit" || status=1
@@ -413,10 +413,10 @@ check_contains "hooks/hooks.json" "SessionStart" "Claude hooks include SessionSt
 check_contains "hooks/hooks.json" "UserPromptSubmit" "Claude hooks include UserPromptSubmit autorouter" || status=1
 check_contains "hooks/wannabuild-route.py" "WannaBuild automatic routing is active" "Claude autorouter injects session routing context" || status=1
 check_contains "hooks/wannabuild-route.py" "Do not ask the user to type" "Claude autorouter discourages command handoff" || status=1
-check_not_contains "commands/wannabuild.md" "[WB-START]" "Claude command avoids start banner output" || status=1
-check_not_contains "commands/wannabuild.md" "[WB-RESUME]" "Claude command avoids resume banner output" || status=1
-check_not_contains "commands/wannabuild.md" "Respond with exactly" "Claude command does not force direct visible response" || status=1
-check_contains "commands/using-wannabuild.md" "/using-wannabuild" "Claude command exposes /using-wannabuild" || status=1
+check_not_contains "adapters/factory/commands/wannabuild.md" "[WB-START]" "Claude command avoids start banner output" || status=1
+check_not_contains "adapters/factory/commands/wannabuild.md" "[WB-RESUME]" "Claude command avoids resume banner output" || status=1
+check_not_contains "adapters/factory/commands/wannabuild.md" "Respond with exactly" "Claude command does not force direct visible response" || status=1
+check_contains "adapters/factory/commands/using-wannabuild.md" "/using-wannabuild" "Claude command exposes /using-wannabuild" || status=1
 check_contains "docs/codex-getting-started.md" "\$wannabuild" "Codex docs expose \$wannabuild" || status=1
 check_contains "docs/codex-getting-started.md" "\$using-wannabuild" "Codex docs expose \$using-wannabuild" || status=1
 check_contains "docs/claude-code-getting-started.md" "/wannabuild" "Claude docs expose /wannabuild" || status=1

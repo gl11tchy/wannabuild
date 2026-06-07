@@ -1,0 +1,6 @@
+{
+  "agent": "wb-testing-reviewer",
+  "status": "PASS",
+  "summary": "Every changed surface has covering tests that ran.",
+  "issues": []
+}

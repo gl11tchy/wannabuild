@@ -1,0 +1,6 @@
+{
+  "agent": "wb-security-reviewer",
+  "status": "PASS",
+  "summary": "No auth, secret, or input-handling exposure in the fixture.",
+  "issues": []
+}

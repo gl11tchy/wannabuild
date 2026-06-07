@@ -79,10 +79,10 @@ _copy_repo() {
 
 @test "doctor: FAILs when a required phase command is removed" {
   copy="$(_copy_repo)"
-  rm -f "$copy/commands/wb-build.md"
+  rm -f "$copy/adapters/factory/commands/wb-build.md"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  commands/wb-build.md"* ]]
+  [[ "$output" == *"FAIL  adapters/factory/commands/wb-build.md"* ]]
 }
 
 @test "doctor: FAILs when Factory adapter contains symlinks" {
@@ -92,14 +92,6 @@ _copy_repo() {
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
   [[ "$output" == *"FAIL  Factory adapter is self-contained (no symlinks)"* ]]
-}
-
-@test "doctor: FAILs when Factory adapter command copy drifts" {
-  copy="$(_copy_repo)"
-  printf '\nFactory adapter drift fixture\n' >> "$copy/adapters/factory/commands/wannabuild.md"
-  run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"FAIL  Factory adapter command /wannabuild mirrors canonical command"* ]]
 }
 
 @test "doctor: FAILs when required phase docs are removed" {
@@ -116,7 +108,7 @@ PY
 
 @test "doctor: FAILs when Claude command reintroduces start banner output" {
   copy="$(_copy_repo)"
-  printf '\n[WB-START] WannaBuild STARTED | intent=build | mode=standard\n' >> "$copy/commands/wannabuild.md"
+  printf '\n[WB-START] WannaBuild STARTED | intent=build | mode=standard\n' >> "$copy/adapters/factory/commands/wannabuild.md"
   run with_clean_env bash "$copy/scripts/wannabuild-doctor.sh"
   [ "$status" -ne 0 ]
   [[ "$output" == *"FAIL  Claude command avoids start banner output"* ]]
@@ -171,7 +163,7 @@ PY
 
 @test "doctor: FAILs when a phase command stops routing to its skill" {
   copy="$(_copy_repo)"
-  python3 - "$copy/commands/wb-build.md" <<'PY'
+  python3 - "$copy/adapters/factory/commands/wb-build.md" <<'PY'
 from pathlib import Path
 import sys
 path = Path(sys.argv[1])

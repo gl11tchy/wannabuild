@@ -36,9 +36,9 @@ PY
   [[ "$output" == *"skills/wb-build/SKILL.md missing shared contract marker"* ]]
 }
 
-@test "contract validator: fails when a command stops handing off to the skill contract" {
+@test "contract validator: fails when a Factory command stops handing off to the skill contract" {
   copy="$(_copy_repo)"
-  python3 - "$copy/commands/wb-build.md" <<'PY'
+  python3 - "$copy/adapters/factory/commands/wb-build.md" <<'PY'
 from pathlib import Path
 import sys
 path = Path(sys.argv[1])
@@ -46,13 +46,5 @@ path.write_text(path.read_text().replace("Contracts live in the owning skill", "
 PY
   run bash "$copy/scripts/validate-contracts.sh"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"commands/wb-build.md missing command contract handoff marker"* ]]
-}
-
-@test "contract validator: fails when Factory command mirror drifts" {
-  copy="$(_copy_repo)"
-  printf '\nFactory drift fixture\n' >> "$copy/adapters/factory/commands/wb-build.md"
-  run bash "$copy/scripts/validate-contracts.sh"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"Factory command mirror drift: wb-build.md"* ]]
+  [[ "$output" == *"adapters/factory/commands/wb-build.md missing command contract handoff marker"* ]]
 }
