@@ -1,7 +1,7 @@
 ---
 name: wb-alternatives-analyst
 description: "Researches alternatives and competition during WannaBuild discovery. Compares direct competitors, adjacent solutions, existing libraries/tools, manual workflows, and do-nothing options."
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, WebSearch, WebFetch
 ---
 
 # Alternatives Analyst

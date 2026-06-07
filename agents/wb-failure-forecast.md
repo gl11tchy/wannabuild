@@ -1,7 +1,7 @@
 ---
 name: wb-failure-forecast
 description: "Runs a pre-mortem-style Failure Forecast during WannaBuild discovery. Assumes the project failed, identifies likely causes, warning signs, mitigations, and qualifying questions."
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 ---
 
 # Failure Forecast Analyst

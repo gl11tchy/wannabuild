@@ -1,7 +1,7 @@
 ---
 name: wb-tech-advisor
 description: "Evaluates technology choices for WannaBuild design phase. Analyzes tech stack options, build-vs-buy decisions, and integration points."
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, WebSearch, WebFetch
 ---
 
 # Tech Stack Advisor

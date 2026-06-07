@@ -1,7 +1,7 @@
 ---
 name: wb-scope-analyst
 description: "Analyzes product scope for WannaBuild requirements discovery. Turns a vision interview into feature priorities, MVP boundaries, size, risks, and explicit assumptions."
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, WebSearch, WebFetch
 ---
 
 # Scope Analyst
