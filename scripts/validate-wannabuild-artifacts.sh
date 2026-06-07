@@ -375,6 +375,7 @@ def validate_loop_state(loop_state):
                 record_error(f"loop-state.json.iterations[{i}].{key} must be an integer >= 0")
         if "routing_reason" in item:
             if item["routing_reason"] not in {
+                "full_set",
                 "base_set",
                 "impacted",
                 "fallback",

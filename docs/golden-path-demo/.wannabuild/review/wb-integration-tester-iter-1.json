@@ -5,8 +5,8 @@
   "summary": "Golden path acceptance criteria are covered.",
   "issues": [],
   "test_execution": {
-    "total": 3,
-    "passed": 3,
+    "total": 4,
+    "passed": 4,
     "failed": 0,
     "errored": 0,
     "duration_ms": 500
@@ -28,6 +28,12 @@
       "criterion": "QA summary exists",
       "test_file": "docs/golden-path-demo/.wannabuild/outputs/qa-summary.md",
       "test_name": "qa summary fixture",
+      "status": "covered"
+    },
+    {
+      "criterion": "Integration tester evidence covers the acceptance criteria",
+      "test_file": "docs/golden-path-demo/.wannabuild/review/wb-integration-tester-iter-1.json",
+      "test_name": "integration evidence fixture",
       "status": "covered"
     }
   ]
