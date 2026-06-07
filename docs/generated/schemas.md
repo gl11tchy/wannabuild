@@ -4,6 +4,10 @@
 
 JSON schemas consumed by `scripts/validate-wannabuild-artifacts.sh`.
 
+## `WannaBuild acquisition log`
+
+Path: `skills/internal/build/schemas/acquisition-log.schema.json`
+
 ## `WannaBuild checkpoint text contract`
 
 Path: `skills/internal/build/schemas/checkpoint.schema.json`
