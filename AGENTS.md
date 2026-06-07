@@ -70,13 +70,26 @@ The framework should feel lightweight to the user while still enforcing real pla
 Discover -> Plan -> Implement -> Validate -> QA -> Summary
 ```
 
+## Doctrine
+
+Four mandates govern every skill, agent, and gate. They are defined in full in
+[skills/internal/build/references/doctrine.md](skills/internal/build/references/doctrine.md)
+and they override any softer wording elsewhere:
+
+1. **Discovery is mandatory and collaborative.** The grill fires on every task; research is proportionate but never zero; Plan is blocked until discovery produces a requirements brief with acceptance criteria.
+2. **Exhaust resources before declaring blocked; never silent-skip.** "Missing env"/"can't test" is grounds to obtain (run the app, spin a DB branch, drive a browser, read live docs) or to ask — never to skip. Every blocker requires a logged acquisition attempt.
+3. **Completeness; gates cannot be rationalized away.** The full reviewer set runs every iteration (no impacted-only, no fast-track); the integration tester is terminal with no override and PASS requires execution evidence.
+4. **Collaboration and determinism.** Hard-stop at every boundary for an explicit approval word; fixed pipeline with adaptive depth only, so the experience is identical every run.
+
 ## Non-Negotiables
 
 - If there is no concrete task, stage intent, or exploratory idea intent, ask for the actual goal first.
 - Do not infer intent from git diff or uncommitted changes.
 - Exception: an explicit `wb-review` or `/wb-review` invocation is itself a concrete review task; if no target is named, review the current checkout changes by default and ask only when there is no reviewable diff.
 - Do not start planning or implementation without a concrete task.
-- Do not transition from Discover or Research to Plan until `scripts/wannabuild-session.sh assert-discovery-ready .` passes.
+- Run Discovery on every task — including small ones. The grill always fires; never skip it because the request "looks trivial" or because the user sounds eager to move on.
+- Do not transition from Discover or Research to Plan until `scripts/wannabuild-session.sh assert-discovery-ready .` passes. That gate requires a requirements brief with acceptance criteria; a brief without them does not pass.
+- Never declare work skipped, blocked, or untestable without first attempting to acquire the resource (run the app, spin a local/ephemeral DB branch, drive a browser, generate fixtures, read live docs via Context7) and logging the attempt. Stop and ask the user only for billable, outward-facing, or destructive acquisition.
 - Do not start implementation until Plan is complete.
 - Before implementation edits, run `scripts/wannabuild-session.sh assert-plan-ready .`. If it fails or the runtime cannot execute, return to Plan and do not edit implementation files.
 - Do not browse externally when no concrete task exists.
@@ -88,11 +101,11 @@ Discover -> Plan -> Implement -> Validate -> QA -> Summary
 
 | Step | Operator obligation | Completion signal |
 |---|---|---|
-| Discover | Grill the user — one question at a time, recommended answer per question, codebase first when possible — for vision, audience, desired feel, core flows, features, constraints, scope, success signals, tradeoffs, and non-goals; then run feasibility, alternatives/competition, Failure Forecast, and any goal-relevant adaptive research. | Discovery research artifacts, qualifying questions, and a crisp requirements direction exist. |
+| Discover | Grill the user — one question at a time, recommended answer per question, reading the codebase to answer rather than asking whenever it can — for vision, audience, desired feel, core flows, features, constraints, scope, success signals, tradeoffs, and non-goals; then always run feasibility, alternatives/competition, and Failure Forecast (depth proportionate, never zero) plus any goal-relevant adaptive research. | `assert-discovery-ready` passes: discovery artifacts non-empty and `requirements.md` has acceptance criteria. |
 | Plan | Produce a concrete plan, run bounded research when needed, and verify architecture/direction. | Plan is actionable and internally consistent. |
 | Implement | Offer or choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
-| Validate | Run checks and reviewer hats that add real signal for this change; fix actionable findings autonomously. | Validation evidence is captured and blockers are resolved or reported. |
-| QA | Validate acceptance criteria and integration behavior. | Integration hard gate passes. |
+| Validate | Run the full reviewer set (security, performance, architecture, testing, simplification, integration), each covering the entire changed surface; fix all actionable findings autonomously. Acquire any resource a check needs before declaring it un-runnable. | `assert-review-ready` passes: every required reviewer returns PASS for the latest iteration. |
+| QA | Validate every acceptance criterion and integration behavior by executing real tests against real (acquired) resources — never by asserting they should pass. | `assert-qa-ready` passes: QA markers plus integration execution evidence (tests ran, every criterion covered). |
 | Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
 
 ## Control Mode Defaults
@@ -108,7 +121,7 @@ If the user explicitly asks for autonomous or unattended execution, switch to au
 ## Parallelization Defaults
 
 - Keep work single-owner when coherence matters more than fan-out.
-- Use bounded multi-agent research during Discover and Plan when it materially improves requirements or planning quality.
+- The Discover/Plan research bundle (feasibility, alternatives, Failure Forecast) always runs; use bounded multi-agent parallelism for it when the perspectives are genuinely independent.
 - Use parallelism for independent discovery perspectives, disjoint implementation slices, or concurrent review hats with distinct risk ownership.
 - Let the orchestrator choose the number of agents from task evidence: complexity, coupling, uncertainty, blast radius, and expertise required.
 - Do not hard-code agent counts. Stop adding agents when each one no longer has distinct ownership and expected evidence.
@@ -127,7 +140,7 @@ Public-to-internal mapping:
 | Public step | Internal execution |
 |---|---|
 | Discover | Requirements |
-| Plan | Optional research burst using specialist agents |
+| Plan | Research burst using specialist agents (feasibility/alternatives/forecast always ran in Discover) |
 | Plan | Design + Tasks |
 | Implement | Implement after solo/parallel choice |
 | Validate | Review |
@@ -164,12 +177,11 @@ Artifact roles:
 
 - Implement in micro-steps by default.
 - Treat checkpoints as canonical execution evidence.
-- Keep review adaptive: rerun impacted reviewers rather than full fan-out every iteration.
-- Treat the integration tester as the hard completion gate.
+- Run the full reviewer set on every review iteration. Never narrow to "impacted" reviewers and never fast-track or skip review for "tiny, low-risk" changes — only the depth of each reviewer's work scales, not the set.
+- Treat the integration tester as the hard completion gate: its FAIL is terminal with no override path, and its PASS is valid only with execution evidence (tests actually ran, every acceptance criterion covered).
 - Keep Review and QA as distinct post-implementation stages.
-- Allow fast-track review only for tiny, low-risk changes.
 - Block completion on integration tester failure.
-- Expect commits before ship-oriented packaging; during implementation, commit cadence is optional.
+- Commit at each completed slice; always commit before ship-oriented packaging.
 
 ## Model Defaults
 
@@ -258,4 +270,4 @@ Because this is a framework/documentation repository:
 
 ## Dependencies
 
-No external runtime dependencies are required for the framework itself.
+No external runtime dependencies are required for the framework itself. This does not relax Mandate 2 for **target-project** work: when executing a real project, acquire whatever runtime, database, browser, or fixture the task needs (or ask the user for billable/outward acquisition) — never treat a missing resource as license to skip review or QA.

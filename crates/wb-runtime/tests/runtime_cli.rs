@@ -37,9 +37,16 @@ fn write_reviews(project: &Path, status: &str) {
         "wb-integration-tester",
         "wb-code-simplifier",
     ] {
+        let body = if agent == "wb-integration-tester" {
+            format!(
+                r#"{{"agent":"{agent}","status":"{status}","summary":"ok","issues":[],"hard_gate":true,"test_execution":{{"total":8,"passed":8,"failed":0,"errored":0,"duration_ms":120}},"coverage_map":[{{"criterion":"acceptance","status":"covered"}}]}}"#
+            )
+        } else {
+            format!(r#"{{"agent":"{agent}","status":"{status}","summary":"ok","issues":[]}}"#)
+        };
         write(
             project.join(format!(".wannabuild/review/{agent}-iter-1.json")),
-            &format!(r#"{{"agent":"{agent}","status":"{status}","summary":"ok","issues":[]}}"#),
+            &body,
         );
     }
 }
@@ -63,7 +70,7 @@ fn write_discovery_ready(project: &Path) {
     );
     write(
         project.join(".wannabuild/spec/requirements.md"),
-        "requirements",
+        "# Requirements\n\n## Acceptance Criteria\n\n- The feature works end to end\n",
     );
     write(
         project.join(".wannabuild/state.json"),
@@ -830,6 +837,7 @@ fn qa_gate_accepts_structured_summary_without_event() {
         dir.path().join(".wannabuild/outputs/qa-summary.md"),
         "# QA\n\nverdict: PASS\nacceptance criteria: verified\nintegration behavior: verified\n",
     );
+    write_reviews(dir.path(), "PASS");
 
     wb_runtime()
         .args(["assert-qa-ready", "--project", &project_arg(dir.path())])

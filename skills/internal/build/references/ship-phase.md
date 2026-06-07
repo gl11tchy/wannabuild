@@ -11,7 +11,7 @@ Phase 6 of 7 in the WannaBuild SDD pipeline. Prepares verified work for delivery
 | Agent | File | Role | Execution |
 |-------|------|------|-----------|
 | PR Craftsman | `wb-pr-craftsman` | Creates PR with spec-referenced description | **First** (sequential) |
-| CI Guardian | `wb-ci-guardian` | Monitors CI, verifies integration tests in pipeline | **Then** (sequential, after PR) |
+| CI Guardian | `wb-ci-guardian` | Monitors CI; gates on the integration suite having run and passed (hard gate) | **Then** (sequential, after PR) |
 
 ## Trigger Conditions
 
@@ -93,8 +93,13 @@ Task(subagent_type="wb-pr-craftsman")
 
 // Step 2: Monitor CI (after PR exists)
 Task(subagent_type="wb-ci-guardian")
-  prompt: "Monitor CI for PR #{pr_number}. Verify integration tests run in pipeline.
-           Write your full CI report to .wannabuild/outputs/ci-guardian.md.
+  prompt: "Monitor CI for PR #{pr_number}. Confirm the integration suite RAN and PASSED
+           in a real environment (green CI job, or a provisioned/local run with captured
+           exit code and output). If CI does not run it, run it yourself and gate on that.
+           A skipped/absent/errored integration suite is a FAIL that blocks the phase —
+           no override. Before reporting any failure as environmental, attempt to obtain
+           the missing resource and log the attempt to .wannabuild/outputs/acquisition-log.json.
+           Write your full CI report (with execution evidence) to .wannabuild/outputs/ci-guardian.md.
            Return ONLY: 'COMPLETE — CI {passed|failed}, [one sentence]. Report at .wannabuild/outputs/ci-guardian.md'"
 ```
 
@@ -128,27 +133,50 @@ The PR Craftsman uses spec artifacts to create comprehensive descriptions:
 - Iteration 2+ (adaptive): [[passes]/[active_count] PASS] — approved
 ```
 
-## CI Guardian: Integration Test Verification
+## CI Guardian: Integration Test Hard Gate
 
-The CI Guardian specifically verifies that integration tests run in the CI pipeline:
+The integration tester is the terminal hard gate (doctrine Mandate 3). CI Guardian
+MUST confirm the integration suite **ran and passed in a real environment** — a green
+CI run, or a provisioned/local run with captured exit code and output. This is a
+blocking gate, not advisory flagging:
 
-- Confirms test suite is part of CI configuration
-- Verifies integration tests passed (not just unit tests)
-- Flags if integration tests were skipped or absent from CI
-- Reports full check status with timing
+- Confirms the integration suite is part of CI configuration **and** that the job
+  actually executed (not skipped, not cached-out, not errored).
+- Confirms integration tests ran and passed (`total > 0`, `failed == 0`,
+  `errored == 0`), not just unit tests, with the captured run recorded in
+  `.wannabuild/outputs/ci-guardian.md`.
+- If the integration suite is skipped, absent, errored, or did not complete, the result
+  is **FAIL**. A FAIL **blocks** the phase. There is no override path and no
+  acknowledgment that lets Ship proceed past it (doctrine Mandate 3).
+- If CI does not run the integration suite, CI Guardian MUST run the full integration
+  suite locally (or in a provisioned environment per Mandate 2), capture exit code and
+  output, and gate on that real result — never on the mere presence of a test file.
+- Reports full check status with timing and the recorded execution evidence.
 
 ## Delivery Strategy
 
-After final local verification passes, the orchestrator presents delivery options to the user:
+Delivery is the one decision in this phase that affects outward/destructive behavior,
+so the orchestrator collaborates: it presents the options with a recommended default
+and the trade-off of each, then waits for the user to choose (doctrine Mandate 4).
+This prompt fires only after the integration hard gate has passed.
 
-> Checks are green. How do you want to ship?
+> Checks are green and the integration suite passed. How do you want to ship?
+> (Recommended: option 2 — it gives a review trail plus CI on the PR.)
 >
-> 1. **Merge locally**
-> 2. **Push branch and create a PR**
-> 3. **Push directly to `origin/main`**
-> 4. **Stop after local preparation**
+> 1. **Merge locally** — fastest, but no PR review trail and no PR-level CI.
+> 2. **Push branch and create a PR** — RECOMMENDED; gives review plus CI on the PR.
+> 3. **Push directly to `origin/main`** — only if the branch is unprotected; bypasses
+>    review. Outward action, so it requires explicit confirmation.
+> 4. **Stop after local preparation** — leaves verified work committed locally for you
+>    to deliver later.
 
-The orchestrator executes only the selected path. After execution, run cleanup: prune/remove temporary worktrees when safe, delete topic branches when appropriate, remove generated transient files, and verify final git status.
+The orchestrator executes only the user-selected path; it never picks silently. After
+execution, cleanup is **mandatory** and runs with deterministic criteria:
+
+- Remove a temporary worktree once its branch is merged or no longer checked out.
+- Delete the topic branch only after its PR is merged or the user confirms abandonment.
+- Remove generated transient files under `.wannabuild/tmp/`.
+- Verify the tree is clean (`git status --porcelain` empty) and record the final state.
 
 ## State Update
 
@@ -194,26 +222,63 @@ Merge into existing state.json (preserving `mode` and all other existing keys):
 
 ## Edge Cases
 
-- **No remote repository:** Skip PR creation, just verify local state is clean.
-- **Protected branch:** Guide user through required approvals.
-- **CI failures:** CI Guardian diagnoses and reports. If it's a test failure, route back to implementer.
-- **Merge conflicts:** Guide user through resolution, then re-run CI.
-- **No CI pipeline:** CI Guardian reports the gap and recommends setup. Ship proceeds with user acknowledgment.
+Each edge case is an obligation to acquire a resource or collaborate on a decision —
+never a license to skip PR creation, testing, or the integration gate (doctrine
+Mandates 2 and 3). Every claimed blocker requires a logged attempt in
+`.wannabuild/outputs/acquisition-log.json` (`assert-acquisition-attempted`).
+
+- **No remote detected:** Do not skip PR creation by assumption. First run
+  `git remote -v`. If none, present the user with options each carrying a recommended
+  default — recommended: create a GitHub remote via `gh repo create` and proceed with
+  the PR flow; alternatives: connect an existing remote, or choose the merge-locally /
+  stop-after-prep delivery path. Record the attempt in the acquisition log.
+- **Protected branch:** Present options with a recommendation — recommended: open a PR
+  and request the required reviewers; alternatives: ask an admin to approve, or stop
+  after local preparation. Do not attempt a direct push to a protected branch.
+- **CI failures:** ANY unresolved failing required check (test, build, lint, infra,
+  env) **blocks** the merge — there is no "only test failures route back" carve-out.
+  CI Guardian diagnoses and, before reporting any failure as environmental/external,
+  MUST attempt to obtain the missing resource per Mandate 2 (provision a DB branch on
+  Supabase/Neon, set required env/vars on the CI or Railway/Vercel build, generate
+  fixtures, read live docs via Context7) and record each attempt in the acquisition
+  log. A test failure routes back to the implementer; an unrecoverable
+  billable/outward/destructive blocker is surfaced to the user — neither is silently
+  shipped past.
+- **Merge conflicts:** First attempt an automated rebase/merge, then re-run the full
+  integration suite and re-gate on it. If the conflict cannot be resolved
+  automatically, present the conflicting hunks and ask the user how to resolve; never
+  ship without the integration suite passing on the resolved tree.
+- **No CI pipeline detected:** The phase MUST NOT proceed on acknowledgment alone. CI
+  Guardian MUST first obtain a real verification environment: run the full integration
+  suite locally and capture exit code and output, **and** offer to provision CI
+  (scaffold a GitHub Actions workflow, or a Railway/Vercel build pipeline) with that as
+  the recommended option. The integration hard gate is satisfied only by a captured
+  passing run; the absence of a pipeline never satisfies it.
 
 ## Quality Checklist
 
 - [ ] Checkpoint evidence is complete and reviewable
-- [ ] All changes committed (no dirty working tree)
-- [ ] Delivery path confirmed by user
+- [ ] Working tree verified clean via `git status --porcelain` (empty)
+- [ ] Integration suite ran and PASSED in a real environment (green CI run OR
+      provisioned/local run with captured exit code and output) — REQUIRED for every
+      delivery path, including merge-locally and stop-after-prep
+- [ ] Delivery path confirmed by the user's explicit selection
 - [ ] Selected delivery action completed
-- [ ] CI checks passed when a PR or pushed branch is involved
-- [ ] Post-delivery cleanup completed
+- [ ] All required CI checks green when a PR or pushed branch is involved
+- [ ] Post-delivery cleanup completed (worktrees, topic branch, `.wannabuild/tmp/`,
+      clean `git status`)
 
 ## Contract Validation
 
 - PR readiness requires:
-  - clean working tree or explicit user-confirmed skip reason
+  - a verified-clean working tree (`git status --porcelain` empty). There is no
+    free-text skip: if the tree is dirty, the agent MUST commit or stash the changes
+    (or surface them and ask) before proceeding.
   - committed implementation artifacts
   - merged checkpoints reviewed from implement phase
-- PR craftsman output should include all three spec references and integration test proof.
-- CI guardian must verify integration tests are part of CI commandset, not only present locally.
+- PR craftsman output MUST include all three spec references AND integration-test proof
+  (the recorded passing run). Missing either is a contract violation that blocks the
+  phase.
+- CI guardian MUST verify the integration suite actually ran and passed in CI (or in a
+  provisioned/local run with captured output), not merely that the tests are listed in
+  the CI commandset or present locally. A listed-but-not-executed suite is a FAIL.

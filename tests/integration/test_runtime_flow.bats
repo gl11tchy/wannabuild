@@ -19,14 +19,20 @@ write_all_review_verdicts() {
   for agent in wb-security-reviewer wb-performance-reviewer \
                wb-architecture-reviewer wb-testing-reviewer \
                wb-integration-tester wb-code-simplifier; do
-    cat >"$TARGET/.wannabuild/review/${agent}-iter-1.json" <<JSON
+    if [ "$agent" = "wb-integration-tester" ]; then
+      cat >"$TARGET/.wannabuild/review/${agent}-iter-1.json" <<JSON
+{"agent":"${agent}","status":"${status_kind}","summary":"fixture","issues":[],"hard_gate":true,"test_execution":{"total":8,"passed":8,"failed":0,"errored":0,"duration_ms":100},"coverage_map":[{"criterion":"acceptance","status":"covered"}]}
+JSON
+    else
+      cat >"$TARGET/.wannabuild/review/${agent}-iter-1.json" <<JSON
 {"agent":"${agent}","status":"${status_kind}","summary":"fixture","issues":[]}
 JSON
+    fi
   done
 }
 
 write_discovery_ready() {
-  write_spec "$TARGET" requirements.md "requirements\n"
+  write_spec "$TARGET" requirements.md "# Requirements\n\n## Acceptance Criteria\n\n- The feature works end to end\n"
   mkdir -p "$TARGET/.wannabuild/outputs/discovery"
   printf 'feasible\n' >"$TARGET/.wannabuild/outputs/discovery/feasibility.md"
   printf 'alternatives\n' >"$TARGET/.wannabuild/outputs/discovery/alternatives-competition.md"

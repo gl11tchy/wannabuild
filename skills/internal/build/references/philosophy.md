@@ -16,15 +16,15 @@ The SDD pipeline uses three lightweight specs that drive everything:
 - **Design** — how to build it (architecture, tech stack, risks)
 - **Tasks** — the work (ordered, atomic, with test requirements)
 
-The orchestrator must never spawn implementation agents without at least requirements + tasks. Design may be absent for implement/review transitions if the user explicitly accepts the risk (see `transition-shim.md`).
+The orchestrator must never spawn implementation agents without a completed discovery brief (with acceptance criteria), requirements, design, and tasks. The `assert-discovery-ready` and `assert-plan-ready` gates enforce this and fail closed — there is no "accept the risk and skip" path for a core gate.
 
 ### 2. Conversation Over Commands
 
 The orchestrator should infer intent from natural conversation, not require flag-based invocation. Phase transitions happen when conditions are met, not when the user types a command.
 
-### 3. Flexibility Over Dogma
+### 3. Strict Where It Counts
 
-The orchestrator enforces only one hard rule: integration tests for every acceptance criterion. Everything else is guidance. Phases can be entered, exited, and skipped.
+The orchestrator enforces hard, fail-closed rules: discovery is mandatory before planning; the full reviewer set runs every iteration; the integration tester is terminal with execution evidence for every acceptance criterion; and resources must be acquired (or the user asked) before any work is declared blocked. These are gates, not guidance — see [doctrine.md](doctrine.md). Flexibility lives in *how deep* each phase goes, never in *whether* a core gate runs.
 
 ### 4. Depth Through Specialists
 
@@ -34,13 +34,13 @@ The orchestrator deploys 6 parallel specialists in review rather than a single g
 
 The active executor owns tools, edits, and validation end-to-end. The advisor provides bounded read-only guidance only when a decision is genuinely high-impact or uncertain (see `advisor-escalation.md`).
 
-### 6. Quality is a Loop, Not a Gate
+### 6. Quality is a Loop AND a Gate
 
-Code stays in the review loop until all active reviewers unanimously PASS. Max 3 iterations, then escalate. Integration test failures cannot be overridden.
+Code stays in the review loop until the **full** reviewer set (not a subset) unanimously PASSes, each reviewer having covered the entire changed surface. Max 3 iterations, then escalate to the user. Integration test failures are terminal and cannot be overridden.
 
-### 7. Phases, Not Stages
+### 7. Fixed Pipeline, Adaptive Depth
 
-Fluid phases you can enter, exit, and skip. Not a linear approval chain. The stage machine tracks public stages for state continuity, but phases are tools, not rules.
+The same phases run in the same order on every task — a deterministic pipeline, not an à-la-carte menu. The user chooses where to *start* and approves each boundary, but core phases are never skipped. What adapts is the depth of work inside each phase, so the experience is identical every run.
 
 ### 8. State Without Ceremony
 
@@ -55,7 +55,7 @@ Every orchestrator feature must pass:
 If it feels like ceremony, paperwork, or bureaucracy → cut it.
 If it helps them ship faster without cutting corners → keep it.
 
-Exception: integration tests. They're the one mandate because shipping untested code wastes more time than writing the tests.
+Exception: the doctrine mandates (mandatory discovery, resource acquisition before "blocked", full-set review, integration tests for every acceptance criterion). They earn their place because skipping them wastes far more time than honoring them.
 
 ## Anti-Patterns the Orchestrator Must Reject
 
@@ -64,6 +64,8 @@ Exception: integration tests. They're the one mandate because shipping untested 
 - 100% Coverage — Meaningful integration tests that prove acceptance criteria beats 100% line coverage.
 - Process for Process's Sake — Every process must earn its place.
 - Skipping Integration Tests — "The code works, I tested it manually" is never acceptable.
+- Blaming the Environment — "I couldn't test it, the env/database/credentials were missing" is never acceptable. Acquire the resource (run the app, spin a DB branch, drive a browser, generate fixtures) or ask the user; never skip.
+- Lazy Review — A reviewer that examines part of the diff and returns a flake PASS has not reviewed. Each reviewer covers the whole changed surface.
 
 ---
 

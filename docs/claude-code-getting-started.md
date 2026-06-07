@@ -120,7 +120,6 @@ The dry-run validator covers startup, exploratory discovery invocation, implemen
 - [AGENTS.md](../AGENTS.md)
 - [skills/internal/build/SKILL.md](../skills/internal/build/SKILL.md)
 - [skills/wannabuild/SKILL.md](../skills/wannabuild/SKILL.md)
-- [commands/](../commands)
 - [scripts/validate-wannabuild-artifacts.sh](../scripts/validate-wannabuild-artifacts.sh)
 - [scripts/validate-wannabuild-dry-runs.sh](../scripts/validate-wannabuild-dry-runs.sh)
 - [docs/golden-path-demo](golden-path-demo)

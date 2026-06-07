@@ -13,6 +13,18 @@ WannaBuild runtime data in `.wannabuild/` is interpreted from these contracts.
 
 Use these with `scripts/validate-wannabuild-artifacts.sh`.
 
+## Discovery artifacts (Mandate 1)
+
+Discovery is mandatory and gated by `assert-discovery-ready`, which fails closed until all of these exist and are non-empty:
+
+- `.wannabuild/outputs/discovery/feasibility.md`
+- `.wannabuild/outputs/discovery/alternatives-competition.md`
+- `.wannabuild/outputs/discovery/failure-forecast.md`
+- `.wannabuild/outputs/discovery/followup-questions.md`
+- `.wannabuild/spec/requirements.md` — must contain an **Acceptance Criteria** section with at least one concrete criterion (an unmeasurable brief does not pass)
+
+State records discovery progress under `state.discovery` (`interview`; `research.{feasibility,alternatives_competition,failure_forecast}`; `followup_questions`; `synthesis`), each with `status: "complete"` and the artifact path. Plan is blocked until these are present.
+
 ## `.wannabuild/state.json`
 
 ### Required core keys
@@ -122,8 +134,8 @@ Each item must include:
 
 ### `status` meanings
 
-- `approved`: unanimous PASS in final required review iteration
-- `blocked`: routing cannot proceed without explicit user action
+- `approved`: unanimous PASS from the FULL reviewer set in the latest iteration, with integration execution evidence
+- `blocked`: routing cannot proceed without explicit user action; a resource blocker requires a logged acquisition attempt (`assert-acquisition-attempted`)
 - `escalated`: loop hit max iterations or hard block condition
 
 ## Reviewer verdict JSON
@@ -137,6 +149,8 @@ Agents in `review` write files to:
 - `status` (`PASS` | `FAIL`)
 - `summary`
 - `issues` (array with `severity`, `file`, `line`, `issue`, `recommendation`)
+
+Each reviewer covers the entire changed surface, and its `summary` states what it covered. A verdict that examined only part of the diff is incomplete and must not be returned as PASS.
 
 ### Integration tester extras
 
@@ -163,10 +177,10 @@ Optional configuration file that overrides workflow defaults. All keys are optio
 
 - `max_review_iterations` (integer, >= 1, default 3)
 - `auto_advance` (boolean, default false)
-- `skip_phases` (array of valid phase names)
-- `adaptive_review_reruns` (boolean, default true)
-- `review_rerun_policy` (`impacted_plus_integration` | `full_set`)
-- `review_context_scope` (`diff_plus_targeted_spec` | `full_spec` | `diff_only`)
+- `skip_phases` (array): may only contain non-core phases. Core gates (discover, plan, review, QA) cannot be skipped — the runtime gates block them regardless of this setting.
+- `adaptive_review_reruns` (deprecated, ignored): the full reviewer set always runs every iteration.
+- `review_rerun_policy` (deprecated, ignored): effective behavior is always `full_set`; `impacted_plus_integration` is not honored by `assert-review-ready`.
+- `review_context_scope` (`diff_plus_targeted_spec` | `full_spec`): each reviewer always receives the full diff for the files it must cover; changed files are never withheld.
 - `max_agent_runs_per_phase` (integer, >= 1, default 18)
 - `max_total_review_runs` (integer, >= 1, default 12)
 - `max_prompt_chars_per_reviewer` (integer, >= 1000, default 12000)
@@ -203,7 +217,7 @@ Only synthesis logic consumes these files for deterministic state transitions.
 
 Written by the orchestrator during the QA stage. Required before the Summary stage may emit.
 
-The Summary Guard (defined in `skills/wannabuild/SKILL.md`) checks for this file's existence. If it is missing, the summary is blocked.
+QA does not pass on this file's existence or its text markers alone. `assert-qa-ready` validates **content and execution evidence**: the summary must carry positive `status`/acceptance/integration markers AND the `wb-integration-tester` verdict must show tests actually ran (`test_execution.total > 0`, `failed == 0`, `errored == 0`) with every acceptance criterion `covered`. A summary that claims PASS without executed, covering tests is rejected.
 
 Recommended content:
 
@@ -222,6 +236,28 @@ Recommended content:
 
 ## Result
 PASS | FAIL
+```
+
+## `.wannabuild/outputs/acquisition-log.json`
+
+Records resource-acquisition attempts (doctrine Mandate 2). Required before any `blocked` or `failed` state is accepted — `assert-acquisition-attempted` rejects a blocker with no logged attempt.
+
+An array of entries, each with:
+
+- `need` (string): the resource that was missing (e.g. "postgres database")
+- `tools_tried` (array): connectors/MCP servers/CLIs/tools attempted (e.g. `["supabase create_branch", "local docker"]`)
+- `result` (string): outcome — acquired, or why it could not be and whether the user was asked
+
+Example:
+
+```json
+[
+  {
+    "need": "postgres database for integration tests",
+    "tools_tried": ["supabase create_branch", "local docker compose"],
+    "result": "spun ephemeral Supabase branch; tests ran against it"
+  }
+]
 ```
 
 ## `.wannabuild/outputs/advisor/*.md`

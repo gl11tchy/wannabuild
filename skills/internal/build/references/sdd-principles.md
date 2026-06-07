@@ -50,6 +50,10 @@ Every phase reads from specs. Every phase writes to specs. Nothing happens outsi
 
 ## SDD Rules
 
+### 0. Discover Before Specs
+
+No spec is written until a mandatory, collaborative discovery grill has resolved vision, scope, success signals, and acceptance criteria with the user (doctrine Mandate 1). Discovery fires on every task and is never skipped; `assert-discovery-ready` blocks Plan until the requirements brief carries acceptance criteria.
+
 ### 1. Specs Before Code
 
 No implementation begins until requirements, design, and tasks are specified. The implementer works from `spec/tasks.md`, not from memory or conversation.
@@ -60,7 +64,7 @@ Integration tests are the executable form of acceptance criteria. A feature with
 
 ### 3. Review Against Specs
 
-Code review isn't subjective opinion. Reviewers validate code against `spec/requirements.md` — did we build what we specified? Did we test what we claimed? The integration-tester agent is a hard gate: no tests = no ship.
+Code review isn't subjective opinion. The FULL reviewer set validates code against `spec/requirements.md` — did we build what we specified? Did we test what we claimed? — and each reviewer covers the entire changed surface, never a sample. The integration-tester agent is the terminal hard gate: no tests = no ship, and a PASS is valid only with execution evidence (tests actually ran; every acceptance criterion covered).
 
 ### 4. Specs Evolve
 
@@ -88,6 +92,10 @@ Unit tests verify components in isolation. Integration tests verify that **the t
 - **Isolated:** No shared mutable state between tests, no flaky dependencies
 - **Fast enough to run always:** If tests are too slow, the team stops running them
 - **Readable as documentation:** A test should explain what behavior it verifies
+
+### Real Resources, Not Excuses
+
+Integration tests run against real, acquired resources — a running app, a real (local or ephemeral) database, a real browser. "I couldn't test it, the environment was missing" is never acceptable: acquire the resource (run the app, spin a Supabase/Neon branch, drive a browser, generate fixtures) or ask the user for billable/outward acquisition, and log the attempt in `.wannabuild/outputs/acquisition-log.json`. Do not mock a dependency away to avoid acquiring it; mock only true external third parties you genuinely cannot stand up.
 
 ### The Test Pyramid for Indie Hackers
 
@@ -144,7 +152,7 @@ Integration tests are the sweet spot: they catch real bugs without the brittlene
 ## Testing Strategy
 ### Test Framework
 ### Integration Boundaries
-| Boundary | Components | Mock Strategy |
+| Boundary | Components | Real or Mock (prefer real; mock only true external third parties) |
 ### Test Data Strategy
 ### CI Pipeline Requirements
 ## Risks
