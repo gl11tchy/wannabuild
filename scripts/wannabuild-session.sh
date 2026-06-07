@@ -15,6 +15,7 @@ Commands:
   assert-workflow-active <project_root>
   assert-discovery-ready <project_root>
   assert-plan-ready <project_root>
+  assert-acquisition-attempted <project_root>
 
 Stages:
   discover
@@ -110,7 +111,7 @@ run_runtime_command() {
   return "$status"
 }
 
-if [[ "$command" == "init" || "$command" == "assert-plan-ready" || "$command" == "assert-workflow-active" || "$command" == "assert-discovery-ready" ]]; then
+if [[ "$command" == "init" || "$command" == "assert-plan-ready" || "$command" == "assert-workflow-active" || "$command" == "assert-discovery-ready" || "$command" == "assert-acquisition-attempted" ]]; then
   runtime_status=0
   runtime_command "$command" || runtime_status=$?
   if [[ $runtime_status -eq 0 ]]; then

@@ -63,13 +63,23 @@ PY
   [ "$status" -eq 0 ]
 }
 
-@test "phase_flow: implement phase validates with requirements.md and tasks.md" {
+@test "phase_flow: implement phase validates with requirements.md, design.md, and tasks.md" {
   make_state_json "$TARGET" implement
   write_spec "$TARGET" requirements.md
+  write_spec "$TARGET" design.md
   write_spec "$TARGET" tasks.md
   write_checkpoint "$TARGET" T-001 1
   run_script validate-wannabuild-artifacts.sh "$TARGET" implement
   [ "$status" -eq 0 ]
+}
+
+@test "phase_flow: implement transition blocked when design.md is missing" {
+  make_state_json "$TARGET" implement
+  write_spec "$TARGET" requirements.md
+  write_spec "$TARGET" tasks.md
+  run_script validate-wannabuild-artifacts.sh "$TARGET" implement
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"design.md"* ]]
 }
 
 @test "phase_flow: invalid mutation makes validate fail non-zero" {

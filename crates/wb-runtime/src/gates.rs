@@ -352,8 +352,12 @@ pub fn assert_review_ready(project_root: &Path) -> Result<GatePass> {
 
     // Every reviewer must PASS for the LATEST iteration. A stale, older-iteration file
     // verdict must not satisfy the set for a newer iteration (doctrine Mandate 3): if a
-    // rerun bumps the iteration, every reviewer has to produce a fresh verdict.
-    let target_iteration = verdicts.values().map(|verdict| verdict.iteration).max().unwrap_or(0);
+    // rerun bumps the iteration, every reviewer has to produce a fresh verdict. The latest
+    // iteration declared in loop-state is authoritative even if its verdicts object is empty
+    // (a rerun that started but has not produced verdicts yet must not pass on stale files).
+    let declared_iteration = latest_loop_state_iteration(project_root)?.unwrap_or(0);
+    let target_iteration = declared_iteration
+        .max(verdicts.values().map(|verdict| verdict.iteration).max().unwrap_or(0));
     let mut failures = Vec::new();
     let mut missing = Vec::new();
     for agent in &required {
@@ -451,6 +455,24 @@ fn latest_loop_state_verdicts(
     } else {
         Ok(Some((active_reviewers, verdicts)))
     }
+}
+
+fn latest_loop_state_iteration(project_root: &Path) -> Result<Option<u64>> {
+    let loop_state = project_root.join(".wannabuild/loop-state.json");
+    if !loop_state.is_file() {
+        return Ok(None);
+    }
+    let value = serde_json::from_str::<Value>(&fs::read_to_string(loop_state)?)?;
+    let max = value
+        .get("iterations")
+        .and_then(Value::as_array)
+        .and_then(|iterations| {
+            iterations
+                .iter()
+                .filter_map(|item| item.get("iteration").and_then(Value::as_u64))
+                .max()
+        });
+    Ok(max)
 }
 
 fn latest_file_verdicts(project_root: &Path) -> Result<BTreeMap<String, ReviewVerdict>> {
@@ -818,7 +840,7 @@ fn require_acceptance_criteria(
         return Ok(());
     }
     let body = fs::read_to_string(&requirements)?;
-    if acceptance_criteria_count(&body) > 0 {
+    if !acceptance_criteria_texts(&body).is_empty() {
         evidence.push("requirements.acceptance_criteria".to_string());
     } else {
         missing.push("requirements.md: an Acceptance Criteria section with at least one criterion".to_string());
@@ -829,9 +851,9 @@ fn require_acceptance_criteria(
 /// Counts the criteria listed under an "Acceptance Criteria" heading, scanning only that
 /// section (until the next heading). A bullet in an unrelated later section (e.g. Non-goals)
 /// must not make an empty acceptance-criteria section pass.
-fn acceptance_criteria_count(body: &str) -> usize {
+fn acceptance_criteria_texts(body: &str) -> Vec<String> {
     let mut in_section = false;
-    let mut count = 0;
+    let mut items = Vec::new();
     for line in body.lines() {
         let trimmed = line.trim_start();
         let lowered = trimmed.to_lowercase();
@@ -851,10 +873,41 @@ fn acceptance_criteria_count(body: &str) -> usize {
             || trimmed.starts_with('*')
             || trimmed.chars().next().is_some_and(|ch| ch.is_ascii_digit());
         if is_item {
-            count += 1;
+            let text = trimmed
+                .trim_start_matches(|ch: char| {
+                    ch == '-' || ch == '*' || ch == ' ' || ch.is_ascii_digit() || ch == '.' || ch == ')'
+                })
+                .trim();
+            let text = text
+                .strip_prefix("[ ]")
+                .or_else(|| text.strip_prefix("[x]"))
+                .or_else(|| text.strip_prefix("[X]"))
+                .unwrap_or(text)
+                .trim();
+            if !text.is_empty() {
+                items.push(text.to_string());
+            }
         }
     }
-    count
+    items
+}
+
+/// Normalizes a criterion string for tolerant comparison: lowercase, non-alphanumeric
+/// runs collapsed to single spaces. Lets a coverage_map entry match a requirements bullet
+/// despite markdown/punctuation/casing differences without requiring byte-identical text.
+fn normalize_criterion(text: &str) -> String {
+    let mut out = String::new();
+    let mut prev_space = false;
+    for ch in text.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+            prev_space = false;
+        } else if !prev_space {
+            out.push(' ');
+            prev_space = true;
+        }
+    }
+    out.trim().to_string()
 }
 
 fn require_integration_execution_evidence(project_root: &Path) -> Result<()> {
@@ -871,26 +924,40 @@ fn require_integration_execution_evidence(project_root: &Path) -> Result<()> {
     }
     validate_integration_payload(&verdict.payload)?;
 
-    // Every acceptance criterion in requirements.md must be exercised — not just the entries
-    // the integration verdict chose to include in its coverage_map.
+    // Every acceptance criterion in requirements.md must be MATCHED by a covered coverage_map
+    // entry — not merely counted. A verdict cannot pass by listing the same criterion twice
+    // or inventing entries; each real criterion needs a corresponding covered entry.
     let requirements = project_root.join(".wannabuild/spec/requirements.md");
     if requirements.is_file() {
-        let criteria = acceptance_criteria_count(&fs::read_to_string(&requirements)?);
+        let criteria = acceptance_criteria_texts(&fs::read_to_string(&requirements)?);
         let covered = verdict
             .payload
             .get("coverage_map")
             .and_then(Value::as_array)
             .map(|map| {
                 map.iter()
-                    .filter(|entry| {
-                        entry.get("status").and_then(Value::as_str) == Some("covered")
-                    })
-                    .count()
+                    .filter(|entry| entry.get("status").and_then(Value::as_str) == Some("covered"))
+                    .filter_map(|entry| entry.get("criterion").and_then(Value::as_str))
+                    .map(normalize_criterion)
+                    .collect::<Vec<_>>()
             })
-            .unwrap_or(0);
-        if criteria > 0 && covered < criteria {
+            .unwrap_or_default();
+        let unmatched = criteria
+            .iter()
+            .filter(|criterion| {
+                let normalized = normalize_criterion(criterion);
+                !covered.iter().any(|entry| {
+                    *entry == normalized
+                        || entry.contains(normalized.as_str())
+                        || normalized.contains(entry.as_str())
+                })
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        if !unmatched.is_empty() {
             return Err(RuntimeError::message(format!(
-                "QA gate failed: integration coverage_map covers {covered} criteria but requirements.md lists {criteria} acceptance criteria — every criterion must be exercised"
+                "QA gate failed: acceptance criteria not covered by integration evidence ({}) — every criterion must be exercised",
+                unmatched.join("; ")
             )));
         }
     }
@@ -1640,5 +1707,31 @@ mod tests {
 
         assert!(err.contains("iteration 2"));
         assert!(err.contains("wb-performance-reviewer"));
+    }
+
+    #[test]
+    fn review_gate_rejects_empty_latest_iteration_with_only_stale_files() {
+        // loop-state declares iteration 2 but its verdicts object is empty (rerun started,
+        // not reviewed yet). Stale iteration-1 file verdicts must NOT satisfy the set.
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/review")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/loop-state.json"),
+            r#"{"current_iteration":2,"max_iterations":3,"base_reviewer_count":6,"status":"in_progress","iterations":[
+  {"iteration":2,"timestamp":"2026-05-06T11:00:00Z","active_reviewers":[],"verdicts":{},"pass_count":0,"fail_count":0}]}"#,
+        )
+        .unwrap();
+        for agent in REQUIRED_REVIEWERS {
+            fs::write(
+                dir.path()
+                    .join(format!(".wannabuild/review/{agent}-iter-1.json")),
+                format!(r#"{{"agent":"{agent}","status":"PASS","summary":"old","issues":[]}}"#),
+            )
+            .unwrap();
+        }
+
+        let err = assert_review_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("iteration 2"));
     }
 }

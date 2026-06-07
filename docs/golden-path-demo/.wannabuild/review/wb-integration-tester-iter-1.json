@@ -13,25 +13,25 @@
   },
   "coverage_map": [
     {
-      "criterion": "State reaches summary complete",
-      "test_file": "docs/golden-path-demo/.wannabuild/state.json",
-      "test_name": "summary state fixture",
+      "criterion": "The workflow state reaches `public_stage: \"summary\"` and `workflow_status: \"complete\"`.",
+      "test_file": "docs/golden-path-demo/.wannabuild/review/wb-integration-tester-iter-1.json",
+      "test_name": "integration evidence fixture",
       "status": "covered"
     },
     {
-      "criterion": "Review verdicts pass",
-      "test_file": "docs/golden-path-demo/.wannabuild/review",
-      "test_name": "passing review fixtures",
+      "criterion": "Requirements, design, tasks, checkpoints, review verdicts, and QA summary exist.",
+      "test_file": "docs/golden-path-demo/.wannabuild/review/wb-integration-tester-iter-1.json",
+      "test_name": "integration evidence fixture",
       "status": "covered"
     },
     {
-      "criterion": "QA summary exists",
-      "test_file": "docs/golden-path-demo/.wannabuild/outputs/qa-summary.md",
-      "test_name": "qa summary fixture",
+      "criterion": "Review verdicts are passing.",
+      "test_file": "docs/golden-path-demo/.wannabuild/review/wb-integration-tester-iter-1.json",
+      "test_name": "integration evidence fixture",
       "status": "covered"
     },
     {
-      "criterion": "Integration tester evidence covers the acceptance criteria",
+      "criterion": "Integration tester evidence covers the acceptance criteria.",
       "test_file": "docs/golden-path-demo/.wannabuild/review/wb-integration-tester-iter-1.json",
       "test_name": "integration evidence fixture",
       "status": "covered"
