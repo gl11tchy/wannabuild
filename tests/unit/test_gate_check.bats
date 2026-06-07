@@ -66,7 +66,8 @@ SH
   rmdir "$TARGET/.wannabuild/review"
   run_script wannabuild-gate-check.sh "$TARGET" review
   [ "$status" -ne 0 ]
-  [[ "$output" == *"Missing review directory"* ]]
+  # With no loop-state and no review dir, the gate reports the missing required reviewers.
+  [[ "$output" == *"Missing required review verdicts"* ]]
 }
 
 @test "gate_check: review gate fails when review dir is empty" {
@@ -146,6 +147,9 @@ JSON
     printf 'acceptance_coverage: covered\n'
     printf 'integration_coverage: covered\n'
   } > "$TARGET/.wannabuild/outputs/qa-summary.md"
+  cat > "$TARGET/.wannabuild/review/wb-integration-tester-iter-1.json" <<'JSON'
+{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":4,"passed":4,"failed":0,"errored":0,"duration_ms":80},"coverage_map":[{"criterion":"acceptance","status":"covered"}]}
+JSON
   run_script wannabuild-gate-check.sh "$TARGET" qa
   [ "$status" -eq 0 ]
   [[ "$output" == *"Qa gate OK"* ]]
