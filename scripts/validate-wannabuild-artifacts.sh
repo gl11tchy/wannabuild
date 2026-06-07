@@ -198,14 +198,14 @@ def validate_state(state):
             record_error("state.json.current_phase must be a non-empty string")
     if state.get("control_mode") not in {"guided", "autonomous"}:
         record_error(f"state.json.control_mode invalid: {state.get('control_mode')!r}")
-    if state.get("phase_status") not in {"pending", "in_progress", "complete"}:
+    if state.get("phase_status") not in {"pending", "in_progress", "complete", "blocked", "failed"}:
         record_error(f"state.json.phase_status invalid: {state.get('phase_status')!r}")
     valid_public_stages = {
         "discover", "research", "plan", "implement", "review", "qa", "summary"
     }
     if state.get("public_stage") not in valid_public_stages:
         record_error(f"state.json.public_stage invalid: {state.get('public_stage')!r}")
-    if state.get("workflow_status") not in {"in_progress", "complete"}:
+    if state.get("workflow_status") not in {"in_progress", "complete", "blocked", "failed"}:
         record_error(f"state.json.workflow_status invalid: {state.get('workflow_status')!r}")
     artifacts = state.get("artifacts")
     if not isinstance(artifacts, dict):
@@ -375,6 +375,7 @@ def validate_loop_state(loop_state):
                 record_error(f"loop-state.json.iterations[{i}].{key} must be an integer >= 0")
         if "routing_reason" in item:
             if item["routing_reason"] not in {
+                "full_set",
                 "base_set",
                 "impacted",
                 "fallback",
@@ -527,10 +528,10 @@ def validate_transition(state):
         "requirements": [],
         "design": ["requirements.md"],
         "tasks": ["requirements.md", "design.md"],
-        "implement": ["requirements.md", "tasks.md"],
-        "review": ["requirements.md", "tasks.md"],
-        "ship": ["requirements.md", "tasks.md"],
-        "document": ["requirements.md", "tasks.md"],
+        "implement": ["requirements.md", "design.md", "tasks.md"],
+        "review": ["requirements.md", "design.md", "tasks.md"],
+        "ship": ["requirements.md", "design.md", "tasks.md"],
+        "document": ["requirements.md", "design.md", "tasks.md"],
     }
     mode = state.get("mode", "standard")
     specs = phase_required_specs.get(target_phase, [])

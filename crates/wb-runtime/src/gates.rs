@@ -52,6 +52,7 @@ struct ReviewVerdict {
     source: String,
     iteration: u64,
     timestamp: String,
+    payload: Value,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -206,6 +207,10 @@ pub fn assert_discovery_ready(project_root: &Path) -> Result<GatePass> {
         )?;
     }
 
+    // Mandate 1: a requirements brief without acceptance criteria cannot pass — you cannot
+    // plan against an unmeasurable goal.
+    require_acceptance_criteria(project_root, &mut evidence, &mut missing)?;
+
     if !missing.is_empty() {
         return Err(RuntimeError::message(format!(
             "Discovery gate failed: complete Discovery before Plan (missing: {})",
@@ -323,44 +328,55 @@ fn status_complete(value: Option<&Value>) -> bool {
 }
 
 pub fn assert_review_ready(project_root: &Path) -> Result<GatePass> {
+    // Full reviewer set is always required; active_reviewers never narrows it (doctrine Mandate 3).
     let mut required = required_reviewers(project_root);
     required.insert(INTEGRATION_TESTER.to_string());
     let mut verdicts = latest_loop_state_verdicts(project_root)?
-        .map(|(active_reviewers, verdicts)| {
-            if !active_reviewers.is_empty() {
-                required = active_reviewers;
-                required.insert(INTEGRATION_TESTER.to_string());
-            }
-            verdicts
-        })
+        .map(|(_active_reviewers, verdicts)| verdicts)
         .unwrap_or_default();
     if verdicts.is_empty() || required.iter().any(|agent| !verdicts.contains_key(agent)) {
-        let file_verdicts = latest_file_verdicts(project_root)?;
-        for agent in &required {
-            if let Some(verdict) = file_verdicts.get(agent) {
-                verdicts
-                    .entry(agent.clone())
-                    .or_insert_with(|| verdict.clone());
+        // Fall back to per-file verdicts when the review directory exists. A missing
+        // directory is not a hard error here — it just means no file fallback, so the
+        // missing-reviewer check below reports exactly which reviewers are absent.
+        if project_root.join(".wannabuild/review").is_dir() {
+            let file_verdicts = latest_file_verdicts(project_root)?;
+            for agent in &required {
+                if let Some(verdict) = file_verdicts.get(agent) {
+                    verdicts
+                        .entry(agent.clone())
+                        .or_insert_with(|| verdict.clone());
+                }
             }
         }
     }
 
-    let seen = verdicts.keys().cloned().collect::<BTreeSet<_>>();
+    // Every reviewer must PASS for the LATEST iteration. A stale, older-iteration file
+    // verdict must not satisfy the set for a newer iteration (doctrine Mandate 3): if a
+    // rerun bumps the iteration, every reviewer has to produce a fresh verdict. The latest
+    // iteration declared in loop-state is authoritative even if its verdicts object is empty
+    // (a rerun that started but has not produced verdicts yet must not pass on stale files).
+    let declared_iteration = latest_loop_state_iteration(project_root)?.unwrap_or(0);
+    let target_iteration = declared_iteration
+        .max(verdicts.values().map(|verdict| verdict.iteration).max().unwrap_or(0));
     let mut failures = Vec::new();
+    let mut missing = Vec::new();
     for agent in &required {
-        if let Some(verdict) = verdicts.get(agent) {
-            if !verdict.status.eq_ignore_ascii_case("PASS") {
-                failures.push(format!(
-                    "{}:{}:{}",
-                    verdict.source, verdict.agent, verdict.status
-                ));
+        match verdicts.get(agent) {
+            Some(verdict) if verdict.iteration == target_iteration => {
+                if !verdict.status.eq_ignore_ascii_case("PASS") {
+                    failures.push(format!(
+                        "{}:{}:{}",
+                        verdict.source, verdict.agent, verdict.status
+                    ));
+                }
             }
+            // Absent entirely, or only a stale older-iteration verdict exists.
+            _ => missing.push(agent.clone()),
         }
     }
-    let missing = required.difference(&seen).cloned().collect::<Vec<_>>();
     if !missing.is_empty() {
         return Err(RuntimeError::message(format!(
-            "Review gate failed: Missing required review verdicts: {}",
+            "Review gate failed: Missing required review verdicts for iteration {target_iteration}: {}",
             missing.join(", ")
         )));
     }
@@ -439,6 +455,24 @@ fn latest_loop_state_verdicts(
     } else {
         Ok(Some((active_reviewers, verdicts)))
     }
+}
+
+fn latest_loop_state_iteration(project_root: &Path) -> Result<Option<u64>> {
+    let loop_state = project_root.join(".wannabuild/loop-state.json");
+    if !loop_state.is_file() {
+        return Ok(None);
+    }
+    let value = serde_json::from_str::<Value>(&fs::read_to_string(loop_state)?)?;
+    let max = value
+        .get("iterations")
+        .and_then(Value::as_array)
+        .and_then(|iterations| {
+            iterations
+                .iter()
+                .filter_map(|item| item.get("iteration").and_then(Value::as_u64))
+                .max()
+        });
+    Ok(max)
 }
 
 fn latest_file_verdicts(project_root: &Path) -> Result<BTreeMap<String, ReviewVerdict>> {
@@ -524,6 +558,7 @@ fn review_verdict_from_payload(
         source,
         iteration,
         timestamp,
+        payload: payload.clone(),
     })
 }
 
@@ -556,7 +591,11 @@ pub fn assert_qa_ready(project_root: &Path) -> Result<GatePass> {
     if let Some(reason) = qa_failure_reason(project_root, &qa_summary)? {
         return Err(RuntimeError::message(format!("QA gate failed: {reason}")));
     }
-    let evidence = qa_pass_evidence(project_root, &qa_summary)?;
+    let mut evidence = qa_pass_evidence(project_root, &qa_summary)?;
+    // QA validates execution, not markers (doctrine Mandate 3): the integration tester must
+    // have actually run tests and covered every acceptance criterion.
+    require_integration_execution_evidence(project_root)?;
+    evidence.push("integration execution evidence verified".to_string());
     Ok(GatePass {
         gate: "qa",
         evidence,
@@ -780,33 +819,327 @@ pub fn assert_summary_ready(project_root: &Path) -> Result<GatePass> {
     })
 }
 
-fn required_reviewers(project_root: &Path) -> BTreeSet<String> {
-    let loop_state = project_root.join(".wannabuild/loop-state.json");
-    if let Ok(raw) = fs::read_to_string(loop_state) {
-        if let Ok(value) = serde_json::from_str::<Value>(&raw) {
-            if let Some(iterations) = value.get("iterations").and_then(Value::as_array) {
-                if let Some(latest) = iterations
-                    .iter()
-                    .max_by_key(|item| item.get("iteration").and_then(Value::as_u64).unwrap_or(0))
-                {
-                    if let Some(active) = latest.get("active_reviewers").and_then(Value::as_array) {
-                        let required = active
-                            .iter()
-                            .filter_map(Value::as_str)
-                            .map(ToString::to_string)
-                            .collect::<BTreeSet<_>>();
-                        if !required.is_empty() {
-                            return required;
-                        }
-                    }
-                }
-            }
-        }
-    }
+fn required_reviewers(_project_root: &Path) -> BTreeSet<String> {
+    // Determinism + completeness (doctrine Mandate 3): the full reviewer set runs on
+    // every iteration. There is no "impacted-only" narrowing and no fast-track subset —
+    // loop-state.active_reviewers may record what ran, but it never shrinks what is required.
     REQUIRED_REVIEWERS
         .iter()
         .map(|value| (*value).to_string())
         .collect()
+}
+
+fn require_acceptance_criteria(
+    project_root: &Path,
+    evidence: &mut Vec<String>,
+    missing: &mut Vec<String>,
+) -> Result<()> {
+    let requirements = project_root.join(".wannabuild/spec/requirements.md");
+    if !requirements.is_file() {
+        // Absence of requirements.md is already recorded by the synthesis artifact check.
+        return Ok(());
+    }
+    let body = fs::read_to_string(&requirements)?;
+    if !acceptance_criteria_texts(&body).is_empty() {
+        evidence.push("requirements.acceptance_criteria".to_string());
+    } else {
+        missing.push("requirements.md: an Acceptance Criteria section with at least one criterion".to_string());
+    }
+    Ok(())
+}
+
+/// Counts the criteria listed under an "Acceptance Criteria" heading, scanning only that
+/// section (until the next heading). A bullet in an unrelated later section (e.g. Non-goals)
+/// must not make an empty acceptance-criteria section pass.
+fn acceptance_criteria_texts(body: &str) -> Vec<String> {
+    let mut in_section = false;
+    let mut items = Vec::new();
+    for line in body.lines() {
+        let trimmed = line.trim_start();
+        let lowered = trimmed.to_lowercase();
+        if in_section && trimmed.starts_with('#') {
+            break;
+        }
+        if !in_section {
+            if trimmed.starts_with('#')
+                && (lowered.contains("acceptance criteria")
+                    || lowered.contains("acceptance criterion"))
+            {
+                in_section = true;
+            }
+            continue;
+        }
+        let is_item = trimmed.starts_with('-')
+            || trimmed.starts_with('*')
+            || trimmed.chars().next().is_some_and(|ch| ch.is_ascii_digit());
+        if is_item {
+            let text = trimmed
+                .trim_start_matches(|ch: char| {
+                    ch == '-' || ch == '*' || ch == ' ' || ch.is_ascii_digit() || ch == '.' || ch == ')'
+                })
+                .trim();
+            let text = text
+                .strip_prefix("[ ]")
+                .or_else(|| text.strip_prefix("[x]"))
+                .or_else(|| text.strip_prefix("[X]"))
+                .unwrap_or(text)
+                .trim();
+            if !text.is_empty() {
+                items.push(text.to_string());
+            }
+        }
+    }
+    items
+}
+
+/// Normalizes a criterion string for tolerant comparison: lowercase, non-alphanumeric
+/// runs collapsed to single spaces. Lets a coverage_map entry match a requirements bullet
+/// despite markdown/punctuation/casing differences without requiring byte-identical text.
+fn normalize_criterion(text: &str) -> String {
+    let mut out = String::new();
+    let mut prev_space = false;
+    for ch in text.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+            prev_space = false;
+        } else if !prev_space {
+            out.push(' ');
+            prev_space = true;
+        }
+    }
+    out.trim().to_string()
+}
+
+fn require_integration_execution_evidence(project_root: &Path) -> Result<()> {
+    let verdict = latest_integration_verdict(project_root)?.ok_or_else(|| {
+        RuntimeError::message(
+            "QA gate failed: no wb-integration-tester verdict found; integration tests must run before QA can pass",
+        )
+    })?;
+    if !verdict.status.eq_ignore_ascii_case("PASS") {
+        return Err(RuntimeError::message(format!(
+            "QA gate failed: integration tester status is {} (terminal hard gate)",
+            verdict.status
+        )));
+    }
+    validate_integration_payload(&verdict.payload)?;
+
+    // Every acceptance criterion in requirements.md must be MATCHED by a covered coverage_map
+    // entry — not merely counted. A verdict cannot pass by listing the same criterion twice
+    // or inventing entries; each real criterion needs a corresponding covered entry.
+    let requirements = project_root.join(".wannabuild/spec/requirements.md");
+    if requirements.is_file() {
+        let criteria = acceptance_criteria_texts(&fs::read_to_string(&requirements)?);
+        let covered = verdict
+            .payload
+            .get("coverage_map")
+            .and_then(Value::as_array)
+            .map(|map| {
+                map.iter()
+                    .filter(|entry| entry.get("status").and_then(Value::as_str) == Some("covered"))
+                    .filter_map(|entry| entry.get("criterion").and_then(Value::as_str))
+                    .map(normalize_criterion)
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        let unmatched = criteria
+            .iter()
+            .filter(|criterion| {
+                let normalized = normalize_criterion(criterion);
+                !covered.iter().any(|entry| {
+                    *entry == normalized
+                        || entry.contains(normalized.as_str())
+                        || normalized.contains(entry.as_str())
+                })
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        if !unmatched.is_empty() {
+            return Err(RuntimeError::message(format!(
+                "QA gate failed: acceptance criteria not covered by integration evidence ({}) — every criterion must be exercised",
+                unmatched.join("; ")
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn latest_integration_verdict(project_root: &Path) -> Result<Option<ReviewVerdict>> {
+    let mut chosen: Option<ReviewVerdict> = None;
+    if let Some((_active, verdicts)) = latest_loop_state_verdicts(project_root)? {
+        if let Some(verdict) = verdicts.get(INTEGRATION_TESTER) {
+            chosen = Some(verdict.clone());
+        }
+    }
+    if let Ok(file_verdicts) = latest_file_verdicts(project_root) {
+        if let Some(verdict) = file_verdicts.get(INTEGRATION_TESTER) {
+            let take = match &chosen {
+                Some(current) => {
+                    (verdict.iteration, verdict.timestamp.as_str())
+                        >= (current.iteration, current.timestamp.as_str())
+                }
+                None => true,
+            };
+            if take {
+                chosen = Some(verdict.clone());
+            }
+        }
+    }
+    Ok(chosen)
+}
+
+fn validate_integration_payload(payload: &Value) -> Result<()> {
+    let exec = payload.get("test_execution").ok_or_else(|| {
+        RuntimeError::message(
+            "QA gate failed: integration verdict has no test_execution evidence (tests did not run)",
+        )
+    })?;
+    let total = exec.get("total").and_then(Value::as_u64).unwrap_or(0);
+    let failed = exec.get("failed").and_then(Value::as_u64).unwrap_or(0);
+    let errored = exec.get("errored").and_then(Value::as_u64).unwrap_or(0);
+    if total == 0 {
+        return Err(RuntimeError::message(
+            "QA gate failed: integration tester reported PASS but executed 0 tests",
+        ));
+    }
+    if failed > 0 || errored > 0 {
+        return Err(RuntimeError::message(format!(
+            "QA gate failed: integration run had {failed} failed and {errored} errored test(s)"
+        )));
+    }
+    let coverage = payload.get("coverage_map").and_then(Value::as_array).ok_or_else(|| {
+        RuntimeError::message(
+            "QA gate failed: integration verdict has no coverage_map for acceptance criteria",
+        )
+    })?;
+    if coverage.is_empty() {
+        return Err(RuntimeError::message(
+            "QA gate failed: integration coverage_map is empty; no acceptance criteria covered",
+        ));
+    }
+    let uncovered = coverage
+        .iter()
+        .filter_map(|entry| {
+            let status = entry.get("status").and_then(Value::as_str).unwrap_or("missing");
+            if status == "covered" {
+                None
+            } else {
+                Some(format!(
+                    "{} ({status})",
+                    entry.get("criterion").and_then(Value::as_str).unwrap_or("?")
+                ))
+            }
+        })
+        .collect::<Vec<_>>();
+    if !uncovered.is_empty() {
+        return Err(RuntimeError::message(format!(
+            "QA gate failed: acceptance criteria not fully covered: {}",
+            uncovered.join(", ")
+        )));
+    }
+    if let Some(missing) = payload.get("missing_criteria").and_then(Value::as_array) {
+        let names = missing.iter().filter_map(Value::as_str).collect::<Vec<_>>();
+        if !names.is_empty() {
+            return Err(RuntimeError::message(format!(
+                "QA gate failed: integration verdict lists missing_criteria: {}",
+                names.join(", ")
+            )));
+        }
+    }
+    Ok(())
+}
+
+pub fn assert_acquisition_attempted(project_root: &Path) -> Result<GatePass> {
+    let blockers = collect_blocker_signals(project_root)?;
+    if blockers.is_empty() {
+        return Ok(GatePass {
+            gate: "acquisition",
+            evidence: vec!["no blocked or failed signals recorded".to_string()],
+        });
+    }
+    let log = project_root.join(".wannabuild/outputs/acquisition-log.json");
+    let attempts = read_acquisition_attempts(&log)?;
+    if attempts == 0 {
+        return Err(RuntimeError::message(format!(
+            "Acquisition gate failed: {} blocked/failed signal(s) recorded ({}) but {} has no logged acquisition attempts. Attempt to obtain the resource (run the app, spin a DB branch, drive a browser, generate fixtures, read live docs via Context7) or ask the user before declaring blocked.",
+            blockers.len(),
+            blockers.join(", "),
+            log.display()
+        )));
+    }
+    Ok(GatePass {
+        gate: "acquisition",
+        evidence: vec![format!(
+            "{attempts} acquisition attempt(s) logged for {} blocker signal(s)",
+            blockers.len()
+        )],
+    })
+}
+
+fn collect_blocker_signals(project_root: &Path) -> Result<Vec<String>> {
+    let mut signals = Vec::new();
+    if let Some(state) = load_state(project_root)? {
+        for key in ["phase_status", "workflow_status"] {
+            if state.get(key).and_then(Value::as_str).is_some_and(is_failure_status) {
+                signals.push(format!("state.{key}"));
+            }
+        }
+        if state.get("blocked_reason").is_some_and(|value| !value.is_null()) {
+            signals.push("state.blocked_reason".to_string());
+        }
+    }
+    let latest_qa = events::list_events(project_root, None)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|event| matches!(event.event_type.as_str(), "qa_failed" | "qa_passed"))
+        .last();
+    if let Some(event) = latest_qa {
+        if event.event_type == "qa_failed" {
+            signals.push(format!("event.qa_failed:{}", event.id));
+        }
+    }
+    Ok(signals)
+}
+
+fn read_acquisition_attempts(log: &Path) -> Result<usize> {
+    if !log.is_file() {
+        return Ok(0);
+    }
+    let raw = fs::read_to_string(log)?;
+    let value: Value = match serde_json::from_str(&raw) {
+        Ok(value) => value,
+        Err(_) => return Ok(0),
+    };
+    let entries = value
+        .as_array()
+        .cloned()
+        .or_else(|| value.get("attempts").and_then(Value::as_array).cloned())
+        .unwrap_or_default();
+    // A real acquisition attempt records all three: the unmet need, the tools/connectors
+    // tried, and the result. An entry missing any of them does not count.
+    let count = entries
+        .iter()
+        .filter(|entry| {
+            let need = entry
+                .get("need")
+                .and_then(Value::as_str)
+                .is_some_and(|value| !value.trim().is_empty());
+            let tools_tried = entry
+                .get("tools_tried")
+                .and_then(Value::as_array)
+                .is_some_and(|tools| {
+                    tools
+                        .iter()
+                        .any(|tool| tool.as_str().is_some_and(|value| !value.trim().is_empty()))
+                });
+            let result = entry
+                .get("result")
+                .and_then(Value::as_str)
+                .is_some_and(|value| !value.trim().is_empty());
+            need && tools_tried && result
+        })
+        .count();
+    Ok(count)
 }
 
 #[cfg(test)]
@@ -843,7 +1176,7 @@ mod tests {
         .unwrap();
         fs::write(
             project_root.join(".wannabuild/spec/requirements.md"),
-            "requirements",
+            "# Requirements\n\n## Acceptance Criteria\n\n- The feature works end to end\n",
         )
         .unwrap();
         fs::write(
@@ -1004,17 +1337,134 @@ mod tests {
         assert!(err.contains("lacks positive PASS evidence"));
     }
 
-    #[test]
-    fn qa_gate_accepts_structured_pass_summary() {
-        let dir = tempdir().unwrap();
-        fs::create_dir_all(dir.path().join(".wannabuild/outputs")).unwrap();
+    fn write_integration_verdict(project_root: &Path, body: &str) {
+        fs::create_dir_all(project_root.join(".wannabuild/review")).unwrap();
         fs::write(
-            dir.path().join(".wannabuild/outputs/qa-summary.md"),
+            project_root.join(".wannabuild/review/wb-integration-tester-iter-1.json"),
+            body,
+        )
+        .unwrap();
+    }
+
+    fn write_qa_summary(project_root: &Path) {
+        fs::create_dir_all(project_root.join(".wannabuild/outputs")).unwrap();
+        fs::write(
+            project_root.join(".wannabuild/outputs/qa-summary.md"),
             "# QA\n\nstatus: PASS\nacceptance_coverage: covered\nintegration_coverage: covered\n",
         )
         .unwrap();
+    }
+
+    #[test]
+    fn qa_gate_accepts_structured_pass_summary() {
+        let dir = tempdir().unwrap();
+        write_qa_summary(dir.path());
+        write_integration_verdict(
+            dir.path(),
+            r#"{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":12,"passed":12,"failed":0,"errored":0,"duration_ms":100},"coverage_map":[{"criterion":"login works","status":"covered"}]}"#,
+        );
 
         assert!(assert_qa_ready(dir.path()).is_ok());
+    }
+
+    #[test]
+    fn qa_gate_rejects_pass_summary_without_integration_evidence() {
+        let dir = tempdir().unwrap();
+        write_qa_summary(dir.path());
+
+        let err = assert_qa_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("no wb-integration-tester verdict found"));
+    }
+
+    #[test]
+    fn qa_gate_rejects_integration_pass_with_zero_tests() {
+        let dir = tempdir().unwrap();
+        write_qa_summary(dir.path());
+        write_integration_verdict(
+            dir.path(),
+            r#"{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":0,"passed":0,"failed":0,"errored":0,"duration_ms":0},"coverage_map":[{"criterion":"login works","status":"covered"}]}"#,
+        );
+
+        let err = assert_qa_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("executed 0 tests"));
+    }
+
+    #[test]
+    fn qa_gate_rejects_integration_pass_with_uncovered_criterion() {
+        let dir = tempdir().unwrap();
+        write_qa_summary(dir.path());
+        write_integration_verdict(
+            dir.path(),
+            r#"{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":3,"passed":3,"failed":0,"errored":0,"duration_ms":50},"coverage_map":[{"criterion":"login works","status":"covered"},{"criterion":"logout works","status":"missing"}]}"#,
+        );
+
+        let err = assert_qa_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("not fully covered"));
+        assert!(err.contains("logout works"));
+    }
+
+    #[test]
+    fn discovery_gate_requires_acceptance_criteria() {
+        let dir = tempdir().unwrap();
+        write_discovery_ready(dir.path());
+        fs::write(
+            dir.path().join(".wannabuild/spec/requirements.md"),
+            "# Requirements\n\nA vision with no measurable criteria.\n",
+        )
+        .unwrap();
+
+        let err = assert_discovery_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("Acceptance Criteria"));
+    }
+
+    #[test]
+    fn acquisition_gate_passes_when_nothing_blocked() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/state.json"),
+            r#"{"workflow_status":"in_progress","phase_status":"in_progress"}"#,
+        )
+        .unwrap();
+
+        assert!(assert_acquisition_attempted(dir.path()).is_ok());
+    }
+
+    #[test]
+    fn acquisition_gate_rejects_blocked_without_attempt_log() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/state.json"),
+            r#"{"workflow_status":"in_progress","phase_status":"blocked"}"#,
+        )
+        .unwrap();
+
+        let err = assert_acquisition_attempted(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("no logged acquisition attempts"));
+    }
+
+    #[test]
+    fn acquisition_gate_passes_blocked_with_attempt_log() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/outputs")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/state.json"),
+            r#"{"workflow_status":"in_progress","phase_status":"blocked"}"#,
+        )
+        .unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/outputs/acquisition-log.json"),
+            r#"[{"need":"postgres database","tools_tried":["supabase create_branch","local docker"],"result":"requires paid plan; asked user"}]"#,
+        )
+        .unwrap();
+
+        assert!(assert_acquisition_attempted(dir.path()).is_ok());
     }
 
     #[test]
@@ -1068,6 +1518,57 @@ mod tests {
             r#"{
   "current_iteration": 2,
   "max_iterations": 3,
+  "base_reviewer_count": 6,
+  "status": "approved",
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-05-06T10:00:00Z",
+      "active_reviewers": ["wb-security-reviewer", "wb-performance-reviewer", "wb-architecture-reviewer", "wb-testing-reviewer", "wb-code-simplifier", "wb-integration-tester"],
+      "verdicts": {
+        "wb-security-reviewer": {"agent":"wb-security-reviewer","status":"FAIL","summary":"old","issues":[]},
+        "wb-performance-reviewer": {"agent":"wb-performance-reviewer","status":"PASS","summary":"ok","issues":[]},
+        "wb-architecture-reviewer": {"agent":"wb-architecture-reviewer","status":"PASS","summary":"ok","issues":[]},
+        "wb-testing-reviewer": {"agent":"wb-testing-reviewer","status":"PASS","summary":"ok","issues":[]},
+        "wb-code-simplifier": {"agent":"wb-code-simplifier","status":"PASS","summary":"ok","issues":[]},
+        "wb-integration-tester": {"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[]}
+      },
+      "pass_count": 5,
+      "fail_count": 1
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2026-05-06T10:05:00Z",
+      "active_reviewers": ["wb-security-reviewer", "wb-performance-reviewer", "wb-architecture-reviewer", "wb-testing-reviewer", "wb-code-simplifier", "wb-integration-tester"],
+      "verdicts": {
+        "wb-security-reviewer": {"agent":"wb-security-reviewer","status":"PASS","summary":"fixed","issues":[]},
+        "wb-performance-reviewer": {"agent":"wb-performance-reviewer","status":"PASS","summary":"ok","issues":[]},
+        "wb-architecture-reviewer": {"agent":"wb-architecture-reviewer","status":"PASS","summary":"ok","issues":[]},
+        "wb-testing-reviewer": {"agent":"wb-testing-reviewer","status":"PASS","summary":"ok","issues":[]},
+        "wb-code-simplifier": {"agent":"wb-code-simplifier","status":"PASS","summary":"ok","issues":[]},
+        "wb-integration-tester": {"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[]}
+      },
+      "pass_count": 6,
+      "fail_count": 0
+    }
+  ]
+}"#,
+        )
+        .unwrap();
+
+        assert!(assert_review_ready(dir.path()).is_ok());
+    }
+
+    #[test]
+    fn review_gate_requires_full_reviewer_set_even_when_loop_state_narrows() {
+        // active_reviewers lists only a subset, but the full set is still required (Mandate 3).
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/loop-state.json"),
+            r#"{
+  "current_iteration": 1,
+  "max_iterations": 3,
   "base_reviewer_count": 2,
   "status": "approved",
   "iterations": [
@@ -1076,18 +1577,7 @@ mod tests {
       "timestamp": "2026-05-06T10:00:00Z",
       "active_reviewers": ["wb-security-reviewer", "wb-integration-tester"],
       "verdicts": {
-        "wb-security-reviewer": {"agent":"wb-security-reviewer","status":"FAIL","summary":"old","issues":[]},
-        "wb-integration-tester": {"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[]}
-      },
-      "pass_count": 1,
-      "fail_count": 1
-    },
-    {
-      "iteration": 2,
-      "timestamp": "2026-05-06T10:05:00Z",
-      "active_reviewers": ["wb-security-reviewer", "wb-integration-tester"],
-      "verdicts": {
-        "wb-security-reviewer": {"agent":"wb-security-reviewer","status":"PASS","summary":"fixed","issues":[]},
+        "wb-security-reviewer": {"agent":"wb-security-reviewer","status":"PASS","summary":"ok","issues":[]},
         "wb-integration-tester": {"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[]}
       },
       "pass_count": 2,
@@ -1098,7 +1588,10 @@ mod tests {
         )
         .unwrap();
 
-        assert!(assert_review_ready(dir.path()).is_ok());
+        let err = assert_review_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("wb-performance-reviewer"));
+        assert!(err.contains("wb-architecture-reviewer"));
     }
 
     #[test]
@@ -1122,5 +1615,123 @@ mod tests {
         let err = assert_review_ready(dir.path()).unwrap_err().to_string();
 
         assert!(err.contains("wb-integration-tester"));
+    }
+
+    #[test]
+    fn discovery_gate_ignores_criteria_outside_the_section() {
+        let dir = tempdir().unwrap();
+        write_discovery_ready(dir.path());
+        // Empty Acceptance Criteria section; the bullet lives under a later heading.
+        fs::write(
+            dir.path().join(".wannabuild/spec/requirements.md"),
+            "# Requirements\n\n## Acceptance Criteria\n\n## Non-goals\n\n- not a criterion\n",
+        )
+        .unwrap();
+
+        let err = assert_discovery_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("Acceptance Criteria"));
+    }
+
+    #[test]
+    fn qa_gate_requires_every_acceptance_criterion_covered() {
+        let dir = tempdir().unwrap();
+        write_qa_summary(dir.path());
+        fs::create_dir_all(dir.path().join(".wannabuild/spec")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/spec/requirements.md"),
+            "# Requirements\n\n## Acceptance Criteria\n\n- login works\n- logout works\n",
+        )
+        .unwrap();
+        write_integration_verdict(
+            dir.path(),
+            r#"{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":3,"passed":3,"failed":0,"errored":0,"duration_ms":50},"coverage_map":[{"criterion":"login works","status":"covered"}]}"#,
+        );
+
+        let err = assert_qa_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("every criterion must be exercised"));
+    }
+
+    #[test]
+    fn acquisition_gate_rejects_entry_missing_tools_or_result() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/outputs")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/state.json"),
+            r#"{"workflow_status":"in_progress","phase_status":"blocked"}"#,
+        )
+        .unwrap();
+        // need only — no tools_tried, no result.
+        fs::write(
+            dir.path().join(".wannabuild/outputs/acquisition-log.json"),
+            r#"[{"need":"postgres"}]"#,
+        )
+        .unwrap();
+
+        let err = assert_acquisition_attempted(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("no logged acquisition attempts"));
+    }
+
+    #[test]
+    fn review_gate_rejects_stale_older_iteration_verdicts() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/review")).unwrap();
+        // Latest loop-state iteration (2) reran only the security reviewer.
+        fs::write(
+            dir.path().join(".wannabuild/loop-state.json"),
+            r#"{"current_iteration":2,"max_iterations":3,"base_reviewer_count":6,"status":"in_progress","iterations":[
+  {"iteration":2,"timestamp":"2026-05-06T10:05:00Z","active_reviewers":["wb-security-reviewer"],
+   "verdicts":{"wb-security-reviewer":{"agent":"wb-security-reviewer","status":"PASS","summary":"fixed","issues":[]}},
+   "pass_count":1,"fail_count":0}]}"#,
+        )
+        .unwrap();
+        // Every other reviewer has only a stale iteration-1 file verdict.
+        for agent in [
+            "wb-performance-reviewer",
+            "wb-architecture-reviewer",
+            "wb-testing-reviewer",
+            "wb-code-simplifier",
+            "wb-integration-tester",
+        ] {
+            fs::write(
+                dir.path()
+                    .join(format!(".wannabuild/review/{agent}-iter-1.json")),
+                format!(r#"{{"agent":"{agent}","status":"PASS","summary":"old","issues":[]}}"#),
+            )
+            .unwrap();
+        }
+
+        let err = assert_review_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("iteration 2"));
+        assert!(err.contains("wb-performance-reviewer"));
+    }
+
+    #[test]
+    fn review_gate_rejects_empty_latest_iteration_with_only_stale_files() {
+        // loop-state declares iteration 2 but its verdicts object is empty (rerun started,
+        // not reviewed yet). Stale iteration-1 file verdicts must NOT satisfy the set.
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/review")).unwrap();
+        fs::write(
+            dir.path().join(".wannabuild/loop-state.json"),
+            r#"{"current_iteration":2,"max_iterations":3,"base_reviewer_count":6,"status":"in_progress","iterations":[
+  {"iteration":2,"timestamp":"2026-05-06T11:00:00Z","active_reviewers":[],"verdicts":{},"pass_count":0,"fail_count":0}]}"#,
+        )
+        .unwrap();
+        for agent in REQUIRED_REVIEWERS {
+            fs::write(
+                dir.path()
+                    .join(format!(".wannabuild/review/{agent}-iter-1.json")),
+                format!(r#"{{"agent":"{agent}","status":"PASS","summary":"old","issues":[]}}"#),
+            )
+            .unwrap();
+        }
+
+        let err = assert_review_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("iteration 2"));
     }
 }

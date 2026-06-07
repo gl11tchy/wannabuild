@@ -1,0 +1,6 @@
+{
+  "agent": "wb-performance-reviewer",
+  "status": "PASS",
+  "summary": "No hot paths, query loops, or render concerns in the fixture.",
+  "issues": []
+}

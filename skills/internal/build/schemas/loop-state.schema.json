@@ -112,6 +112,7 @@
           "routing_reason": {
             "type": "string",
             "enum": [
+              "full_set",
               "base_set",
               "impacted",
               "fallback",

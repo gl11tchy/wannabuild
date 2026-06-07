@@ -10,6 +10,8 @@ Runtime gates fail closed. Specialist judgment stays advisory unless a gate or a
 
 WannaBuild is a spec-driven orchestration framework that guides work from idea to verified outcome using a compact public workflow backed by structured artifacts and specialist prompts. It supports the full loop from natural language and from any phase skill entrypoint.
 
+The four mandates in [references/doctrine.md](references/doctrine.md) govern this orchestrator and override any softer wording below: (1) discovery is mandatory and collaborative; (2) exhaust resources before declaring blocked — never silent-skip; (3) the full reviewer set runs every iteration and the integration gate is terminal with execution evidence; (4) hard-stop at every boundary for an explicit approval word, with a fixed pipeline that only varies in depth.
+
 ## Public Workflow Model
 
 The intended user-facing flow is:
@@ -90,7 +92,7 @@ REQUIREMENTS → DESIGN → TASKS → IMPLEMENT ◄──┐
 | Public Step | Internal Execution Surfaces |
 |---|---|
 | Discover | Requirements |
-| Plan | Optional research burst + Design + Tasks |
+| Plan | Design + Tasks (additional research when the plan needs it; the discovery research bundle already ran) |
 | Implement | Implement |
 | Validate | Review |
 | QA | Integration gate + final verification |
@@ -125,11 +127,20 @@ Use `control_mode: "guided"` unless the user explicitly asks for autonomous or u
 
 In guided mode, present what each phase produced, name the next phase, and wait for an explicit approval ("go", "proceed", "continue", "approved") before crossing the boundary; a vague acknowledgment is not approval to advance. In autonomous mode, continue through the phases without per-boundary approval, asking only when scope, product direction, destructive actions, credentials, paid services, or delivery strategy need user judgment.
 
-## Adaptive Research
+## Resource Acquisition Mandate
 
-After discovery, decide whether more investigation would materially improve planning quality.
+Doctrine Mandate 2: no phase may declare work skipped, blocked, or untestable before exhausting acquisition. "Missing env", "no database", "can't run it", "no fixtures", and "no access" are instructions to obtain the resource or ask — never to skip.
 
-Run bounded research when one or more of these are true:
+- **Auto-acquire** (no permission needed) everything safe, local, and reversible: run the app locally, spin ephemeral/local DB branches (Supabase/Neon), drive the real UI (browser/computer-use), read live docs (Context7), generate fixtures and seed data, stand up preview environments.
+- **Stop-and-ask** only for billable, outward-facing, or destructive acquisition: paid provisioning, deploys, production data, external sends.
+- **Never** record a blocker without proof. Append an entry to `.wannabuild/outputs/acquisition-log.json` (per unmet need: what was needed, which tools/connectors/CLIs were tried, the result). `scripts/wannabuild-gate-check.sh . acquisition` rejects any blocked/failed state with no logged attempt.
+- All validation and QA evidence records exactly what was executed — real commands, real exit codes, real output.
+
+## Additional Plan Research
+
+The required discovery research bundle (feasibility, alternatives/competition, Failure Forecast) already ran in Discover and is never skipped (doctrine Mandate 1). This section governs *additional* plan-phase investigation on top of it.
+
+Run additional bounded research when one or more of these are true:
 
 - architecture direction remains unclear
 - a package, framework, or external dependency decision matters
@@ -179,15 +190,14 @@ Escalation rules:
 
 Advisor escalation is a stateful workflow primitive — see `skills/internal/build/references/advisor-escalation.md` for trigger matrix, invocation contract, report schema, and runtime mapping. Default: enabled, max 3 uses/phase, pause-and-ask on limit.
 
-## Adaptive Review Defaults
+## Review Defaults (Fixed Full Set)
 
-Quality gates stay strict, but retry behavior is adaptive by default:
+The full reviewer set runs on every review iteration — determinism and completeness over adaptivity (doctrine Mandate 3). Only the depth of each reviewer's work scales with the change.
 
-- **Iteration 1 review:** choose reviewers based on changed surfaces, risk, and acceptance criteria.
-- **Iteration 2+ review:** run only impacted reviewers plus the integration hard gate.
-- **Fallback safety:** if impact scope is ambiguous, rerun the full reviewer set.
-- **Context slicing:** pass only changed-file summaries + relevant spec excerpts (not full artifacts) to non-integration reviewers.
-- **Guardrail behavior:** when configured limits are hit, pause and ask the user whether to continue instead of silently fanning out.
+- **Every iteration:** run all required reviewers — `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-code-simplifier`, and `wb-integration-tester`. There is no "impacted-only" subset and no fast-track. `assert-review-ready` requires a PASS from every one of them; `loop-state.active_reviewers` records what ran but never shrinks what is required.
+- **Each reviewer covers the entire changed surface**, not a sample, and enumerates what it covered.
+- **Context:** pass each reviewer the full diff for the files it must cover plus the relevant spec excerpts. Never withhold changed files from a reviewer to save context.
+- **Guardrail behavior:** when configured limits are hit, pause and ask the user — never silently drop reviewers to fit a limit.
 
 ## Parallelization Policy
 
@@ -206,19 +216,9 @@ Parallelism is a judgment call, not a ritual.
 
 Artifact contract at `skills/internal/build/references/artifact-contracts.md`. Core rule: specs are the source of truth; agents write full output to files and return one-liners. Reference: `skills/internal/build/references/sdd-principles.md`.
 
-### Fast-Track Review Decision Matrix (Execution Defaults)
+### No Fast-Track
 
-Only apply when this session is clearly tiny + low risk:
-
-- `files_changed <= 2`
-- `estimated_scope` is `tiny`
-- `risk_label` is `low`
-- no auth/session, secrets, crypto, DB schema migration, payment, or infra-policy risk flags
-- no reviewer confidence ambiguity from checkpoint/scope diff
-
-If eligible, Iteration 1 reviewer set is `wb-integration-tester` plus any high-confidence impacted reviewers with distinct risk ownership.
-If **any** fast-track reviewer fails or confidence drops, broaden the next review iteration until the changed surfaces and uncertainty are covered.
-The integration hard gate is never bypassed.
+There is no fast-track or reduced-review path. Every change — including one-line, "tiny", or "low-risk" edits — runs the full reviewer set and the integration hard gate. Change size scales the depth of each reviewer's work, never the set of reviewers. This is what makes the review experience identical on every run.
 
 ## Public Step Routing
 
@@ -246,7 +246,7 @@ Public routing is conversational. The user should mostly experience step-level i
 4. Map the public step to the appropriate internal execution surface.
 5. If the prompt has no task, stage intent, or exploratory idea intent, ask the user.
 
-Users can still skip around. The orchestrator tracks internal state but should preserve a compact public experience.
+The orchestrator tracks internal state but preserves a compact public experience. It never skips a core gate (discovery, plan, review, QA) — see Phase Prerequisites.
 
 ## Execution Model
 
@@ -382,16 +382,11 @@ LOOP:
     max_prompt_chars_per_reviewer, policy="pause-and-ask"
   )
 
-  active_reviewers = infer_reviewers(
-    changed_files_since_last_iteration,
-    acceptance_criteria,
-    checkpoint_evidence,
-    previous_failures,
-    risk_profile
-  )
-  active_reviewers = union(active_reviewers, [integration-tester])
-  IF impact inference uncertain OR blast radius high:
-    broaden active_reviewers until risk ownership is covered
+  // Fixed full reviewer set every iteration (doctrine Mandate 3) — no impact inference, no narrowing.
+  active_reviewers = [
+    wb-security-reviewer, wb-performance-reviewer, wb-architecture-reviewer,
+    wb-testing-reviewer, wb-code-simplifier, wb-integration-tester
+  ]
 
   for reviewer in active_reviewers:
     Task(subagent_type=reviewer, run_in_background=true)
@@ -430,13 +425,12 @@ Context policy for reviewer prompts:
 
 The `wb-integration-tester` agent has special status:
 
-- **Its FAIL blocks shipping** — same weight as any other reviewer
-- **No override path exists** for missing integration tests
-- It runs the test suite (not just reads code) and validates tests pass
-- It maps acceptance criteria to actual test files
-- Missing tests for ANY acceptance criterion = automatic FAIL
+- **Its FAIL is terminal** — it blocks shipping and cannot be overridden at any escalation level. There is no "same weight" trade-off and no override path.
+- **Its PASS is valid only with execution evidence:** `test_execution` proving tests actually ran (`total > 0`, `failed == 0`, `errored == 0`) and a `coverage_map` in which every acceptance criterion is `covered`. "Status: PASS" with zero tests executed is a FAIL — `assert-qa-ready` reads the evidence, not the marker.
+- It executes the real test suite (never just reads code) against real, acquired resources and validates tests pass.
+- It maps every acceptance criterion to an actual test file. Missing a test for ANY acceptance criterion = automatic FAIL.
 
-**Integration test failures cannot be overridden at escalation.** If `wb-integration-tester` still fails at max iterations, the "ship with known issues" option is removed.
+**Integration test failures cannot be overridden at escalation.** If `wb-integration-tester` still fails at max iterations, there is no "ship with known issues" path — the loop stays blocked until the tests pass or the user changes scope.
 
 ### Loop State Schema
 
@@ -471,9 +465,10 @@ After max iterations:
 > **Options:**
 >
 > 1. **Continue:** Run another iteration
-> 2. **Override:** Ship with known issues *(removed if integration-tester is failing)*
-> 3. **Pause:** Address issues manually
-> 4. **Abort:** Cancel the ship
+> 2. **Pause:** Address issues manually, then re-review
+> 3. **Abort:** Cancel the ship
+
+There is no "ship with known issues" auto-override. A specific known non-blocking issue may only be accepted by an explicit, itemized user decision — and never for an integration or hard-gate failure, which is terminal.
 
 ## Critical Rule: Role Separation
 
@@ -538,11 +533,14 @@ requirements → design → tasks → implement → review (loop until all pass)
 discover → plan → implement → review → qa → summary
 ```
 
-### Skip-Phase Logic
+### Phase Prerequisites (No Skipping Core Gates)
 
-Users can skip to any phase. Warn about missing artifacts:
+Discovery and Plan cannot be skipped. The runtime gates enforce this and fail closed:
 
-> You're jumping to Implementation, but there's no requirements or design spec yet. The implementer will work from verbal instructions, but you'll miss spec-driven review validation. Continue or go back?
+- Implementation is blocked until `assert-discovery-ready` and `assert-plan-ready` pass.
+- A request to "jump to implementation" without a discovery brief and a plan returns to Discover. The orchestrator does not proceed on verbal instructions and does not offer a "continue anyway" path.
+
+The user may choose where to *start* a session, but the missing upstream gates still run before any forward transition — there is no path that skips a core gate.
 
 ### Resume Logic
 
@@ -609,6 +607,16 @@ scripts/validate-wannabuild-artifacts.sh . <target_phase>
 
 where `<target_phase>` is one of:
 `requirements`, `design`, `tasks`, `implement`, `review`, `ship`, `document`.
+
+Then run the fail-closed runtime gate for the transition and treat a non-zero exit — or a runtime-unavailable result — as a hard block (return to the prior phase; do not proceed):
+
+```bash
+scripts/wannabuild-session.sh assert-discovery-ready .   # before Plan
+scripts/wannabuild-session.sh assert-plan-ready .         # before Implement
+scripts/wannabuild-gate-check.sh . review                 # before leaving Review
+scripts/wannabuild-gate-check.sh . qa                     # before leaving QA
+scripts/wannabuild-gate-check.sh . acquisition            # before recording any blocker
+```
 
 If validation reports any `ERROR`, block the transition and keep state unchanged until the user resolves it.
 

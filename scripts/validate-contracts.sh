@@ -69,20 +69,12 @@ while IFS= read -r path; do
   check_prompt_contract "$rel"
 done < <(find "$ROOT/agents" -maxdepth 1 -name '*.md' -type f | LC_ALL=C sort)
 
-while IFS= read -r path; do
-  rel="${path#"$ROOT/"}"
-  require_contains "$rel" "$COMMAND_MARKER" "$rel missing command contract handoff marker"
-done < <(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | LC_ALL=C sort)
-
+# Canonical commands/ was removed (Claude Code is skills-only); commands now live only in the
+# Factory adapter. Validate that each Factory command forwards to its owning skill.
 while IFS= read -r path; do
   rel="${path#"$ROOT/"}"
   require_contains "$rel" "$COMMAND_MARKER" "$rel missing command contract handoff marker"
 done < <(find "$ROOT/adapters/factory/commands" -maxdepth 1 -name '*.md' -type f | LC_ALL=C sort)
-
-while IFS= read -r path; do
-  rel="${path#"$ROOT/commands/"}"
-  require_same_file "commands/$rel" "adapters/factory/commands/$rel" "Factory command mirror drift: $rel"
-done < <(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | LC_ALL=C sort)
 
 while IFS= read -r path; do
   skill="$(basename "$(dirname "$path")")"

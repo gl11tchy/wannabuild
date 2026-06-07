@@ -16,7 +16,7 @@ setup() {
 
 write_discovery_ready() {
   mkdir -p "$TARGET/.wannabuild/spec" "$TARGET/.wannabuild/outputs/discovery"
-  printf 'requirements\n' >"$TARGET/.wannabuild/spec/requirements.md"
+  printf '# Requirements\n\n## Acceptance Criteria\n\n- The feature works end to end\n' >"$TARGET/.wannabuild/spec/requirements.md"
   printf 'feasible\n' >"$TARGET/.wannabuild/outputs/discovery/feasibility.md"
   printf 'alternatives\n' >"$TARGET/.wannabuild/outputs/discovery/alternatives-competition.md"
   printf 'forecast\n' >"$TARGET/.wannabuild/outputs/discovery/failure-forecast.md"

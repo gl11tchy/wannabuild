@@ -32,13 +32,13 @@ Each entry in `iterations` must include:
 - `pass_count`
 - `fail_count`
 - `feedback_sent` (optional)
-- `routing_reason` (string: `base_set`, `impacted`, `fallback`, `fast_track_fallback`, `ambiguous_impact`)
+- `routing_reason` (string: always `full_set` — the full reviewer set runs every iteration; legacy values like `impacted`/`fast_track_fallback` are no longer produced)
 
 ## Terminal statuses
 
-- `approved`: latest iteration passed active-set unanimously
-- `escalated`: max iterations reached without approval
-- `blocked`: hard gate failed with no override path (ex: integration tester still failing)
+- `approved`: the latest iteration passed the FULL reviewer set unanimously, each reviewer covered the entire changed surface, and the integration tester PASS carries execution evidence (tests ran; every acceptance criterion covered)
+- `escalated`: max iterations reached without approval — surfaced to the user
+- `blocked`: a hard gate failed with no override path (ex: integration tester still failing). A resource blocker may become `blocked` only after `assert-acquisition-attempted` passes (a logged acquisition attempt exists) — never on an unattempted "missing env" claim
 
 ## Update discipline
 

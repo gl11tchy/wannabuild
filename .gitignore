@@ -77,3 +77,6 @@ tests/coverage-out/
 # Local secrets
 .env.local
 .secrets
+
+# Runtime project-lock scratch (wb-runtime locks.rs)
+.in_use/

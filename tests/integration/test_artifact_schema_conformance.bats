@@ -35,9 +35,10 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "schema_conformance: state-implement fixture is accepted (with requirements.md and tasks.md)" {
+@test "schema_conformance: state-implement fixture is accepted (with requirements.md, design.md, and tasks.md)" {
   make_state_json "$TARGET" implement
   write_spec "$TARGET" requirements.md
+  write_spec "$TARGET" design.md
   write_spec "$TARGET" tasks.md
   run_script validate-wannabuild-artifacts.sh "$TARGET" implement
   [ "$status" -eq 0 ]

@@ -1,45 +1,50 @@
 # Review Routing Rules
 
-This file defines how WannaBuild selects reviewers for each review iteration.
+This file defines how WannaBuild assigns reviewers for each review iteration. Per
+[doctrine.md](doctrine.md) Mandate 3, the **full reviewer set runs on every iteration** —
+routing assigns focus, it never selects a subset.
 
-## Routing inputs
-
-- Changed files from latest checkpoint window
-- Prior failing files from previous iteration
-- `changed_files_from_last_checkpoint_window` from orchestrator handoff
-- Any explicit risk tag from previous feedback
-
-## Reviewer pool
+## Reviewer set (always all of these, every iteration)
 
 - `wb-security-reviewer`
 - `wb-performance-reviewer`
 - `wb-architecture-reviewer`
 - `wb-testing-reviewer`
-- `wb-integration-tester`
 - `wb-code-simplifier`
+- `wb-integration-tester`
 
-Select from this pool based on changed surfaces, acceptance criteria, risk, and prior failures. Do not default to a fixed count or a fixed full set.
+There is no impacted-only subset, no fast-track, and no fixed count below the full set.
+`assert-review-ready` requires a PASS verdict from every reviewer for the latest iteration.
+`loop-state.active_reviewers` records who ran but never shrinks who is required.
 
-## Impact mapping
+## Coverage responsibility (focus within the full diff)
 
-- `wb-security-reviewer`: auth/session/session-id/state/authz/crypto/secret/input-validation changes
+Every reviewer covers the **entire changed surface**. The map below tells each reviewer where
+to look hardest; it does not let any reviewer skip files.
+
+- `wb-security-reviewer`: auth/session/authz/crypto/secret/input-validation changes
 - `wb-performance-reviewer`: query loops, joins, pagination, caching, render loops, background jobs
 - `wb-architecture-reviewer`: module boundaries, API contracts, state-shape changes, route wiring
-- `wb-testing-reviewer`: test harness, fixture updates, assertions, test config changes
-- `wb-code-simplifier`: broad refactors, file removals, duplicated logic cleanup
-- `wb-integration-tester`: **always included** for every review iteration
+- `wb-testing-reviewer`: test harness, fixtures, assertions, test config
+- `wb-code-simplifier`: broad refactors, file removals, duplicated logic
+- `wb-integration-tester`: executes the test suite against real (acquired) resources and maps every acceptance criterion to a test — terminal hard gate
 
-## Routing algorithm
+## Inputs each reviewer receives
 
-1. Infer impacted reviewers from changed files, acceptance criteria, checkpoint evidence, prior failures, and risk profile.
-2. Always include `wb-integration-tester`.
-3. If no impacted files can be confidently mapped, or if previous iteration failures are ambiguous, broaden the reviewer set until risk ownership is covered.
-4. If no changed files can be inferred (resume edge case), use `diff summary + spec excerpt` fallback and include reviewers that cover any plausible changed surfaces.
-5. In fast-track mode, if any reviewer fails, next iteration must include the failed reviewer, the integration tester, and any additional reviewers needed to cover uncertainty.
+- The full diff for the changed files (never a withheld subset)
+- The relevant spec excerpts (requirements/design)
+- Prior-iteration feedback for the files they own
 
-## Confidence reasons (for broadening)
+## Resume edge case
 
-- Missing checkpoint window
-- Mixed risk indicators across unrelated files
-- Previous iteration had parse/JSON/contract failures
-- Reviewer fails with broad severity unknown classification
+If the changed-file set cannot be read from the checkpoint window, reconstruct it from the
+git diff against the review baseline before routing. Do not degrade to a "spec excerpt only"
+review — a review without the actual diff is not a review.
+
+## Resource acquisition
+
+If any reviewer (especially the integration tester) needs a resource it does not have, it
+acquires it (run the app, spin a DB branch, drive a browser, generate fixtures) or asks the
+user for billable/outward acquisition, and logs the attempt in
+`.wannabuild/outputs/acquisition-log.json`. "Couldn't verify / no env" is never an accepted
+routing outcome — see doctrine Mandate 2.

@@ -43,7 +43,9 @@
       "enum": [
         "pending",
         "in_progress",
-        "complete"
+        "complete",
+        "blocked",
+        "failed"
       ]
     },
     "public_stage": {
@@ -62,7 +64,9 @@
       "type": "string",
       "enum": [
         "in_progress",
-        "complete"
+        "complete",
+        "blocked",
+        "failed"
       ]
     },
     "artifacts": {

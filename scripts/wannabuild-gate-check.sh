@@ -7,9 +7,10 @@ Usage:
   scripts/wannabuild-gate-check.sh <project_root> <gate>
 
 Gates:
-  review   - require review verdict JSON files including integration tester
-  qa       - require positive QA pass evidence
-  summary  - require review and qa gates to be satisfied
+  review       - require review verdict JSON files including integration tester
+  qa           - require positive QA pass evidence
+  summary      - require review and qa gates to be satisfied
+  acquisition  - reject any blocked/failed state with no logged acquisition attempt
 USAGE
 }
 
@@ -27,6 +28,7 @@ runtime_command_for_gate() {
     review) printf 'assert-review-ready\n' ;;
     qa) printf 'assert-qa-ready\n' ;;
     summary) printf 'assert-summary-ready\n' ;;
+    acquisition) printf 'assert-acquisition-attempted\n' ;;
     *) return 1 ;;
   esac
 }
@@ -96,7 +98,7 @@ codex_runtime_bin() {
 }
 
 case "$gate" in
-  review | qa | summary) ;;
+  review | qa | summary | acquisition) ;;
   *)
     usage >&2
     exit 1

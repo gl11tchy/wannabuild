@@ -128,6 +128,7 @@ EOF
 @test "validate_artifacts: ship transition blocked when loop-state is not approved" {
   make_state_json "$TARGET" implement
   write_spec "$TARGET" requirements.md
+  write_spec "$TARGET" design.md
   write_spec "$TARGET" tasks.md
   make_loop_state "$TARGET" fail
   run_script validate-wannabuild-artifacts.sh "$TARGET" ship

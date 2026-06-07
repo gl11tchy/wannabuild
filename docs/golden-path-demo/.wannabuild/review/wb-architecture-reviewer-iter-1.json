@@ -1,0 +1,6 @@
+{
+  "agent": "wb-architecture-reviewer",
+  "status": "PASS",
+  "summary": "Module boundaries and contracts are coherent.",
+  "issues": []
+}

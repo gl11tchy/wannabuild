@@ -7,45 +7,78 @@ description: WannaBuild debugging implementation entrypoint for reproducing, dia
 
 ## Contract Standard
 
-This prompt follows `docs/contract-standard.md`.
+This prompt follows `docs/contract-standard.md` and the four mandates in
+`skills/internal/build/references/doctrine.md`, which govern wherever this file is silent.
 Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
-Runtime gates fail closed. Specialist judgment stays advisory unless a gate or acceptance criterion requires evidence.
+Runtime gates fail closed and cannot be rationalized past. Specialist judgment stays advisory; a gate or acceptance criterion always wins.
 
-Use this phase skill when the user wants a bug investigated or fixed. A `wb-debug` or `wannabuild:wb-debug` invocation starts or resumes the full WannaBuild loop unless the user explicitly says debug only.
+Use this phase skill when the user wants a bug investigated or fixed. A `wb-debug` or `wannabuild:wb-debug` invocation runs the full WannaBuild loop — discovery, plan, implement, review, QA, summary. It stops short of QA only if the user, in this session, explicitly said "debug only"; you must confirm that exit before stopping, and even then discovery and the reproduction/verification gates below still apply.
 
 ## Phase Bootstrap
 
-Before any debugging phase work:
+Before any debugging phase work, in order:
 
-- If no concrete task exists, ask for the actual goal first.
-- Work in the current checkout by default.
-- Do not create an isolated worktree unless the user asks, selects implementation-time isolation, requests parallel implementation, or the risk justifies separation.
-- If an isolated worktree is selected, use `scripts/wannabuild-workspace.sh --json` when available and continue inside the reported `workspace_path`.
-- If the fix requires product or architecture choices not already planned, invoke/complete the planning phase before editing code.
+- Run discovery first (see "Discovery"). It is mandatory and fires on every bug, including one-line fixes. Do not skip it because the bug "looks trivial".
+- Inventory and activate the resources you will need to reproduce the bug: the app/service runtime, logs, the database, the browser, and any connectors/MCP servers and CLIs available (Supabase, Neon, Railway, Chrome, computer-use, Context7). Acquisition is required, not optional (see "Resource acquisition").
+- Work in the current checkout. Create an isolated worktree only when the user asks, selects implementation-time isolation, requests parallel implementation, or the diff is large enough to risk colliding with other uncommitted work; when isolating, use `scripts/wannabuild-workspace.sh --json` and continue inside the reported `workspace_path`.
+- If the fix requires product or architecture choices not already planned, complete the planning phase before editing code.
 
 ## Purpose
 
-Move from symptom to verified cause to minimal fix.
+Move from symptom to a reproduced failure, to a verified cause, to a minimal fix proven by re-running the reproduction.
 
-## Defaults
+## Discovery (mandatory, collaborative — before any code work)
 
-- Reproduce or characterize the failure before changing code.
-- Prefer existing tests, logs, and small probes over speculation.
-- State the suspected cause and what evidence supports it.
-- Keep the fix narrow; do not refactor adjacent code unless required.
-- Use sub-agents only for independent hypotheses, logs, environments, or risk areas.
-- Verify the exact failure path after the fix.
-- Preserve active WannaBuild workflow state across turns until the task is complete or the user explicitly exits or stops.
-- Continue to validation and QA after the fix unless the user explicitly requested debug only.
+Grill the user one question at a time, each with a recommended answer and the reasoning behind it, until you have: exact symptoms, expected vs actual behavior, concrete reproduction steps, environment/version/data shape, and what changed recently. Resolve a question by reading the codebase, logs, or live runtime instead of asking whenever the answer is there, and cite what you found. The user confirms, redirects, or overrides — they never invent the answer from scratch. Capturing these by assumption is forbidden; each must come from the user or from cited evidence.
 
-## Flow
+Discovery does not pass until `.wannabuild/spec/requirements.md` records the symptom, the expected behavior, and at least one concrete, checkable acceptance criterion describing what "fixed" means. The `assert-discovery-ready` gate fails closed until that exists.
 
-1. Capture symptoms, expected behavior, actual behavior, and reproduction steps.
-2. Inspect the smallest relevant code path.
-3. Form and test hypotheses.
-4. Apply the minimal fix.
-5. Run the reproduction and targeted regression checks.
+## Resource acquisition (required before claiming blocked)
+
+Before you write "cannot reproduce", "no environment", "missing dependency", "no access", or "cannot test", you MUST exhaust real acquisition and report exactly what you tried:
+
+- Run the app, service, CLI, or worker locally and capture its real output.
+- Provision an ephemeral/local database branch (Supabase `create_branch`, Neon `create_branch`) and seed it; never declare "no database".
+- Drive the real UI in a browser (Chrome) or computer-use to reproduce a user-facing failure.
+- Read live, version-correct docs via Context7 instead of guessing an API.
+- Generate the fixtures, seed data, or inputs the reproduction needs.
+
+Auto-acquire anything safe, local, and reversible without asking. Stop and ask the user only for billable, outward-facing, or destructive acquisition (paid provisioning, deploys, production data, external sends) — present the specific resource and why. Every unmet need that you claim blocks you requires an entry in `.wannabuild/outputs/acquisition-log.json` recording what was needed, which tools/connectors/CLIs were attempted, and the result. The `assert-acquisition-attempted` gate rejects any blocked status with no logged attempt.
+
+## Hard gates (fail closed)
+
+- **Reproduction Gate:** You MUST reproduce the failing behavior in a real runtime and capture the failing output (command, exit code, output) before editing any code. A description or characterization of the failure is not a reproduction. If you cannot yet reproduce, you are not blocked — go acquire what you need (see "Resource acquisition") and log the attempt. Editing code without a live reproduction is forbidden.
+- **Verification Gate:** After the fix, you MUST re-run the exact reproduction in a real runtime and show that it now passes, plus run every test that exercises the changed path. PASS requires execution evidence: the original reproduction now succeeds, the regression checks ran (`total > 0`, `failed == 0`, `errored == 0`), and every acceptance criterion is covered. A code re-read, a description, or "should pass" is a FAIL. A FAIL here blocks progress and cannot be overridden.
+
+After the Verification Gate passes, continue to QA and the terminal integration hard gate, which validates execution evidence (not text markers) and whose FAIL cannot be overridden.
+
+## Process
+
+1. Run discovery and confirm the symptom, expected vs actual behavior, and acceptance criteria with the user.
+2. Acquire the runtime/env/DB/browser/logs needed, logging any blocker attempt.
+3. Reproduce the failure in a real runtime and capture the failing output (Reproduction Gate).
+4. Inspect the smallest relevant code path; form hypotheses and test each against logs, probes, or the live runtime — not speculation.
+5. Confirm the root cause with supporting evidence. Before applying a fix, present the confirmed cause and the proposed fix; when more than one plausible cause or fix exists, list the options and recommend one with reasoning, and proceed only after the user confirms or redirects. (Do not pause on mechanics like which file to edit — collaborate on scope/design choices only.)
+6. Apply the minimal fix. Keep it narrow; do not refactor adjacent code, and do not leave a placeholder, stub, mock, or to-do standing in for the real fix.
+7. Re-run the reproduction and the targeted regression checks — defined as every test that exercises the changed path plus every test covering each acceptance criterion (Verification Gate). Capture before/after evidence.
+8. Continue to validation and QA. Preserve active WannaBuild workflow state across turns until the task is complete or the user explicitly exits.
+
+Use sub-agents to parallelize independent hypotheses, log streams, environments, or risk areas; they do not narrow the verification surface.
+
+## Collaboration and boundaries
+
+Hard-stop at every public phase boundary (Discover → Plan → Implement → Review → QA → Summary): present what the phase produced, name the next phase, and wait for an explicit approval word ("go", "proceed", "approved", "continue", "next", "lgtm", "do it"). A vague acknowledgment ("ok", "sure") continues the current phase; it never crosses a boundary. Within a phase, run to completion exhaustively — do not pause mid-work for checkpoints and do not stop early on review or QA burden.
+
+## Forbidden actions
+
+- Editing code before a live reproduction exists.
+- Declaring "cannot reproduce", "no env", "missing dependency", "no access", or "cannot test" without first exhausting Resource acquisition and logging each attempt.
+- Skipping discovery, treating a bug as too trivial to grill, or capturing symptoms/repro steps by assumption.
+- Accepting a vague "ok" in place of a confirmed reproduction or an explicit phase-boundary approval word.
+- Passing the Verification Gate from a code re-read or "should pass" instead of a real re-run with captured output.
+- Leaving a placeholder, stub, mock, or to-do in place of the real fix, or marking work skipped/out of scope to drop a required obligation.
+- Stopping at the fix without QA unless the user explicitly said "debug only" this session and you confirmed that exit.
 
 ## Output
 
-Report root cause, changed files, verification evidence, and any residual risk.
+Report: the confirmed root cause; the changed files; the reproduction evidence (command, exit code, failing output before the fix) and verification evidence (the same reproduction now passing plus the regression checks that ran, with their output); any resource acquisition that was performed; and any residual risk. Naming "verification evidence" without showing the executed commands and their output does not satisfy this.

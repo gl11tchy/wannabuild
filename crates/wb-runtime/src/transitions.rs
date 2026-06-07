@@ -295,7 +295,7 @@ mod tests {
         .unwrap();
         fs::write(
             project_root.join(".wannabuild/spec/requirements.md"),
-            "requirements",
+            "# Requirements\n\n## Acceptance Criteria\n\n- The feature works end to end\n",
         )
         .unwrap();
         let mut value = state::ensure_state(project_root).unwrap();
