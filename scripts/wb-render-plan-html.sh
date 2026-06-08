@@ -91,13 +91,19 @@ input_path, out_path, count_raw = sys.argv[1], sys.argv[2], sys.argv[3]
 with open(input_path, "r", encoding="utf-8") as fh:
     data = json.load(fh)
 
+# Render every plan in the artifact by default (the agent already produced exactly
+# plan_adversarial_count plans). --count is an optional cap, clamped to [2,5], for
+# callers that explicitly want fewer; it never silently hides configured plans.
 plans = data.get("plans") or []
-try:
-    count = int(count_raw) if str(count_raw).strip() else 3
-except ValueError:
-    count = 3
-count = max(2, min(5, count))
-shown = plans[: min(count, len(plans))]
+if str(count_raw).strip():
+    try:
+        count = int(count_raw)
+    except ValueError:
+        count = len(plans)
+    count = max(2, min(5, count))
+    shown = plans[: min(count, len(plans))]
+else:
+    shown = plans
 
 recommended_id = data.get("recommended_id")
 chosen_id = data.get("chosen_id")

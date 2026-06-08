@@ -666,8 +666,13 @@ def validate_plan_options(plan_options):
             if not isinstance(val, str) or not val:
                 record_error(f"{source}.{key} must be a non-empty string")
         for key in list_fields:
-            if not isinstance(plan.get(key), list):
+            value = plan.get(key)
+            if not isinstance(value, list):
                 record_error(f"{source}.{key} must be an array")
+            else:
+                for j, item in enumerate(value):
+                    if not isinstance(item, str) or not item:
+                        record_error(f"{source}.{key}[{j}] must be a non-empty string")
         pid = plan.get("id")
         if isinstance(pid, str) and pid:
             ids.append(pid)

@@ -99,6 +99,8 @@ Before the Plan → Implement boundary, surface the plan as competing options ra
 4. Print a terse chat summary (each stance in one line, which is recommended, the file path).
 5. At the boundary the user picks one (the recommended plan is the default on a bare "go"). Record the choice as `state.plan_options.chosen_id`, write the chosen plan into `design.md`/`tasks.md`, and proceed once `assert-plan-ready` passes.
 
+Enforcement boundaries: producing `plan-options.json` and recording the chosen plan are required Plan deliverables under this contract — not optional. The render step and browser open are deliberately best-effort and never block the boundary, and the runtime `assert-plan-ready` gate intentionally checks only `design.md`+`tasks.md` (so a headless host or a non-Claude operator still completes Plan), rather than adding a fail-closed dependency on the HTML. The renderer renders every plan in `plan-options.json`; it never silently truncates configured options.
+
 ## Forbidden Actions
 
 - Producing a plan when `assert-discovery-ready` has not passed, or improvising the missing discovery in place of routing to `wb-discover`.

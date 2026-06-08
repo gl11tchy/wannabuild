@@ -39,7 +39,7 @@ setup() {
   assert_file_contains "$OUT" "&amp;"
 }
 
-@test "plan count clamps to [2,5] (2,4,99->5,0->2; unset->3)" {
+@test "--count caps and clamps to [2,5]; unset renders every configured plan" {
   sections() {
     CI=1 bash "$RENDER" --input "$FIXTURES_DIR/plan-options-5.json" --out "$OUT" "$@" >/dev/null 2>&1 || return 1
     grep -c '<section class="card' "$OUT"
@@ -48,7 +48,14 @@ setup() {
   [ "$(sections --count 4)" -eq 4 ]
   [ "$(sections --count 99)" -eq 5 ]
   [ "$(sections --count 0)" -eq 2 ]
-  [ "$(sections)" -eq 3 ]
+  [ "$(sections)" -eq 5 ]
+}
+
+@test "unset count never truncates: a 3-plan artifact renders 3 sections" {
+  CI=1 run bash "$RENDER" --input "$FIXTURES_DIR/plan-options.json" --out "$OUT"
+  [ "$status" -eq 0 ]
+  run grep -c '<section class="card' "$OUT"
+  [ "$output" -eq 3 ]
 }
 
 @test "headless/CI prints absolute path + file URL and exits 0" {

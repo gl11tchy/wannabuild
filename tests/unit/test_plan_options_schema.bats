@@ -66,6 +66,13 @@ put() {
   [[ "$output" == *"chosen_id"* ]]
 }
 
+@test "a plan list with an empty or non-string item fails" {
+  put plan-options-invalid-list-item.json
+  run bash "$VALIDATE" "$TARGET"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"must be a non-empty string"* ]]
+}
+
 @test "AC5: no Claude-only placement of the feature in .claude-plugin/" {
   if [ -d "$REPO_ROOT/.claude-plugin" ]; then
     run grep -rq -e wb-plan-options -e wb-render-plan-html -e plan_adversarial "$REPO_ROOT/.claude-plugin"
