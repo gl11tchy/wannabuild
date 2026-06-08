@@ -1,0 +1,26 @@
+{
+  "goal": "Escaping fixture <goal> & \"quotes\"",
+  "recommended_id": "evil",
+  "plans": [
+    {
+      "id": "evil",
+      "title": "Title <script>alert('x')</script> & friends",
+      "stance": "stance <b>bold</b>",
+      "summary": "summary with < > & \" ' chars",
+      "slices": ["slice <one> & two"],
+      "impacted_surfaces": ["file & <path>"],
+      "verification": ["check <cmd> && echo \"ok\""],
+      "critique_of_others": "others are <bad> & \"worse\""
+    },
+    {
+      "id": "calm",
+      "title": "Plain title",
+      "stance": "plain",
+      "summary": "plain summary",
+      "slices": ["plain"],
+      "impacted_surfaces": ["plain"],
+      "verification": ["plain"],
+      "critique_of_others": "plain critique"
+    }
+  ]
+}

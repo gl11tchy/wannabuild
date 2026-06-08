@@ -1,0 +1,7 @@
+{
+  "goal": "Only one plan — below the minimum of two.",
+  "recommended_id": "p1",
+  "plans": [
+    {"id": "p1", "title": "Plan 1", "stance": "s1", "summary": "one", "slices": ["a"], "impacted_surfaces": ["x"], "verification": ["v"], "critique_of_others": "c1"}
+  ]
+}

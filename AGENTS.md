@@ -102,7 +102,7 @@ and they override any softer wording elsewhere:
 | Step | Operator obligation | Completion signal |
 |---|---|---|
 | Discover | Grill the user — one question at a time, recommended answer per question, reading the codebase to answer rather than asking whenever it can — for vision, audience, desired feel, core flows, features, constraints, scope, success signals, tradeoffs, and non-goals; then always run feasibility, alternatives/competition, and Failure Forecast (depth proportionate, never zero) plus any goal-relevant adaptive research. | `assert-discovery-ready` passes: discovery artifacts non-empty and `requirements.md` has acceptance criteria. |
-| Plan | Produce a concrete plan, run bounded research when needed, and verify architecture/direction. | Plan is actionable and internally consistent. |
+| Plan | Produce a concrete plan, run bounded research when needed, verify architecture/direction, and generate N (default 3, configurable) adversarial plan options rendered to a self-contained HTML the user can open before choosing one. | Plan is actionable and internally consistent; the chosen plan is recorded. |
 | Implement | Offer or choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
 | Validate | Run the full reviewer set (security, performance, architecture, testing, simplification, integration), each covering the entire changed surface; fix all actionable findings autonomously. Acquire any resource a check needs before declaring it un-runnable. | `assert-review-ready` passes: every required reviewer returns PASS for the latest iteration. |
 | QA | Validate every acceptance criterion and integration behavior by executing real tests against real (acquired) resources — never by asserting they should pass. | `assert-qa-ready` passes: QA markers plus integration execution evidence (tests ran, every criterion covered). |
@@ -159,6 +159,9 @@ Target projects use `.wannabuild/` as workflow state:
 │   ├── design.md
 │   └── tasks.md
 ├── outputs/
+│   └── plan/
+│       ├── plan-options.json
+│       └── adversarial-plans.html
 ├── checkpoints/
 ├── review/
 ├── loop-state.json
@@ -172,6 +175,7 @@ Artifact roles:
 - `tasks.md`: ordered implementation slices with verification expectations.
 - `checkpoints/`: execution evidence and resume anchors.
 - `review/`: structured reviewer verdicts.
+- `outputs/plan/plan-options.json` + `adversarial-plans.html`: the N adversarial plan options (schema `plan-options.schema.json`) and their self-contained HTML render, shown — and best-effort opened — at the Plan boundary.
 
 ## Execution and Quality Defaults
 

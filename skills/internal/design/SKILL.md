@@ -265,7 +265,11 @@ high-impact risk — present:
 > <reasoning, citing the live-verification evidence>. Trade-off: <what we give up>.
 
 Walk open or conflicting decisions one at a time, each with its recommended answer, and
-wait for the user's choice before recording it. Then close the boundary:
+wait for the user's choice before recording it. When the host supports it, also emit the
+competing directions as adversarial plan options (`wb-plan-options` → `plan-options.json`
+→ `scripts/wb-render-plan-html.sh` → `adversarial-plans.html`) so the user can compare
+them side-by-side in the browser before choosing; see `skills/wb-plan/SKILL.md` ›
+Adversarial Plan Options. Then close the boundary:
 
 > Here's the technical design for your project. Pay special attention to the architecture decisions and testing strategy. If any tech stack choices or architectural patterns don't feel right, now is the time to change them — it's much cheaper to change a design than to change code.
 

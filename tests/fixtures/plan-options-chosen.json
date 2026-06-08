@@ -1,0 +1,9 @@
+{
+  "goal": "Valid fixture exercising chosen_id (recommended != chosen).",
+  "recommended_id": "p1",
+  "chosen_id": "p2",
+  "plans": [
+    {"id": "p1", "title": "Plan One", "stance": "s1", "summary": "one", "slices": ["a"], "impacted_surfaces": ["x"], "verification": ["v"], "critique_of_others": "c1"},
+    {"id": "p2", "title": "Plan Two", "stance": "s2", "summary": "two", "slices": ["a"], "impacted_surfaces": ["x"], "verification": ["v"], "critique_of_others": "c2"}
+  ]
+}

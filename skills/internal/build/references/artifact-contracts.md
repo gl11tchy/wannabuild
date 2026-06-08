@@ -25,6 +25,15 @@ Discovery is mandatory and gated by `assert-discovery-ready`, which fails closed
 
 State records discovery progress under `state.discovery` (`interview`; `research.{feasibility,alternatives_competition,failure_forecast}`; `followup_questions`; `synthesis`), each with `status: "complete"` and the artifact path. Plan is blocked until these are present.
 
+## `.wannabuild/outputs/plan/` (Plan phase — adversarial options)
+
+Optional, produced during Plan by the `wb-plan-options` agent and rendered by `scripts/wb-render-plan-html.sh`:
+
+- `plan-options.json` — N (2–5, default `plan_adversarial_count`) adversarial plan options. Schema: `plan-options.schema.json`. Required: `goal`, `recommended_id` (matching one plan id), and `plans[]`; each plan requires `id`, `title`, `stance`, `summary`, `slices[]`, `impacted_surfaces[]`, `verification[]`, and a non-empty `critique_of_others`. Optional `chosen_id` (a plan id) records the user's selection. `validate-wannabuild-artifacts.sh` validates it whenever it exists.
+- `adversarial-plans.html` — a self-contained render of `plan-options.json` (inline CSS, no network references), best-effort opened in the browser at the Plan boundary; non-blocking.
+
+State records the chosen option under `state.plan_options` (`artifact`, `html`, `chosen_id`).
+
 ## `.wannabuild/state.json`
 
 ### Required core keys

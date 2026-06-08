@@ -1,0 +1,8 @@
+{
+  "goal": "A plan is missing the required critique_of_others field.",
+  "recommended_id": "p1",
+  "plans": [
+    {"id": "p1", "title": "Plan 1", "stance": "s1", "summary": "one", "slices": ["a"], "impacted_surfaces": ["x"], "verification": ["v"], "critique_of_others": "c1"},
+    {"id": "p2", "title": "Plan 2", "stance": "s2", "summary": "two", "slices": ["a"], "impacted_surfaces": ["x"], "verification": ["v"]}
+  ]
+}

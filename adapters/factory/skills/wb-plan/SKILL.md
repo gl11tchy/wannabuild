@@ -84,8 +84,20 @@ In a WannaBuild workspace, Planning must produce:
 
 - `.wannabuild/spec/design.md` — design direction, options considered with the recommended choice, and every material tradeoff.
 - `.wannabuild/spec/tasks.md` — ordered slices, each mapped to acceptance criteria and carrying an executable verification step.
+- `.wannabuild/outputs/plan/plan-options.json` — N (default 3, configurable via `plan_adversarial_count`) adversarial plan options conforming to `plan-options.schema.json`: distinct stances, a red-team critique per plan, and one `recommended_id`.
+- `.wannabuild/outputs/plan/adversarial-plans.html` — a single self-contained render of those options (recommended highlighted) for side-by-side comparison.
 
-These artifacts are the contract handoff to Implement and are always written in full-loop/workspace mode — never gated on the user explicitly asking for them. Record completed planning evidence in `.wannabuild/state.json` under the plan/design and tasks fields (merge-update only; never replace the file wholesale).
+These artifacts are the contract handoff to Implement and are always written in full-loop/workspace mode — never gated on the user explicitly asking for them. Record completed planning evidence in `.wannabuild/state.json` under the plan/design and tasks fields, and the chosen option under `plan_options` (merge-update only; never replace the file wholesale).
+
+## Adversarial Plan Options
+
+Before the Plan → Implement boundary, surface the plan as competing options rather than a single narration:
+
+1. Run the `wb-plan-options` agent to produce N (default 3) genuinely distinct, complete plans for the discovered goal — each a different engineering stance with a `critique_of_others` red-team section, and one marked `recommended_id`. The count comes from `plan_adversarial_count` (clamped 2–5).
+2. Persist its output to `.wannabuild/outputs/plan/plan-options.json` and validate it with `scripts/validate-wannabuild-artifacts.sh` (fails closed on a malformed artifact).
+3. Render it with `scripts/wb-render-plan-html.sh --input <plan-options.json>` into a self-contained `adversarial-plans.html` and best-effort open it (honoring `plan_adversarial_auto_open`); on a headless host, or when `plan_adversarial_enabled` is false, fall back to printing the file path. Rendering/open is best-effort and never blocks the boundary.
+4. Print a terse chat summary (each stance in one line, which is recommended, the file path).
+5. At the boundary the user picks one (the recommended plan is the default on a bare "go"). Record the choice as `state.plan_options.chosen_id`, write the chosen plan into `design.md`/`tasks.md`, and proceed once `assert-plan-ready` passes.
 
 ## Forbidden Actions
 

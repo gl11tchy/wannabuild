@@ -22,6 +22,7 @@ Contract standard: docs/contract-standard.md
 | `wb-implementer` | — | Implements code from the task spec for WannaBuild implement phase. Writes feature code and integration tests via micro-step execution with checkpoint evidence. |
 | `wb-integration-tester` | — | Validates integration test completeness and quality in WannaBuild review phase. Maps acceptance criteria to tests, runs the test suite, and hard-gates on missing integration tests. This agent's FAIL verdict blocks shipping. |
 | `wb-performance-reviewer` | — | Reviews code for performance issues in WannaBuild review phase. Identifies N+1 queries, memory leaks, unnecessary re-renders, and scalability concerns. |
+| `wb-plan-options` | — | Generates N adversarial planned implementations for the WannaBuild Plan phase as schema-valid plan-options data: distinct stances, a red-team critique per plan, and one recommended choice. |
 | `wb-pr-craftsman` | — | Creates well-structured pull requests for WannaBuild ship phase. Writes PR titles, descriptions, and ensures branch is ready for review. |
 | `wb-readme-updater` | — | Updates README documentation for WannaBuild document phase. Ensures setup instructions, features, and usage examples reflect the current state of the project. |
 | `wb-risk-assessor` | — | Identifies and assesses technical risks for WannaBuild design phase. Creates risk register with probability, impact, and mitigation strategies. |

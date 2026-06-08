@@ -1,0 +1,36 @@
+{
+  "goal": "Show three adversarial planned implementations in HTML during the Plan phase.",
+  "recommended_id": "plan-a",
+  "plans": [
+    {
+      "id": "plan-a",
+      "title": "Plan A - Shell renderer + JSON data",
+      "stance": "Minimal & surgical",
+      "summary": "Pure renderer reads plan-options.json and emits self-contained HTML.",
+      "slices": ["Renderer core", "Configurable count", "Best-effort open"],
+      "impacted_surfaces": ["scripts/wb-render-plan-html.sh", "config.schema.json"],
+      "verification": ["bats: section count, no external refs, escaping"],
+      "critique_of_others": "B over-builds a new agent layer; C cannot unit-test model-emitted HTML."
+    },
+    {
+      "id": "plan-b",
+      "title": "Plan B - New agent + validated schema",
+      "stance": "Robust & scalable",
+      "summary": "A dedicated agent emits schema-validated plans; renderer sits on top.",
+      "slices": ["Schema", "Validator wiring", "Agent", "Renderer"],
+      "impacted_surfaces": ["agents/wb-plan-options.md", "schemas/plan-options.schema.json"],
+      "verification": ["validator accepts valid, rejects invalid fixtures"],
+      "critique_of_others": "A leaves JSON unvalidated; C has no artifact contract at all."
+    },
+    {
+      "id": "plan-c",
+      "title": "Plan C - Orchestrator emits HTML directly",
+      "stance": "Bold & leanest",
+      "summary": "Model writes HTML directly; only new code is a tiny opener.",
+      "slices": ["HTML template", "Opener script"],
+      "impacted_surfaces": ["scripts/wb-open.sh"],
+      "verification": ["bats on opener + golden template"],
+      "critique_of_others": "A and B both add a renderer + data contract; C is the smallest footprint."
+    }
+  ]
+}

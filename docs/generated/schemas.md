@@ -39,6 +39,9 @@ Path: `skills/internal/build/schemas/config.schema.json`
 | `max_review_iterations` | integer | — |
 | `max_total_review_runs` | integer | — |
 | `on_limit` | string | — |
+| `plan_adversarial_auto_open` | boolean | — |
+| `plan_adversarial_count` | integer | — |
+| `plan_adversarial_enabled` | boolean | — |
 | `review_context_scope` | string | — |
 | `review_rerun_policy` | string | — |
 | `skip_phases` | array | — |
@@ -66,6 +69,25 @@ Path: `skills/internal/build/schemas/loop-state.schema.json`
 | `max_iterations` | integer | — |
 | `mode` | string | — |
 | `status` | string | — |
+
+## `WannaBuild plan-options.json`
+
+Path: `skills/internal/build/schemas/plan-options.schema.json`
+
+### Required fields
+
+- `goal`
+- `plans`
+- `recommended_id`
+
+### Properties
+
+| Field | Type | Description |
+|---|---|---|
+| `chosen_id` | string | Set after the user selects a plan; must match a plan id when present. |
+| `goal` | string | — |
+| `plans` | array | — |
+| `recommended_id` | string | Must match the id of exactly one plan. |
 
 ## `WannaBuild reviewer verdict file`
 
@@ -123,6 +145,7 @@ Path: `skills/internal/build/schemas/state.schema.json`
 | `mode` | string | — |
 | `phase_history` | array | — |
 | `phase_status` | string | — |
+| `plan_options` | object | — |
 | `project` | string | — |
 | `public_stage` | string | — |
 | `public_stage_history` | array | — |
