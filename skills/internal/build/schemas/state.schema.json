@@ -248,6 +248,21 @@
           }
         }
       }
+    },
+    "plan_options": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "artifact": {
+          "type": "string"
+        },
+        "html": {
+          "type": "string"
+        },
+        "chosen_id": {
+          "type": "string"
+        }
+      }
     }
   },
   "$defs": {

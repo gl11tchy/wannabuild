@@ -114,7 +114,7 @@ The repo has three layers:
 
 2. **Orchestrator spec** — `skills/internal/build/SKILL.md` is the execution contract: start banners, phase routing logic, the quality loop, advisor escalation as a stateful primitive, state management rules, pre-flight validation, and transition guardrails. It is deliberately the largest file. Changes here ripple everywhere.
 
-3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, model, tools) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 21 agents map to 7 internal phases.
+3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, model, tools) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 22 agents map to 7 internal phases.
 
 ### Reference documents and schemas
 

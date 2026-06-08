@@ -608,6 +608,14 @@ def validate_config(config):
     if "advisor_on_limit" in config:
         if config["advisor_on_limit"] not in {"pause-and-ask", "error", "strict-block"}:
             record_error(f"config.json.advisor_on_limit invalid: {config['advisor_on_limit']!r}")
+    for bool_key in ["plan_adversarial_enabled", "plan_adversarial_auto_open"]:
+        if bool_key in config:
+            if not isinstance(config[bool_key], bool):
+                record_error(f"config.json.{bool_key} must be a boolean")
+    if "plan_adversarial_count" in config:
+        val = config["plan_adversarial_count"]
+        if isinstance(val, bool) or not isinstance(val, int) or not 2 <= val <= 5:
+            record_error("config.json.plan_adversarial_count must be an integer in [2,5]")
 
 
 def validate_workspace(workspace):
@@ -629,6 +637,58 @@ def validate_workspace(workspace):
             record_error("workspace.json.dirty_snapshot must be a boolean")
 
 
+def validate_plan_options(plan_options):
+    if plan_options is None:
+        return
+    if not isinstance(plan_options, dict):
+        record_error(f"plan-options.json must be an object: got {type(plan_options).__name__}")
+        return
+    for key in ("goal", "recommended_id"):
+        val = plan_options.get(key)
+        if not isinstance(val, str) or not val:
+            record_error(f"plan-options.json.{key} must be a non-empty string")
+    plans = plan_options.get("plans")
+    if not isinstance(plans, list):
+        record_error("plan-options.json.plans must be an array")
+        return
+    if not 2 <= len(plans) <= 5:
+        record_error(f"plan-options.json.plans must have 2-5 entries: got {len(plans)}")
+    ids = []
+    str_fields = ("id", "title", "stance", "summary", "critique_of_others")
+    list_fields = ("slices", "impacted_surfaces", "verification")
+    for i, plan in enumerate(plans):
+        source = f"plan-options.json.plans[{i}]"
+        if not isinstance(plan, dict):
+            record_error(f"{source} must be an object")
+            continue
+        for key in str_fields:
+            val = plan.get(key)
+            if not isinstance(val, str) or not val:
+                record_error(f"{source}.{key} must be a non-empty string")
+        for key in list_fields:
+            value = plan.get(key)
+            if not isinstance(value, list):
+                record_error(f"{source}.{key} must be an array")
+            else:
+                for j, item in enumerate(value):
+                    if not isinstance(item, str) or not item:
+                        record_error(f"{source}.{key}[{j}] must be a non-empty string")
+        pid = plan.get("id")
+        if isinstance(pid, str) and pid:
+            ids.append(pid)
+    if len(ids) != len(set(ids)):
+        record_error("plan-options.json.plans ids must be unique")
+    recommended = plan_options.get("recommended_id")
+    if isinstance(recommended, str) and recommended and recommended not in ids:
+        record_error(f"plan-options.json.recommended_id {recommended!r} does not match any plan id")
+    chosen = plan_options.get("chosen_id")
+    if chosen is not None:
+        if not isinstance(chosen, str) or not chosen:
+            record_error("plan-options.json.chosen_id must be a non-empty string when present")
+        elif chosen not in ids:
+            record_error(f"plan-options.json.chosen_id {chosen!r} does not match any plan id")
+
+
 state = load_json(state_path, "state.json")
 validate_state(state)
 loop_state = load_json(loop_path, "loop-state.json", optional=True)
@@ -637,6 +697,9 @@ config = load_json(config_path, "config.json", optional=True)
 validate_config(config)
 workspace = load_json(workspace_path, "workspace.json", optional=True)
 validate_workspace(workspace)
+plan_options_path = str(Path(state_path).resolve().parent / "outputs" / "plan" / "plan-options.json")
+plan_options = load_json(plan_options_path, "plan-options.json", optional=True)
+validate_plan_options(plan_options)
 validate_checkpoints()
 validate_review_outputs(loop_state)
 validate_transition(state)
