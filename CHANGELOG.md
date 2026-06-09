@@ -8,6 +8,26 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.5.0](https://github.com/gl11tchy/wannabuild/compare/v2.4.0...v2.5.0) (2026-06-08)
+
+
+### Features
+
+* **discover:** fold grill-me into wb-discover as a mandatory grill pass ([#55](https://github.com/gl11tchy/wannabuild/issues/55)) ([1a4d489](https://github.com/gl11tchy/wannabuild/commit/1a4d48924a7e6d0f40722bf9093ad041e27a3b92))
+* enforce strict, collaborative, deterministic doctrine across all skills, agents, and runtime gates ([#57](https://github.com/gl11tchy/wannabuild/issues/57)) ([28a6014](https://github.com/gl11tchy/wannabuild/commit/28a60143766b033da84a2dd64db8ef92f98f5cf2))
+* make guided mode the default with per-boundary gating ([#52](https://github.com/gl11tchy/wannabuild/issues/52)) ([fbf69c5](https://github.com/gl11tchy/wannabuild/commit/fbf69c50c98ec03fa39b2ce5a85c007dedda7dcb))
+* **plan:** adversarial plan options rendered to self-contained HTML ([#58](https://github.com/gl11tchy/wannabuild/issues/58)) ([1819946](https://github.com/gl11tchy/wannabuild/commit/1819946239cf68319f0c3bd8c1831d3b94f54dee))
+
+
+### Fixes
+
+* gate guided pauses to real phase boundaries and clear on approval ([#53](https://github.com/gl11tchy/wannabuild/issues/53)) ([d8780d0](https://github.com/gl11tchy/wannabuild/commit/d8780d0dd886a5d750b4e2eb1782525da2aac48d))
+
+
+### Tests
+
+* add codex install integration smoke ([#47](https://github.com/gl11tchy/wannabuild/issues/47)) ([972a44d](https://github.com/gl11tchy/wannabuild/commit/972a44d3621d0cc83ab31977b3ddf756ecbbb417))
+
 ## [2.4.0](https://github.com/gl11tchy/wannabuild/compare/v2.3.0...v2.4.0) (2026-05-16)
 
 
