@@ -7,10 +7,10 @@ description: WannaBuild review phase entrypoint for adaptive code, spec, and ris
 
 ## Contract Standard
 
-This prompt follows `docs/contract-standard.md` and is bound by
-`skills/internal/build/references/doctrine.md` (all four mandates).
+This prompt follows `docs/contract-standard.md` and inherits the four mandates in
+`skills/internal/build/references/doctrine.md`; where this file is silent, the doctrine governs.
 Shared contract: purpose, inputs, process, hard gates, evidence, output, handoff, forbidden actions.
-Runtime gates fail closed. Specialist judgment is advisory; gates and acceptance criteria require execution evidence and override prose.
+Runtime gates fail closed and cannot be rationalized past. Specialist judgment is advisory; gates and acceptance criteria require execution evidence and override prose.
 
 Use this phase skill when the user wants review or the active WannaBuild workflow is in Validate/Review. A `wb-review` or `wannabuild:wb-review` invocation starts or resumes the full WannaBuild loop unless the user explicitly says review only.
 
@@ -25,29 +25,22 @@ Before any review phase work:
 
 ## Purpose
 
-Find every correctness, regression, security, testing, architecture, and maintainability issue across the entire changed surface. Each dimension is reviewed on every iteration; none is declared clean without the evidence in the Per-Dimension Completion table below.
+Find every correctness, regression, security, testing, architecture, and maintainability issue across the entire changed surface. Each dimension is reviewed on every iteration; none is declared clean without the evidence in the per-dimension completion table below.
 
 ## Defaults
 
-- Lead with findings ordered by severity using the Severity Rubric below.
-- Ground each finding in file and line references.
-- Keep summaries secondary to actionable issues.
-- Apply the full required hat set per the Deterministic Hat Selection table — every changed surface, every iteration. No impacted-only subset, no fast-track for small diffs, no self-selecting out.
-- Verification is obtained, never waived (see Verification Is Obtained, Never Waived).
-- Fix every critical and high finding — bugs, regressions, missing required tests, and clear contract violations — and re-verify each with execution evidence.
-- Do not silently act on subjective style notes, scope changes, destructive changes, or product decisions. Present the options with a recommended answer and collaborate before acting (see Collaboration on Substantive Decisions).
+- Lead with findings ordered by severity per the Severity Rubric, each grounded in file and line references; keep summaries secondary to actionable issues.
 - Preserve active WannaBuild workflow state across turns until the task is complete or the user explicitly exits or stops.
-- Continue to QA only when the Review Pass Condition is met and the user has not requested review only.
 
 ## Flow
 
 1. Identify the change scope and the discovered acceptance criteria the change must satisfy.
 2. Inspect ALL changed diffs, the governing specs, and ALL tests touching the changed surfaces. No diff, spec, or test is skipped as "not relevant".
-3. Build the Coverage Manifest: enumerate every changed surface and apply the required hats per the Deterministic Hat Selection table. Add a sub-agent whenever a surface type in that table is present and warrants isolated ownership.
+3. Build the Coverage Manifest: enumerate every changed surface and apply the required hats per the Deterministic Hat Selection table, spawning sub-agents per its trigger rule.
 4. Acquire any environment needed to judge correctness/regression/security/behavior, then run the checks (see Verification Is Obtained, Never Waived). Record exact commands, exit codes, and output.
-5. Fix every critical and high finding automatically.
+5. Fix findings per the Severity Rubric.
 6. Rerun the full required hat set and every test touching the changed surfaces; capture fresh execution evidence.
-7. Confirm the Review Pass Condition, then hand off to QA unless the user explicitly requested review only.
+7. Confirm the Review Pass Condition and proceed per its boundary rule.
 
 ## Hard Gate: Review Completeness (fails closed)
 
@@ -73,7 +66,7 @@ Every dimension below is exercised on every iteration. A dimension is "clean" on
 
 ## Verification Is Obtained, Never Waived
 
-If a finding's correctness, regression, security, or behavior cannot be judged from source, you MUST acquire the environment to judge it before reporting — never downgrade an unmet verification requirement to a soft note. Per doctrine Mandate 2:
+If a finding's correctness, regression, security, or behavior cannot be judged from source, you MUST acquire the environment to judge it before reporting — never downgrade an unmet verification requirement to a soft note:
 
 - Auto-acquire (no permission needed): run the test suite and targeted tests; build and run the app locally; create an ephemeral/local DB branch (Supabase/Neon/Railway); drive the running UI with a browser (Chrome) or computer-use; generate fixtures and seed data; read live docs via Context7; stand up a preview/ephemeral environment.
 - Stop-and-ask only for billable, outward-facing, or destructive acquisition (paid provisioning, deploys, production data, external sends). Present the exact resource needed and why.
@@ -82,7 +75,7 @@ If a finding's correctness, regression, security, or behavior cannot be judged f
 
 ## Deterministic Hat Selection
 
-Detect the surface types in the diff and apply the mapped hats. This mapping is fixed; two runs over the same diff select the same hats.
+Apply the full required hat set to every changed surface on every iteration — no impacted-only subset, no fast-track for small diffs, no self-selecting out. Detect the surface types in the diff and apply the mapped hats; the mapping is fixed, so two runs over the same diff select the same hats.
 
 | Surface type detected | Required hats |
 |---|---|
@@ -104,11 +97,11 @@ Classification is fixed so two runs label the same finding identically:
 - medium = regression risk or maintainability hazard.
 - low = style or clarity only.
 
-Auto-fix every critical and high finding and re-verify with execution evidence. Medium and low findings are reported; fix them when the change is non-destructive and within the established scope, otherwise present them as options (see Collaboration on Substantive Decisions).
+Auto-fix every critical and high finding — bugs, regressions, missing required tests, and clear contract violations — and re-verify each with execution evidence. Medium and low findings are reported; fix them when the change is non-destructive and within the established scope, otherwise present them as options (see Collaboration on Substantive Decisions).
 
 ## Collaboration on Substantive Decisions
 
-When intended behavior is ambiguous, acceptance criteria conflict, a finding is suspicious-but-not-clearly-wrong, or a fix would change scope/design/product behavior, surface the interpretations and present the options to the user — each with your recommended answer and its reasoning — before reviewing against an assumed intent or applying the change. Do not pause for mechanical choices (which base to diff, which file to open); decide those autonomously and keep moving.
+When intended behavior is ambiguous, acceptance criteria conflict, a finding is suspicious-but-not-clearly-wrong, or a fix would change scope/design/product behavior — including subjective style notes, scope changes, destructive changes, and product decisions — surface the interpretations and present the options to the user, each with your recommended answer and its reasoning, before reviewing against an assumed intent or applying the change. Never act on these silently. Do not pause for mechanical choices (which base to diff, which file to open); decide those autonomously and keep moving.
 
 ## Review Pass Condition
 

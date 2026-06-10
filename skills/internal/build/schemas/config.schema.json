@@ -104,6 +104,20 @@
         "strict-block"
       ],
       "default": "pause-and-ask"
+    },
+    "plan_adversarial_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "plan_adversarial_count": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 5,
+      "default": 3
+    },
+    "plan_adversarial_auto_open": {
+      "type": "boolean",
+      "default": true
     }
   }
 }

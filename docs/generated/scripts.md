@@ -828,6 +828,55 @@ Failures to POST never fail the script — they emit a warning via wb_log_warn
 - `-h`
 - _4 more omitted._
 
+## `wb-render-plan-html.sh`
+
+Path: `scripts/wb-render-plan-html.sh`
+
+### Description
+
+```text
+wb-render-plan-html.sh — render N adversarial planned implementations from a
+plan-options.json into ONE self-contained HTML file, then best-effort open it.
+
+Usage:
+  wb-render-plan-html.sh --input <plan-options.json> [--out <file>] \
+      [--count <n>] [--no-open]
+
+Behavior:
+  * Output HTML is fully self-contained (inline CSS, no network references).
+  * Every interpolated field is HTML-escaped (Python html.escape).
+  * --count clamps to [2,5] (default 3) and renders the first min(count, plans).
+  * Browser open is best-effort: on $CI, --no-open, no opener, or a headless
+    Linux session it prints the absolute path + file:// URL instead. A failed
+    open is a warning, never a non-zero exit — rendering never blocks the phase.
+
+Environment:
+  CI            - when set (non-empty), auto-open is skipped (path is printed).
+  DISPLAY /
+  WAYLAND_DISPLAY - required for xdg-open on Linux; absent => print path.
+```
+
+### Functions
+
+- `print_path`
+- `usage`
+
+### CLI flags / options observed
+
+- `--accent`
+- `--bg`
+- `--chip`
+- `--count`
+- `--help`
+- `--ink`
+- `--input`
+- `--line`
+- `--muted`
+- `--no-open`
+- `--out`
+- `--panel`
+- _11 more omitted._
+
 ## `wb-trace.sh`
 
 Path: `scripts/wb-trace.sh`

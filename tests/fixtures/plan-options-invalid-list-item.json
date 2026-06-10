@@ -1,0 +1,8 @@
+{
+  "goal": "A plan has malformed list items (empty string and a non-string object).",
+  "recommended_id": "p1",
+  "plans": [
+    {"id": "p1", "title": "Plan One", "stance": "s1", "summary": "one", "slices": ["a"], "impacted_surfaces": ["x"], "verification": ["v"], "critique_of_others": "c1"},
+    {"id": "p2", "title": "Plan Two", "stance": "s2", "summary": "two", "slices": [""], "impacted_surfaces": [{"bad": "object"}], "verification": ["v"], "critique_of_others": "c2"}
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild plan-options.json",
+  "description": "N adversarial planned implementations produced by wb-plan-options and rendered to adversarial-plans.html.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "goal",
+    "recommended_id",
+    "plans"
+  ],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recommended_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match the id of exactly one plan."
+    },
+    "chosen_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Set after the user selects a plan; must match a plan id when present."
+    },
+    "plans": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "stance",
+          "summary",
+          "slices",
+          "impacted_surfaces",
+          "verification",
+          "critique_of_others"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable identifier matched by recommended_id/chosen_id."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable heading shown in the HTML."
+          },
+          "stance": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slices": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "impacted_surfaces": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "verification": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "critique_of_others": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The adversarial section: concrete weaknesses of the OTHER plans."
+          }
+        }
+      }
+    }
+  }
+}

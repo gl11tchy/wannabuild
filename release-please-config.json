@@ -19,7 +19,6 @@
   ],
   "packages": {
     ".": {
-      "package-name": "wannabuild",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         {
