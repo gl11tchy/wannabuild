@@ -28,7 +28,9 @@ RUN git clone --depth 1 --branch v43 https://github.com/SimonKagstrom/kcov.git /
 
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04@sha256:d94c97dd9cacf183d0a6fd12a8e87b526e9e928307674ae9c94139139c0c6eae
 
-# binutils and libdw1t64 are runtime dependencies of the kcov binary built above.
+# binutils and libdw1t64 are runtime dependencies of the kcov binary built
+# above. python3-pip, nodejs, and npm shipped in the ubuntu-22.04 base image
+# but not in ubuntu-24.04, so install them explicitly.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     shellcheck \
     jq \
@@ -39,6 +41,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     binutils \
     libcurl4t64 \
     libdw1t64 \
+    python3-pip \
+    nodejs \
+    npm \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=kcov-build /tmp/kcov-install/usr/local/ /usr/local/
@@ -53,8 +58,9 @@ RUN git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats \
   && /tmp/bats/install.sh /usr/local \
   && rm -rf /tmp/bats
 
-# Common Python tooling
-RUN pip3 install --no-cache-dir pre-commit lizard yamllint detect-secrets
+# Common Python tooling. Noble's system Python is PEP 668 externally-managed;
+# inside a single-purpose container image installing system-wide is intended.
+RUN pip3 install --no-cache-dir --break-system-packages pre-commit lizard yamllint detect-secrets
 
 # Common Node tooling
 RUN npm install -g markdownlint-cli2 jscpd prettier
