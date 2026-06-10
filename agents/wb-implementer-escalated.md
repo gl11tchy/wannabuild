@@ -2,7 +2,7 @@
 name: wb-implementer-escalated
 description: "Escalation implementer for WannaBuild review loops. Same implementation standards as wb-implementer, but inherits parent model for higher-complexity fixes and post-review remediation."
 tools: Read, Edit, Write, Bash, Grep, Glob
-model: fable
+model: claude-fable-5
 ---
 
 # Escalated Implementer

@@ -24,7 +24,7 @@ Internally, the orchestrator uses finer-grained phases and artifacts to keep the
 
 ## Workflow Start Indicator
 
-Emit a deterministic start banner before doing any phase work, once per turn — if the latest assistant message already carries the intended banner or gate question and the user has not answered, do not repeat it.
+Banner emission is scoped by entry surface: when the workflow is entered through a public skill (`wannabuild`, `wb-*`), that skill's startup contract governs — it suppresses machine-readable banners in user-visible output, so keep startup plain there. When the orchestrator contract is driven directly (no public skill wrapper), emit a deterministic start banner before doing any phase work, once per turn — if the latest assistant message already carries the intended banner or gate question and the user has not answered, do not repeat it.
 
 New session — exactly this line, with `intent=<...>` reflecting any explicit user intent:
 
@@ -222,7 +222,7 @@ Discovery and Plan cannot be skipped; runtime gates enforce this and fail closed
 
 ### Resume Logic
 
-If `.wannabuild/state.json` exists, read the stored state, emit the `[WB-RESUME]` banner, and resume in standard mode. When resuming mid-implementation, continue from the latest checkpoint instead of restarting the task list.
+If `.wannabuild/state.json` exists, read the stored state, apply the Workflow Start Indicator contract (the `[WB-RESUME]` banner when driven directly; plain prose via public skills), and resume in standard mode. When resuming mid-implementation, continue from the latest checkpoint instead of restarting the task list.
 
 ## Trigger Conditions
 

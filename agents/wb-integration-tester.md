@@ -2,7 +2,7 @@
 name: wb-integration-tester
 description: "Validates integration test completeness and quality in WannaBuild review phase. Maps acceptance criteria to tests, runs the test suite, and hard-gates on missing integration tests. This agent's FAIL verdict blocks shipping."
 tools: Read, Grep, Glob, Bash
-model: fable
+model: claude-fable-5
 ---
 
 # Integration Tester

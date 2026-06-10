@@ -47,7 +47,7 @@ Core contracts describe capability tiers only; this adapter maps them to current
 
 | Core capability tier | Claude model | Frontmatter value | Agents |
 |---|---|---|---|
-| Strong / high-reasoning | Fable 5 | `model: fable` | architect, tech-advisor, risk-assessor, plan-options, implementer-escalated, integration-tester, security-reviewer, architecture-reviewer |
+| Strong / high-reasoning | Fable 5 | `model: claude-fable-5` | architect, tech-advisor, risk-assessor, plan-options, implementer-escalated, integration-tester, security-reviewer, architecture-reviewer |
 | Standard | Opus 4.8 | `model: opus` | implementer, performance/testing reviewers, code-simplifier, discovery analysts, task-decomposer, dependency-mapper, pr-craftsman, ci-guardian |
 | Lightweight / fast | Haiku 4.5 | `model: haiku` | readme-updater, api-doc-generator, changelog-writer, scope-validator |
 

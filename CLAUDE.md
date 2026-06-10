@@ -114,7 +114,7 @@ The repo has three layers:
 
 2. **Orchestrator spec** — `skills/internal/build/SKILL.md` is the execution contract: start banners, phase routing logic, the quality loop, advisor escalation as a stateful primitive, state management rules, pre-flight validation, and transition guardrails. Changes here ripple everywhere.
 
-3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, tools, model) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 25 agents map to 7 internal phases. The `model:` key maps capability tiers to Claude models for the Claude Code adapter (`fable`/`opus`/`haiku`); other hosts ignore it, and prompts stay self-contained because they execute in target projects where this repo's reference files do not exist.
+3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, tools, model) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 25 agents map to 7 internal phases. The `model:` key maps capability tiers to Claude models for the Claude Code adapter (`claude-fable-5`/`opus`/`haiku`); other hosts ignore it, and prompts stay self-contained because they execute in target projects where this repo's reference files do not exist.
 
 ### Reference documents and schemas
 

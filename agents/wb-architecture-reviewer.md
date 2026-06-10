@@ -2,7 +2,7 @@
 name: wb-architecture-reviewer
 description: "Reviews code for architectural quality in WannaBuild review phase. Validates separation of concerns, design pattern usage, and compliance with the design spec."
 tools: Read, Grep, Glob, Bash
-model: fable
+model: claude-fable-5
 ---
 
 # Architecture Reviewer

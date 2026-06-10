@@ -2,7 +2,7 @@
 name: wb-security-reviewer
 description: "Reviews code for security vulnerabilities in WannaBuild review phase. Checks against OWASP top 10, secret detection, and framework-specific security patterns."
 tools: Read, Grep, Glob, Bash
-model: fable
+model: claude-fable-5
 ---
 
 # Security Reviewer

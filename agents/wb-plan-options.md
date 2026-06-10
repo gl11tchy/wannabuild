@@ -2,7 +2,7 @@
 name: wb-plan-options
 description: "Generates N adversarial planned implementations for the WannaBuild Plan phase as schema-valid plan-options data: distinct stances, a red-team critique per plan, and one recommended choice."
 tools: Read, Grep, Glob, WebSearch, WebFetch
-model: fable
+model: claude-fable-5
 ---
 
 # Plan Options (Adversarial Planner)
