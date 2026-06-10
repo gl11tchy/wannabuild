@@ -8,28 +8,28 @@ Contract standard: docs/contract-standard.md
 
 | Name | Model | Description |
 |---|---|---|
-| `wb-alternatives-analyst` | — | Researches alternatives and competition during WannaBuild discovery. Compares direct competitors, adjacent solutions, existing libraries/tools, manual workflows, and do-nothing options. |
-| `wb-api-doc-generator` | — | Generates API documentation for WannaBuild document phase. Documents endpoints, functions, types, and contracts from the actual code and design spec. |
-| `wb-architect` | — | Designs system architecture for WannaBuild design phase. Creates data models, API contracts, and architectural decisions with rationale. |
-| `wb-architecture-reviewer` | — | Reviews code for architectural quality in WannaBuild review phase. Validates separation of concerns, design pattern usage, and compliance with the design spec. |
-| `wb-changelog-writer` | — | Writes changelog entries for WannaBuild document phase. Follows Keep a Changelog format with semantic versioning. |
-| `wb-ci-guardian` | — | Monitors CI pipeline and ensures all checks pass for WannaBuild ship phase. Verifies integration tests pass in CI before allowing merge. |
-| `wb-code-simplifier` | — | Reviews code for unnecessary complexity in WannaBuild review phase. Identifies over-engineering, dead code, and opportunities to simplify. |
-| `wb-dependency-mapper` | — | Maps task dependencies for WannaBuild tasks phase. Identifies blocking relationships, critical path, and parallelization opportunities. |
-| `wb-failure-forecast` | — | Runs a pre-mortem-style Failure Forecast during WannaBuild discovery. Assumes the project failed, identifies likely causes, warning signs, mitigations, and qualifying questions. |
-| `wb-feasibility-analyst` | — | Researches feasibility during WannaBuild discovery. Assesses implementation path, dependencies, unknowns, constraints, complexity, and effort risk before Plan. |
-| `wb-implementer-escalated` | — | Escalation implementer for WannaBuild review loops. Same implementation standards as wb-implementer, but inherits parent model for higher-complexity fixes and post-review remediation. |
-| `wb-implementer` | — | Implements code from the task spec for WannaBuild implement phase. Writes feature code and integration tests via micro-step execution with checkpoint evidence. |
-| `wb-integration-tester` | — | Validates integration test completeness and quality in WannaBuild review phase. Maps acceptance criteria to tests, runs the test suite, and hard-gates on missing integration tests. This agent's FAIL verdict blocks shipping. |
-| `wb-performance-reviewer` | — | Reviews code for performance issues in WannaBuild review phase. Identifies N+1 queries, memory leaks, unnecessary re-renders, and scalability concerns. |
-| `wb-plan-options` | — | Generates N adversarial planned implementations for the WannaBuild Plan phase as schema-valid plan-options data: distinct stances, a red-team critique per plan, and one recommended choice. |
-| `wb-pr-craftsman` | — | Creates well-structured pull requests for WannaBuild ship phase. Writes PR titles, descriptions, and ensures branch is ready for review. |
-| `wb-readme-updater` | — | Updates README documentation for WannaBuild document phase. Ensures setup instructions, features, and usage examples reflect the current state of the project. |
-| `wb-risk-assessor` | — | Identifies and assesses technical risks for WannaBuild design phase. Creates risk register with probability, impact, and mitigation strategies. |
-| `wb-scope-analyst` | — | Analyzes product scope for WannaBuild requirements discovery. Turns a vision interview into feature priorities, MVP boundaries, size, risks, and explicit assumptions. |
-| `wb-scope-validator` | — | Validates task coverage against requirements for WannaBuild tasks phase. Ensures every requirement has tasks and no scope creep has occurred. |
-| `wb-security-reviewer` | — | Reviews code for security vulnerabilities in WannaBuild review phase. Checks against OWASP top 10, secret detection, and framework-specific security patterns. |
-| `wb-task-decomposer` | — | Decomposes design specs into ordered, atomic implementation tasks for WannaBuild tasks phase. Each task targets specific files with clear acceptance criteria. |
-| `wb-tech-advisor` | — | Evaluates technology choices for WannaBuild design phase. Analyzes tech stack options, build-vs-buy decisions, and integration points. |
-| `wb-testing-reviewer` | — | Reviews test quality and coverage in WannaBuild review phase. Validates that tests are meaningful, well-structured, and cover the right scenarios. |
-| `wb-ux-perspective` | — | Provides UX analysis for WannaBuild requirements discovery. Synthesizes audience, desired feel, flows, experience risks, and testable behavior from the vision interview. |
+| `wb-alternatives-analyst` | opus | Researches alternatives and competition during WannaBuild discovery. Compares direct competitors, adjacent solutions, existing libraries/tools, manual workflows, and do-nothing options. |
+| `wb-api-doc-generator` | haiku | Generates API documentation for WannaBuild document phase. Documents endpoints, functions, types, and contracts from the actual code and design spec. |
+| `wb-architect` | fable | Designs system architecture for WannaBuild design phase. Creates data models, API contracts, and architectural decisions with rationale. |
+| `wb-architecture-reviewer` | fable | Reviews code for architectural quality in WannaBuild review phase. Validates separation of concerns, design pattern usage, and compliance with the design spec. |
+| `wb-changelog-writer` | haiku | Writes changelog entries for WannaBuild document phase. Follows Keep a Changelog format with semantic versioning. |
+| `wb-ci-guardian` | opus | Monitors CI pipeline and ensures all checks pass for WannaBuild ship phase. Verifies integration tests pass in CI before allowing merge. |
+| `wb-code-simplifier` | opus | Reviews code for unnecessary complexity in WannaBuild review phase. Identifies over-engineering, dead code, and opportunities to simplify. |
+| `wb-dependency-mapper` | opus | Maps task dependencies for WannaBuild tasks phase. Identifies blocking relationships, critical path, and parallelization opportunities. |
+| `wb-failure-forecast` | opus | Runs a pre-mortem-style Failure Forecast during WannaBuild discovery. Assumes the project failed, identifies likely causes, warning signs, mitigations, and qualifying questions. |
+| `wb-feasibility-analyst` | opus | Researches feasibility during WannaBuild discovery. Assesses implementation path, dependencies, unknowns, constraints, complexity, and effort risk before Plan. |
+| `wb-implementer-escalated` | fable | Escalation implementer for WannaBuild review loops. Same implementation standards as wb-implementer, but inherits parent model for higher-complexity fixes and post-review remediation. |
+| `wb-implementer` | opus | Implements code from the task spec for WannaBuild implement phase. Writes feature code and integration tests via micro-step execution with checkpoint evidence. |
+| `wb-integration-tester` | fable | Validates integration test completeness and quality in WannaBuild review phase. Maps acceptance criteria to tests, runs the test suite, and hard-gates on missing integration tests. This agent's FAIL verdict blocks shipping. |
+| `wb-performance-reviewer` | opus | Reviews code for performance issues in WannaBuild review phase. Identifies N+1 queries, memory leaks, unnecessary re-renders, and scalability concerns. |
+| `wb-plan-options` | fable | Generates N adversarial planned implementations for the WannaBuild Plan phase as schema-valid plan-options data: distinct stances, a red-team critique per plan, and one recommended choice. |
+| `wb-pr-craftsman` | opus | Creates well-structured pull requests for WannaBuild ship phase. Writes PR titles, descriptions, and ensures branch is ready for review. |
+| `wb-readme-updater` | haiku | Updates README documentation for WannaBuild document phase. Ensures setup instructions, features, and usage examples reflect the current state of the project. |
+| `wb-risk-assessor` | fable | Identifies and assesses technical risks for WannaBuild design phase. Creates risk register with probability, impact, and mitigation strategies. |
+| `wb-scope-analyst` | opus | Analyzes product scope for WannaBuild requirements discovery. Turns a vision interview into feature priorities, MVP boundaries, size, risks, and explicit assumptions. |
+| `wb-scope-validator` | haiku | Validates task coverage against requirements for WannaBuild tasks phase. Ensures every requirement has tasks and no scope creep has occurred. |
+| `wb-security-reviewer` | fable | Reviews code for security vulnerabilities in WannaBuild review phase. Checks against OWASP top 10, secret detection, and framework-specific security patterns. |
+| `wb-task-decomposer` | opus | Decomposes design specs into ordered, atomic implementation tasks for WannaBuild tasks phase. Each task targets specific files with clear acceptance criteria. |
+| `wb-tech-advisor` | fable | Evaluates technology choices for WannaBuild design phase. Analyzes tech stack options, build-vs-buy decisions, and integration points. |
+| `wb-testing-reviewer` | opus | Reviews test quality and coverage in WannaBuild review phase. Validates that tests are meaningful, well-structured, and cover the right scenarios. |
+| `wb-ux-perspective` | opus | Provides UX analysis for WannaBuild requirements discovery. Synthesizes audience, desired feel, flows, experience risks, and testable behavior from the vision interview. |

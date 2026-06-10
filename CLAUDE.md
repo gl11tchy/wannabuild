@@ -112,9 +112,9 @@ The repo has three layers:
 
 1. **Operator contract** — `AGENTS.md` is the canonical source of truth for what the orchestrator must do. It defines the golden path, step contracts, gate prompts, parallelization defaults, and model tiering. Read this first when understanding any behavior.
 
-2. **Orchestrator spec** — `skills/internal/build/SKILL.md` is the execution contract: start banners, phase routing logic, the quality loop, advisor escalation as a stateful primitive, state management rules, pre-flight validation, and transition guardrails. It is deliberately the largest file. Changes here ripple everywhere.
+2. **Orchestrator spec** — `skills/internal/build/SKILL.md` is the execution contract: start banners, phase routing logic, the quality loop, advisor escalation as a stateful primitive, state management rules, pre-flight validation, and transition guardrails. Changes here ripple everywhere.
 
-3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, model, tools) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 22 agents map to 7 internal phases.
+3. **Specialist agents** — `agents/wb-*.md` files each contain YAML frontmatter (name, description, tools, model) and a focused system prompt. They write full output to `.wannabuild/outputs/` or `.wannabuild/review/` and return a single status line to the orchestrator. The 25 agents map to 7 internal phases. The `model:` key maps capability tiers to Claude models for the Claude Code adapter (`fable`/`opus`/`haiku`); other hosts ignore it, and prompts stay self-contained because they execute in target projects where this repo's reference files do not exist.
 
 ### Reference documents and schemas
 

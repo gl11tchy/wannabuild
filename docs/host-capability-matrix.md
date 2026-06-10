@@ -74,7 +74,7 @@ Provides:
 - Getting-started: `.claude/INSTALL.md`
 - Full adapter guide: `adapters/claude-code/README.md`
 - read-only advisor subagent fallback; Claude API adapters may map to native `advisor_20260301`
-- host mapping from core capability tiers to available Claude Code model controls
+- host mapping from core capability tiers to current Claude models via agent frontmatter: strong → Fable 5 (`fable`), standard → Opus 4.8 (`opus`), lightweight → Haiku 4.5 (`haiku`); see `adapters/claude-code/README.md`
 
 ## Capability Table
 
@@ -95,7 +95,7 @@ Provides:
 | Repo-only usage | Yes | Yes | Yes | Yes |
 | Getting-started doc | No | Yes | No | Yes |
 | Advisor escalation | State/report contract | Read-only advisor equivalent | Prompt/report fallback | Read-only subagent or native Claude API advisor |
-| Capability tier mapping | Tier/effort contract | Host mapped | Prompt/report fallback | Host mapped |
+| Capability tier mapping | Tier/effort contract | Host mapped | Prompt/report fallback | Agent frontmatter: `fable`/`opus`/`haiku` |
 
 ## Rule
 
