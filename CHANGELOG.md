@@ -8,6 +8,18 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.6.0](https://github.com/gl11tchy/wannabuild/compare/v2.5.0...v2.6.0) (2026-06-10)
+
+
+### Features
+
+* rewrite contracts for frontier-class executors with Claude model tiering ([#60](https://github.com/gl11tchy/wannabuild/issues/60)) ([496e79a](https://github.com/gl11tchy/wannabuild/commit/496e79ad044b82abf3afe923fd7f414fce8b4d9f))
+
+
+### Fixes
+
+* **release:** drop package-name so release tagging matches PR component ([#62](https://github.com/gl11tchy/wannabuild/issues/62)) ([7b94f69](https://github.com/gl11tchy/wannabuild/commit/7b94f69201b9e3672619f773463c742fd647c603))
+
 ## [2.5.0](https://github.com/gl11tchy/wannabuild/compare/v2.4.0...v2.5.0) (2026-06-08)
 
 
