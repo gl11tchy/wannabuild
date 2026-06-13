@@ -377,8 +377,8 @@ A missing file, or one without the executable bit, is the cause.
 
 **Fix.** Re-run `npx wannabuild` (optionally scoped, e.g. `--codex`). It
 re-downloads the verified binary and re-places it where the host resolves it,
-then runs `wb-runtime --version` to assert the placed binary matches the package
-version. If the install completes but doctor still fails, confirm the binary is
+then runs `wb-runtime --version` to confirm the placed binary executes on this
+platform. If the install completes but doctor still fails, confirm the binary is
 executable (`chmod +x` on the resolution path) and re-run doctor.
 
 ---

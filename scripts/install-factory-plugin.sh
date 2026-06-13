@@ -188,7 +188,9 @@ create_link "$ADAPTER" "$PLUGIN_CACHE"
 # segment correct). Absent that binary, the hook falls back to the degraded
 # Python mirror. Because the cache symlinks into the checkout, removing the
 # checkout (e.g. `npx wannabuild uninstall --purge`) also removes this binary.
-RUNTIME_BIN="${PLUGIN_CACHE}/target/debug/wb-runtime"
+# Preserve the source basename so a Windows wb-runtime.exe keeps its extension
+# (the copied hook's resolver and the shell -x checks both need the real name).
+RUNTIME_BIN="${PLUGIN_CACHE}/target/debug/$(basename "${WB_RUNTIME_PREBUILT:-wb-runtime}")"
 if [[ -n "${WB_RUNTIME_PREBUILT:-}" && -x "${WB_RUNTIME_PREBUILT}" ]]; then
   mkdir -p "${PLUGIN_CACHE}/target/debug"
   cp "$WB_RUNTIME_PREBUILT" "$RUNTIME_BIN"

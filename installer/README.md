@@ -53,9 +53,11 @@ npx wannabuild --cursor
 | `--version`, `-v` | — | Print the installer version |
 | `--help`, `-h` | — | Show help |
 
-After install, the CLI runs `wb-runtime --version` on the placed binary and
-fails the install if it does not equal the package version — so a stale or
-mismatched binary can never silently become the active gate.
+After install, the CLI runs `wb-runtime --version` on the placed binary to
+confirm it executes on this platform (a liveness check); a binary that cannot
+run aborts the install. `wb-runtime` is versioned `0.1.0` independent of the
+release tag — integrity comes from the mandatory sha256 verification above, not
+a version match.
 
 ## Security stance
 

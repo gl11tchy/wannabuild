@@ -35,17 +35,43 @@ async function installRuntime(options) {
   const archiveUrl = `${RELEASE_BASE}/${tag}/${archive}`;
   const sumUrl = `${archiveUrl}.sha256`;
 
-  const expected = await fetchExpectedSha(sumUrl, archive);
+  let expected;
+  try {
+    expected = await fetchExpectedSha(sumUrl, archive);
+  } catch (err) {
+    throw friendlyDownloadError(err, tag, archive);
+  }
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "wb-runtime-"));
   const tmpArchive = path.join(workDir, archive);
 
   try {
-    await downloadToFile(archiveUrl, tmpArchive);
+    try {
+      await downloadToFile(archiveUrl, tmpArchive);
+    } catch (err) {
+      throw friendlyDownloadError(err, tag, archive);
+    }
     const binaryPath = extractVerifiedBinary(tmpArchive, expected, workDir, path.join(dir, "target", "debug"), target.exe);
     return { binaryPath, archive, sha256: expected, target };
   } finally {
     safeRmrf(workDir);
   }
+}
+
+// friendlyDownloadError(err, tag, archive) -> Error
+// Turns a bare HTTP 404 (release carries no prebuilt assets yet, or none for
+// this platform) into actionable guidance instead of a cryptic status code.
+function friendlyDownloadError(err, tag, archive) {
+  if (err && /HTTP 404/.test(String(err.message))) {
+    return new Error(
+      `No prebuilt wb-runtime asset for release ${tag} (looked for ${archive}).\n` +
+        "That release may predate the prebuilt-binary workflow, or your platform's " +
+        "build is not published yet. Install from a release that carries " +
+        "wb-runtime-*.tar.gz assets:\n" +
+        "  npx wannabuild --ref <tag>\n" +
+        "Releases: https://github.com/gl11tchy/wannabuild/releases"
+    );
+  }
+  return err;
 }
 
 // extractVerifiedBinary(archiveFile, expectedSha, workDir, destDir, exe) -> binaryPath
