@@ -1,8 +1,10 @@
 # Release
 
-WannaBuild releases are tag-based. There are no binary artifacts; a release is
-simply a git tag plus auto-generated release notes published to the GitHub
-Releases page.
+WannaBuild releases are tag-based: a release is a git tag plus auto-generated
+release notes published to the GitHub Releases page. Each release also gets
+prebuilt `wb-runtime` binary archives (linux-x86_64, macos-arm64, macos-x86_64)
+plus `.sha256` checksums, attached automatically by the `release-binaries` job
+in `.github/workflows/release-please.yml`.
 
 Releases are driven by [release-please](https://github.com/googleapis/release-please).
 
@@ -37,8 +39,10 @@ tracked in `.release-please-manifest.json`.
    - creates the git tag (e.g., `v2.3.0`)
    - publishes a GitHub Release with auto-generated notes (categorized via
      `.github/release.yml`)
+   - the `release-binaries` job builds and attaches the `wb-runtime` archives
+     and `.sha256` checksums for each supported platform
 
-That's the whole release. There are no binaries to upload.
+That's the whole release.
 
 ## Hotfix flow
 

@@ -32,15 +32,6 @@ push lands; runs on `main` are never cancelled.
 - *Pre-commit red.* Match the failing hook's name to its config in
   `.pre-commit-config.yaml`; many hooks auto-fix and require a re-commit.
 
-## `.github/workflows/release-binaries.yml` — Release Binaries
-
-**Triggers:** a GitHub Release being published (by release-please).
-
-Builds the `wb-runtime` binary for linux-x86_64, macos-arm64, and
-macos-x86_64 and attaches `wb-runtime-<tag>-<platform>.tar.gz` archives plus
-`.sha256` checksums to the release. If a platform job fails, re-run it from
-the workflow run page; `gh release upload --clobber` makes re-runs safe.
-
 ## `.github/workflows/security.yml` — Security
 
 **Triggers:** push/pull_request on `main`/`master`, plus a daily schedule.
@@ -79,8 +70,15 @@ PRs from forks.
 **Triggers:** push to `main`.
 
 Opens or updates a release PR, and on merge of that PR, creates the GitHub
-Release plus the git tag. See `docs/release.md` for the user-facing release
-flow.
+Release plus the git tag. A second job in the same workflow, `release-binaries`
+(gated on `needs.release-please.outputs.releases_created == 'true'`), then
+builds the `wb-runtime` binary for linux-x86_64, macos-arm64, and macos-x86_64
+and attaches `wb-runtime-<tag>-<platform>.tar.gz` archives plus `.sha256`
+checksums to the release. The build runs as a `needs` job in this workflow
+rather than a separate `on: release` workflow because release-please creates
+the release with `GITHUB_TOKEN`, and GitHub does not dispatch downstream
+workflows for token-created releases. See `docs/release.md` for the
+user-facing release flow.
 
 **Common failure modes:**
 
@@ -89,6 +87,9 @@ flow.
   `fix`).
 - *Tag conflict.* Means a manual tag was pushed that release-please does not
   know about. Update `.release-please-manifest.json` to reflect reality.
+- *No binaries on the release.* The `release-binaries` job only runs when a
+  release was created. If a platform leg failed, re-run it from the workflow
+  run page; `gh release upload --clobber` makes re-runs safe.
 
 ## `.github/workflows/docs.yml` — Auto-generated docs
 
