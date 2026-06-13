@@ -88,39 +88,26 @@ check kills it.
 
 ## Quickstart
 
-Pick the host you already use.
-
-### Claude Code
-
-```text
-/plugin marketplace add gl11tchy/wannabuild
-/plugin install wannabuild@gl11tchy
-/reload-plugins
-```
-
-### Codex
+One command installs WannaBuild into every host it detects (Claude Code, Codex,
+Factory Droid, Cursor) and wires each one to the real Rust `wb-runtime` gates:
 
 ```bash
-git clone https://github.com/gl11tchy/wannabuild
-cd wannabuild
-./scripts/install-codex-skill.sh
+npx wannabuild
 ```
 
-Then restart Codex.
+No Rust or cargo required — the installer downloads a prebuilt, checksum-verified
+`wb-runtime` for your platform. It auto-detects installed hosts; scope it to a
+single host with `--claude`, `--codex`, `--factory`, or `--cursor`. The package
+ships with zero npm dependencies.
 
-### Factory Droid
+Verify any time:
 
 ```bash
-git clone https://github.com/gl11tchy/wannabuild
-cd wannabuild
-./scripts/install-factory-plugin.sh
+npx wannabuild doctor
 ```
 
-Then restart Droid.
-
-### Cursor
-
-Load `.cursor/rules/wannabuild.mdc` from a clone of this repo.
+Prefer to install host-by-host from a clone, or hacking on the framework itself?
+See [Install](#install) for the per-host from-source paths.
 
 Then, on any host, type a natural feature request — no command needed:
 
@@ -192,9 +179,64 @@ dry-run suite proves those same fixtures *fail* the gates outside it.
 
 ## Install
 
+The primary install path for every host is the npx installer. It downloads a
+prebuilt, checksum-verified `wb-runtime` for your platform, places it where each
+host resolves it, and runs the matching repo install script so every host runs
+the real Rust gates (never the degraded Python mirror):
+
+```bash
+npx wannabuild
+```
+
+By default it clones the repo to `~/.wannabuild`, pins to the latest release
+tag, auto-detects every installed host, and installs into each. Useful flags:
+
+| Flag | Effect |
+|---|---|
+| `--claude` `--codex` `--factory` `--cursor` | Install only the named host(s); disables auto-detect |
+| `--dir <path>` | Where the checkout lives (default `~/.wannabuild`) |
+| `--ref <git-ref>` | Pin both the checkout and the binary asset (default: latest release tag) |
+| `--yes` / `-y` | Non-interactive; don't prompt before overwriting |
+| `--help` / `-h`, `--version` / `-v` | Help / version |
+
+Subcommands: `npx wannabuild doctor` runs the readiness checks,
+`npx wannabuild uninstall` prints the host-managed entries and exact removal
+commands (`--purge` also removes the checkout), and `npx wannabuild help` lists
+everything.
+
+The sections below give each host's npx one-liner plus a from-source path for
+contributors hacking on the framework. On Windows the installer needs a usable
+bash (Git for Windows or WSL); see the
+[install runbook](docs/runbooks/install-and-load-failures.md#npx-wannabuild-cannot-find-bash-on-windows).
+
 ### Claude Code
 
-Marketplace (above) or from the repo:
+Co-primary path (alongside Codex).
+
+```bash
+npx wannabuild --claude
+```
+
+This places the prebuilt `wb-runtime` at `~/.wannabuild/target/debug/wb-runtime`
+(where the plugin cache symlink resolves it), registers and enables the plugin
+under `~/.claude/plugins/`, and verifies the hook shape. Then run
+`/reload-plugins` and start with a natural feature or ideation prompt:
+
+```text
+I want to build a Stripe billing flow for my SaaS
+```
+
+Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The installed hook injects routing context at session start and before matching user prompts, so natural feature, planning, debug, review, QA, and ship requests should wake up the right WannaBuild skill automatically. Downloaded skill metadata uses friendly UI names such as `WannaBuild: Review` and `WannaBuild: Ship` where the host supports skill display names.
+
+**Marketplace (skills + commands only, no prebuilt runtime):**
+
+```text
+/plugin marketplace add gl11tchy/wannabuild
+/plugin install wannabuild@gl11tchy
+/reload-plugins
+```
+
+**From source (contributors):**
 
 ```bash
 git clone https://github.com/gl11tchy/wannabuild
@@ -202,12 +244,14 @@ cd wannabuild
 ./scripts/install-claude-skill.sh
 ```
 
-The installer registers and enables the local plugin under
+The repo installer registers and enables the local plugin under
 `~/.claude/plugins/`, verifies the hook shape, and points Claude Code at this
-checkout. Run `/reload-plugins` afterward. The hook injects live runtime state
-(active phase, pending gates, forbidden actions) at session start and on each
-prompt, and ships Python mirrors of every gate plus the evidence recorder, so
-enforcement works even without the Rust binary. See
+checkout; run `/reload-plugins` afterward. It expects a built `wb-runtime` at
+`target/debug/wb-runtime` (npx provides the prebuilt binary; from a dev clone,
+`cargo build` produces it) and warns if it is missing. The hook injects live
+runtime state (active phase, pending gates, forbidden actions) at session start
+and on each prompt, and ships Python mirrors of every gate plus the evidence
+recorder, so enforcement still works even without the Rust binary. See
 [adapters/claude-code/README.md](adapters/claude-code/README.md) and
 [.claude/INSTALL.md](.claude/INSTALL.md).
 
@@ -221,25 +265,90 @@ implementation before Plan. See
 [docs/codex-getting-started.md](docs/codex-getting-started.md) and
 [.codex/INSTALL.md](.codex/INSTALL.md).
 
-### Factory Droid
+```bash
+npx wannabuild --codex
+```
 
-The repo installer registers the local marketplace/plugin, links the
-self-contained `adapters/factory` plugin into Factory's plugin cache, and
-writes generated `wb-*` droids to `~/.factory/droids/`. If you only need the
-packaged commands and skills:
+This links the repo-native skills into `~/.codex/skills/` and places the
+prebuilt `wb-runtime` at `~/.codex/bin/wb-runtime` (Codex has no hook system, so
+the shell gate scripts resolve the binary from there). Then restart Codex and
+start with natural language:
+
+```text
+I want to build a Stripe billing flow for my SaaS
+```
+
+Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`. Runtime gates fail closed; `assert-workflow-active` catches missing `.wannabuild/` runtime evidence, and `assert-plan-ready` blocks implementation before Plan. Add `~/.codex/bin` to `PATH` if Codex cannot find `wb-runtime`.
+
+**From source (contributors):**
+
+```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
+./scripts/install-codex-skill.sh
+```
+
+From a dev clone the installer builds `wb-runtime` with cargo before copying it
+into `~/.codex/bin/`; with a prebuilt binary it copies that instead and skips
+cargo. Reference surfaces:
+
+- [AGENTS.md](AGENTS.md)
+- [.codex/INSTALL.md](.codex/INSTALL.md)
+- [docs/codex-getting-started.md](docs/codex-getting-started.md)
+- [docs/host-capability-matrix.md](docs/host-capability-matrix.md)
+- [scripts/validate-wannabuild-artifacts.sh](scripts/validate-wannabuild-artifacts.sh)
+- [scripts/validate-wannabuild-dry-runs.sh](scripts/validate-wannabuild-dry-runs.sh)
+- [scripts/wannabuild-doctor.sh](scripts/wannabuild-doctor.sh)
+- [scripts/install-codex-skill.sh](scripts/install-codex-skill.sh)
+
+### Factory / Droid
+
+```bash
+npx wannabuild --factory
+```
+
+This links the self-contained `adapters/factory` plugin into Factory's plugin
+cache, writes the generated `wb-*` droids to `~/.factory/droids/`, and places
+the prebuilt `wb-runtime` inside the Factory plugin cache, where the copied
+hook resolves it at `<plugin cache>/local/target/debug/wb-runtime` (the cache
+symlinks to the self-contained `adapters/factory`, so the binary is placed
+through that link). Restart Droid, then start with a natural feature, planning,
+debug, review, QA, or ship request. Explicit `/wannabuild` and `/wb-*` plugin
+commands remain available as shortcuts.
+
+**From source (contributors):**
+
+```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
+./scripts/install-factory-plugin.sh
+```
+
+If you only need the packaged plugin commands and skills, you can install
+through Droid's plugin manager instead:
 
 ```bash
 droid plugin marketplace add https://github.com/gl11tchy/wannabuild
 droid plugin install wannabuild@wannabuild
 ```
 
+Use npx or the repo installer for the complete generated `wb-*` Droid specialist
+set plus the prebuilt runtime. See
+[adapters/factory/README.md](adapters/factory/README.md).
+
 ### Cursor
 
-Cursor consumes the same contracts via
-[.cursor/rules/wannabuild.mdc](.cursor/rules/wannabuild.mdc) — note this is
-the one host on the prose rung of the [trust model](docs/trust-model.md):
-gates run only when the agent invokes the scripts. See
-[adapters/cursor/README.md](adapters/cursor/README.md).
+```bash
+npx wannabuild --cursor
+```
+
+Cursor is rules-only and invokes no runtime, so the installer refreshes the
+`.cursor/rules/wannabuild.mdc` pointer and prints guidance — no binary is
+placed. You can also load
+[.cursor/rules/wannabuild.mdc](.cursor/rules/wannabuild.mdc) directly from a
+clone. Note this is the one host on the prose rung of the
+[trust model](docs/trust-model.md): gates run only when the agent invokes the
+scripts. See [adapters/cursor/README.md](adapters/cursor/README.md).
 
 > **Hit a problem?** See
 > [docs/runbooks/install-and-load-failures.md](docs/runbooks/install-and-load-failures.md)

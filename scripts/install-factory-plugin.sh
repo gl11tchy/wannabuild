@@ -180,6 +180,23 @@ mkdir -p "$PLUGIN_CACHE_PARENT" "$DROIDS_DIR" "$(dirname "$KNOWN_MARKETPLACES")"
 safe_remove_existing "$PLUGIN_CACHE"
 create_link "$ADAPTER" "$PLUGIN_CACHE"
 
+# $PLUGIN_CACHE is a symlink to the Factory adapter (create_link above). The
+# Factory hook resolves the Rust gate engine at parents[1]/target/debug/wb-runtime
+# — i.e. target/debug *inside* the adapter the cache points to. The npx installer
+# hands us the prebuilt binary via WB_RUNTIME_PREBUILT; place it there through the
+# cache symlink (deriving the path from $PLUGIN_CACHE keeps the <marketplace>
+# segment correct). Absent that binary, the hook falls back to the degraded
+# Python mirror. Because the cache symlinks into the checkout, removing the
+# checkout (e.g. `npx wannabuild uninstall --purge`) also removes this binary.
+# Preserve the source basename so a Windows wb-runtime.exe keeps its extension
+# (the copied hook's resolver and the shell -x checks both need the real name).
+RUNTIME_BIN="${PLUGIN_CACHE}/target/debug/$(basename "${WB_RUNTIME_PREBUILT:-wb-runtime}")"
+if [[ -n "${WB_RUNTIME_PREBUILT:-}" && -x "${WB_RUNTIME_PREBUILT}" ]]; then
+  mkdir -p "${PLUGIN_CACHE}/target/debug"
+  cp "$WB_RUNTIME_PREBUILT" "$RUNTIME_BIN"
+  chmod +x "$RUNTIME_BIN"
+fi
+
 "$PYTHON" - "$NAMESPACE" "$MARKETPLACE" "$PLUGIN" "$VERSION" "$(json_path_for_host "$ROOT")" "$(json_path_for_host "$PLUGIN_CACHE")" "$KNOWN_MARKETPLACES" "$INSTALLED_PLUGINS" <<'PY'
 import json
 import sys
@@ -341,6 +358,10 @@ if [[ ! -f "${DROIDS_DIR}/wb-architect.md" || ! -f "${DROIDS_DIR}/wb-integration
   echo "Install verification failed: expected Factory droids not installed in ${DROIDS_DIR}" >&2
   exit 1
 fi
+if [[ -n "${WB_RUNTIME_PREBUILT:-}" && ! -x "$RUNTIME_BIN" ]]; then
+  echo "Install verification failed: wb-runtime not executable at ${RUNTIME_BIN}" >&2
+  exit 1
+fi
 
 echo ""
 echo "Installed WannaBuild for Droid:"
@@ -348,6 +369,11 @@ echo "  Plugin path: ${PLUGIN_CACHE} -> ${ADAPTER}"
 echo "  Marketplace: ${MARKETPLACE} -> ${ROOT}"
 echo "  Plugin:      ${PLUGIN}@${MARKETPLACE}"
 echo "  Droids:      ${DROIDS_DIR}/wb-*.md"
+if [[ -x "$RUNTIME_BIN" ]]; then
+  echo "  Runtime:     ${RUNTIME_BIN}"
+else
+  echo "  Runtime:     MISSING (Python mirror fallback)"
+fi
 echo ""
 echo "Restart Droid, then type a natural feature request."
 echo "Explicit shortcuts remain available as plugin commands and skills."

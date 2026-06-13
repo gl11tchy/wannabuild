@@ -21,6 +21,16 @@ Host-agnostic:
 - adaptive capability-tier and reasoning-effort policy
 - repo-native scripts and examples
 
+## Install (recommended)
+
+`npx wannabuild` is the primary install path for every runtime host. It
+auto-detects installed hosts, downloads and sha256-verifies the prebuilt Rust
+`wb-runtime` archive for the platform (no local Rust toolchain), extracts it,
+and places it where each host's resolver looks (`~/.wannabuild/target/debug` for
+Claude, `~/.codex/bin` for Codex, the Factory plugin cache for Factory). The
+per-host `scripts/install-*.sh` remain available for from-source installs and
+build `wb-runtime` with cargo when no prebuilt binary is supplied.
+
 ## Canonical Entry Point
 
 The canonical path is:
@@ -83,7 +93,7 @@ Provides:
 | Workflow contract | Yes | Co-primary | Reference | Co-primary |
 | `.wannabuild/` artifacts | Yes | Yes | Yes | Yes |
 | Validator script | Yes | Yes | Yes | Yes |
-| Rust workflow runtime | Yes | Installed by script | Repo/manual | Installed by repo script |
+| Rust workflow runtime | Yes | npx prebuilt or script-built | Repo/manual | npx prebuilt or script-built |
 | Daily-use dry runs | Yes | Yes | Reference | Yes |
 | Golden path demo | Yes | Yes | Yes | Yes |
 | `AGENTS.md`-driven usage | No | Yes | Optional | Optional |

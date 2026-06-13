@@ -1,0 +1,17 @@
+# Only bin/, lib/, and README.md ship (enforced by package.json "files"); this
+# is a belt-and-suspenders exclusion for dev cruft so nothing extra leaks into
+# the published tarball.
+tests/
+test/
+*.test.js
+*.spec.js
+.github/
+.editorconfig
+.eslintrc*
+.prettierrc*
+.vscode/
+.idea/
+*.log
+node_modules/
+coverage/
+.DS_Store

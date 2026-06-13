@@ -346,6 +346,8 @@ Path: `scripts/install-claude-skill.sh`
 
 ### CLI flags / options observed
 
+- `--bin`
+- `--manifest-path`
 - `--version`
 - `-C`
 - `-F`
@@ -356,9 +358,7 @@ Path: `scripts/install-claude-skill.sh`
 - `-R`
 - `-T`
 - `-c`
-- `-d`
-- `-e`
-- _7 more omitted._
+- _10 more omitted._
 
 ## `install-codex-skill.sh`
 
@@ -410,6 +410,7 @@ Path: `scripts/install-factory-plugin.sh`
 
 ### CLI flags / options observed
 
+- `--purge`
 - `--short`
 - `-C`
 - `-F`
@@ -421,8 +422,7 @@ Path: `scripts/install-factory-plugin.sh`
 - `-T`
 - `-d`
 - `-e`
-- `-f`
-- _9 more omitted._
+- _11 more omitted._
 
 ## `lint.sh`
 
@@ -614,7 +614,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `check_link_target`
 - `check_no_symlinks_under`
 - `check_not_contains`
-- _5 more omitted._
+- _6 more omitted._
 
 ### CLI flags / options observed
 

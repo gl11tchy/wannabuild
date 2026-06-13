@@ -40,6 +40,11 @@
           "type": "json",
           "path": ".cursor-plugin/plugin.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "installer/package.json",
+          "jsonpath": "$.version"
         }
       ]
     }
