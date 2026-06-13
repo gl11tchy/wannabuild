@@ -71,21 +71,31 @@ jobs:
         include:
           - os: ubuntu-latest
             label: linux-x86_64
+            target: ""
             exe: ""
           - os: ubuntu-24.04-arm
             label: linux-arm64
+            target: ""
             exe: ""
           - os: macos-latest
             label: macos-arm64
+            target: ""
             exe: ""
-          - os: macos-13
+          # Intel macOS: cross-compiled on the Apple-Silicon runner. The hosted
+          # macos-13 (Intel) runner is unavailable and the job queues forever.
+          - os: macos-latest
             label: macos-x86_64
+            target: x86_64-apple-darwin
             exe: ""
           - os: windows-latest
             label: windows-x86_64
+            target: ""
             exe: ".exe"
     steps:
       - name: Harden runner (audit)
+        # harden-runner's Windows support is experimental and disrupted the
+        # rustc build (exit 127 in the v2.7.0 run); audit on POSIX runners only.
+        if: runner.os != 'Windows'
         # step-security/harden-runner v2.19.1
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
         with:
@@ -97,9 +107,16 @@ jobs:
           ref: ${{ needs.release-please.outputs.tag_name }}
       - name: Build release binary
         shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
-          cargo build --release --locked --bin wb-runtime
+          if [ -n "${TARGET}" ]; then
+            rustup target add "${TARGET}"
+            cargo build --release --locked --bin wb-runtime --target "${TARGET}"
+          else
+            cargo build --release --locked --bin wb-runtime
+          fi
       - name: Package and upload
         shell: bash
         env:
@@ -107,10 +124,16 @@ jobs:
           TAG: ${{ needs.release-please.outputs.tag_name }}
           LABEL: ${{ matrix.label }}
           EXE: ${{ matrix.exe }}
+          TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
+          if [ -n "${TARGET}" ]; then
+            bindir="target/${TARGET}/release"
+          else
+            bindir="target/release"
+          fi
           archive="wb-runtime-${TAG}-${LABEL}.tar.gz"
-          tar -czf "$archive" -C target/release "wb-runtime${EXE}"
+          tar -czf "$archive" -C "$bindir" "wb-runtime${EXE}"
           shasum -a 256 "$archive" > "$archive.sha256"
           gh release upload "$TAG" "$archive" "$archive.sha256" --clobber
 
