@@ -618,6 +618,7 @@ Path: `scripts/wannabuild-doctor.sh`
 
 ### CLI flags / options observed
 
+- `--help`
 - `--manifest-path`
 - `--quiet`
 - `-F`
@@ -629,8 +630,7 @@ Path: `scripts/wannabuild-doctor.sh`
 - `-p`
 - `-q`
 - `-s`
-- `-t`
-- _2 more omitted._
+- _4 more omitted._
 
 ## `wannabuild-gate-check.sh`
 
