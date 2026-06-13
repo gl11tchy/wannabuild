@@ -593,6 +593,7 @@ Path: `scripts/validate-wannabuild-dry-runs.sh`
 - `-h`
 - `-p`
 - `-r`
+- `-u`
 - `-v`
 
 ## `wannabuild-doctor.sh`
