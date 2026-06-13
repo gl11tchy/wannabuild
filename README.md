@@ -9,7 +9,7 @@ Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 [![CI](https://github.com/gl11tchy/wannabuild/actions/workflows/ci.yml/badge.svg)](https://github.com/gl11tchy/wannabuild/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/gl11tchy/wannabuild/badge)](https://scorecard.dev/viewer/?uri=github.com/gl11tchy/wannabuild)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-![Specialists](https://img.shields.io/badge/specialists-21-blue?style=flat-square)
+![Specialists](https://img.shields.io/badge/specialists-25-blue?style=flat-square)
 ![Workflow](https://img.shields.io/badge/workflow-adaptive-0a7ea4?style=flat-square)
 ![Codex](https://img.shields.io/badge/codex-supported-111827?style=flat-square)
 ![Claude Code](https://img.shields.io/badge/claude--code-supported-5B21B6?style=flat-square)
@@ -435,8 +435,8 @@ These specialists power the framework under the hood:
 
 | Area | Specialists |
 |---|---|
-| Discovery | `wb-scope-analyst`, `wb-ux-perspective` |
-| Planning | `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator` |
+| Discovery | `wb-scope-analyst`, `wb-ux-perspective`, `wb-feasibility-analyst`, `wb-alternatives-analyst`, `wb-failure-forecast` |
+| Planning | `wb-plan-options`, `wb-tech-advisor`, `wb-architect`, `wb-risk-assessor`, `wb-task-decomposer`, `wb-dependency-mapper`, `wb-scope-validator` |
 | Implementation | `wb-implementer`, `wb-implementer-escalated` |
 | Review / QA | `wb-security-reviewer`, `wb-performance-reviewer`, `wb-architecture-reviewer`, `wb-testing-reviewer`, `wb-integration-tester`, `wb-code-simplifier` |
 | Handoff | `wb-pr-craftsman`, `wb-ci-guardian`, `wb-readme-updater`, `wb-api-doc-generator`, `wb-changelog-writer` |
