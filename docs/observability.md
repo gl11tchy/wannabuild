@@ -61,31 +61,16 @@ Both scripts ship with self-tests that exercise every public function.
 ### Supplementary docs
 
 - [`metrics.md`](metrics.md) — what each metric means, recommended SLOs.
-- [`distributed-tracing.md`](distributed-tracing.md) — span model, OTLP wiring.
-- [`error-tracking.md`](error-tracking.md) — `trap ERR` patterns, Sentry hook.
-- [`alerting.md`](alerting.md) — what to alert on for the framework's CI.
-- [`code-quality-metrics.md`](code-quality-metrics.md) — shellcheck/markdownlint/coverage trends.
-- [`deployment-observability.md`](deployment-observability.md) — releases as deploy events.
-- [`error-to-insight.md`](error-to-insight.md) — error → issue automation.
 
 ---
 
 ## Scope 2 — Target-project observability
 
 If you're a team using WannaBuild's orchestrator to build a real application,
-the docs below give you concrete patterns, not aspirational generalities. Each
-covers Node, Python, Go (where relevant), and the major SaaS backends.
-
-| Concern | Doc |
-|---|---|
-| Metrics taxonomy & instrumentation | [`metrics.md`](metrics.md) |
-| Distributed tracing & OpenTelemetry | [`distributed-tracing.md`](distributed-tracing.md) |
-| Error capture (Sentry, Bugsnag, …) | [`error-tracking.md`](error-tracking.md) |
-| Alerting policy & SLOs | [`alerting.md`](alerting.md) |
-| Product analytics | [`product-analytics.md`](product-analytics.md) |
-| Code quality metrics | [`code-quality-metrics.md`](code-quality-metrics.md) |
-| Deployment observability | [`deployment-observability.md`](deployment-observability.md) |
-| Error → insight pipeline | [`error-to-insight.md`](error-to-insight.md) |
+set up observability in that project the usual way — logs, metrics, traces,
+error capture. [`metrics.md`](metrics.md) covers the metrics taxonomy the
+framework itself emits; everything else belongs to the target project's own
+stack and is out of scope for this repo.
 
 ---
 
@@ -99,7 +84,6 @@ human reviewing it — a feedback loop:
 - Metrics tell it whether throughput, latency, or error rates moved.
 - Traces let it pinpoint which call path a regression came from.
 - Error tracking lets it see which exception classes spiked after a change.
-- Product analytics let it see whether anyone used the new feature.
 
 The contracts in WannaBuild's [`AGENTS.md`](../AGENTS.md) treat the integration
 tester as a hard gate, but real production signal is what catches the things
@@ -108,5 +92,5 @@ ship to production.
 
 ## Runbooks
 
-Operational runbooks live under [`runbooks/`](runbooks/). Start at
-[`observability-runbook.md`](observability-runbook.md) for the index.
+Operational runbooks live under [`runbooks/`](runbooks/). Each follows the
+same Symptom / Cause / Diagnose / Fix shape.
