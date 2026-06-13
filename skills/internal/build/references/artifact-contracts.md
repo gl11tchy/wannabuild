@@ -167,6 +167,25 @@ Each reviewer covers the entire changed surface, and its `summary` states what i
 - `test_execution` with `total`, `passed`, `failed`, `errored`, `duration_ms`
 - `coverage_map` with `criterion`, `test_file`, `test_name`, `status`
 
+## Runtime-recorded test evidence
+
+`.wannabuild/review/wb-integration-tester-iter-<N>.evidence.json` (schema:
+`schemas/test-evidence.schema.json`) is written ONLY by
+`wb-runtime record-test-evidence` (or `hooks/wannabuild-route.py
+record-test-evidence` on installs without the binary). The recorder executes
+`config.integration_test_command` itself and records the command, exit code,
+output SHA-256 (full output in the sidecar `.evidence.log`), timing, a hash of
+the current spec files, and an HMAC computed with a machine-local key stored
+outside the project tree (`~/.wannabuild/evidence.key`).
+
+`assert-review-ready` and `assert-qa-ready` accept an integration PASS only
+when the matching record verifies: valid HMAC, `exit_code == 0`, `spec_hash`
+equal to the current spec, and `command` equal to the current configured test
+command. Agents and orchestrators never write this file by hand; a hand-written
+or edited record fails verification. `WB_EVIDENCE_MODE=fixture` skips this
+verification for committed example fixtures only, and every fixture-mode pass
+is loudly labeled in gate output and events.
+
 ## `.wannabuild/checkpoints/*.md`
 
 Checkpoint files are evidence logs, not pure JSON.

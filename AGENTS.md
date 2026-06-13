@@ -56,7 +56,7 @@ and they override any softer wording elsewhere:
 
 1. **Discovery is mandatory and collaborative.** The grill fires on every task; research is proportionate but never zero; Plan is blocked until discovery produces a requirements brief with acceptance criteria.
 2. **Exhaust resources before declaring blocked; never silent-skip.** "Missing env"/"can't test" is grounds to obtain (run the app, spin a DB branch, drive a browser, read live docs) or to ask — never to skip. Every blocker requires a logged acquisition attempt.
-3. **Completeness; gates cannot be rationalized away.** The full reviewer set runs every iteration (no impacted-only, no fast-track); the integration tester is terminal with no override and PASS requires execution evidence.
+3. **Completeness; gates cannot be rationalized away.** The full reviewer set runs every iteration (no impacted-only, no fast-track); the integration tester is terminal with no override and PASS requires runtime-recorded execution evidence: the runtime executes the configured integration test command itself (`wb-runtime record-test-evidence`) and signs the record — a hand-written verdict cannot satisfy the gate.
 4. **Collaboration and determinism.** Hard-stop at every boundary for an explicit approval word; fixed pipeline with adaptive depth only, so the experience is identical every run.
 
 ## Skill-First Dispatch
@@ -84,7 +84,7 @@ and they override any softer wording elsewhere:
 | Plan | Produce a concrete plan, run bounded research when needed, verify architecture/direction, and generate N (default 3) adversarial plan options rendered to a self-contained HTML the user can open before choosing one. | Plan is actionable and internally consistent; the chosen plan is recorded. |
 | Implement | Choose an adaptive execution shape; execute with owned slices, checkpoints, and verification. | Planned slices are implemented with evidence. |
 | Validate | Run the full reviewer set, each covering the entire changed surface; fix all actionable findings autonomously, acquiring any resource a check needs. | `assert-review-ready` passes: every required reviewer PASS for the latest iteration. |
-| QA | Validate every acceptance criterion and integration behavior by executing real tests against real (acquired) resources. | `assert-qa-ready` passes: QA markers plus integration execution evidence. |
+| QA | Validate every acceptance criterion and integration behavior by executing real tests against real (acquired) resources, recording the integration run through the runtime (`wb-runtime record-test-evidence`). | `assert-qa-ready` passes: QA markers plus runtime-recorded, signature-verified integration execution evidence. |
 | Summary | Report changes, passed checks, risks, and remaining work. | Handoff summary is complete and honest. |
 
 ## Control Mode

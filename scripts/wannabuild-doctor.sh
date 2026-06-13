@@ -424,7 +424,7 @@ check_contains "docs/claude-code-getting-started.md" "/using-wannabuild" "Claude
 echo
 echo "Golden path validation"
 check_command "golden path artifacts validate" "$ROOT/scripts/validate-wannabuild-artifacts.sh" "$ROOT/docs/golden-path-demo" document || status=1
-check_command "golden path summary gate passes" "$ROOT/scripts/wannabuild-gate-check.sh" "$ROOT/docs/golden-path-demo" summary || status=1
+check_command "golden path summary gate passes (fixture evidence mode)" env WB_EVIDENCE_MODE=fixture "$ROOT/scripts/wannabuild-gate-check.sh" "$ROOT/docs/golden-path-demo" summary || status=1
 check_command "daily-use dry runs pass" "$ROOT/scripts/validate-wannabuild-dry-runs.sh" "$ROOT" || status=1
 check_command "contract prompts validate" bash "$ROOT/scripts/validate-contracts.sh" || status=1
 echo

@@ -48,9 +48,17 @@ Search the codebase for test files and build a coverage map pairing each accepta
 
 All of the above is safe, local, and reversible — do it without asking. Stop and ask only for billable, outward-facing, or destructive acquisition (paid cloud provisioning, deploys, production data, external sends), naming the specific resource and why. A blocker claim without a logged acquisition attempt is rejected by `assert-acquisition-attempted`. If the suite still cannot execute after every applicable step with recorded evidence, that is a FAIL — not a neutral "errored" outcome.
 
-### Step 4: Run the Test Suite
+### Step 4: Run the Test Suite Through the Runtime Recorder
 
-Execute the confirmed command from Step 0 yourself via Bash — never trust a reported result. Record the real command, its exit code, and its output: how many tests passed, failed, and errored or timed out (errors and timeouts are failures, not neutral data points), plus total execution time.
+Ensure `.wannabuild/config.json` carries the confirmed command from Step 0 as `integration_test_command` (set it if Plan did not), then execute the suite through the runtime recorder — never trust a reported result and never run-and-transcribe by hand:
+
+```bash
+wb-runtime record-test-evidence --project <project_root> --iteration <N>
+# or, where the binary is unavailable:
+python3 <hooks_dir>/wannabuild-route.py record-test-evidence --project <project_root> --iteration <N>
+```
+
+The recorder executes the command itself and writes the signed `.wannabuild/review/wb-integration-tester-iter-<N>.evidence.json` plus a full `.evidence.log`. The review and QA gates verify that record (signature, exit code, spec freshness, command match); a verdict without it fails both gates, so a PASS you did not record through the runtime is worthless. From the run, record how many tests passed, failed, and errored or timed out (errors and timeouts are failures, not neutral data points), plus total execution time, into `test_execution`.
 
 ### Step 5: Validate Test Quality
 

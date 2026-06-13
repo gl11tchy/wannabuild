@@ -5,7 +5,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ADAPTER="${ROOT}/adapters/factory"
 NAMESPACE="gl11tchy"
 PLUGIN="wannabuild"
-MARKETPLACE="${FACTORY_MARKETPLACE:-$(basename "$ROOT")}"
+# Canonical marketplace name (matches .factory-plugin/marketplace.json); the
+# checkout directory name is not reliable (clones/worktrees can be named anything).
+MARKETPLACE="${FACTORY_MARKETPLACE:-wannabuild}"
 
 # Resolve a usable Python interpreter once, up front, so we fail fast with an
 # actionable error instead of silently swallowing it inside a heredoc.
