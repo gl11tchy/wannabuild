@@ -197,6 +197,21 @@ pub fn verify_integration_evidence(project_root: &Path, iteration: u64) -> Resul
         ));
     }
 
+    // The HMAC covers the payload, not the filename. Without binding the signed
+    // `iteration` to the iteration being gated, a valid older-iteration record
+    // copied to a newer iteration's filename would pass — defeating the freshness
+    // guarantee (a reran loop must produce a fresh record). Reject the mismatch.
+    let recorded_iteration = payload.get("iteration").and_then(Value::as_u64);
+    if recorded_iteration != Some(iteration) {
+        return Err(RuntimeError::message(format!(
+            "integration evidence iteration mismatch: the record is for iteration {} but the gate \
+             is checking iteration {iteration}; rerun `wb-runtime record-test-evidence` for iteration {iteration}",
+            recorded_iteration
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "<unset>".to_string())
+        )));
+    }
+
     let exit_code = payload.get("exit_code").and_then(Value::as_i64).unwrap_or(-1);
     if exit_code != 0 {
         return Err(RuntimeError::message(format!(
@@ -327,8 +342,17 @@ fn load_or_create_key() -> Result<Vec<u8>> {
         .map_err(|error| RuntimeError::message(format!("cannot generate evidence key: {error}")))?;
     let encoded = hex(&bytes);
     // create_new makes first-writer-wins explicit: a concurrent creator loses the
-    // race and loads the winner's key instead of clobbering it.
-    match fs::OpenOptions::new().write(true).create_new(true).open(&path) {
+    // race and loads the winner's key instead of clobbering it. On Unix the file is
+    // created 0o600 so the key is never briefly world-readable between create and
+    // chmod (matching the Python mirror's O_EXCL, 0o600).
+    let mut options = fs::OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    match options.open(&path) {
         Ok(mut file) => {
             file.write_all(encoded.as_bytes())?;
             #[cfg(unix)]
@@ -369,7 +393,10 @@ fn spec_hash(project_root: &Path) -> Result<String> {
         if path.is_file() {
             let body = fs::read(&path)?;
             hasher.update(name.as_bytes());
-            hasher.update(body.len().to_le_bytes());
+            // Pin the length to 8-byte LE on every target (usize is 4 bytes on
+            // 32-bit), matching the Python mirror's len(body).to_bytes(8, "little")
+            // so the cross-implementation canonical form never diverges by target.
+            hasher.update((body.len() as u64).to_le_bytes());
             hasher.update(&body);
         }
     }
@@ -449,6 +476,24 @@ mod tests {
     }
 
     #[test]
+    fn verify_rejects_record_copied_to_other_iteration() {
+        // A valid iteration-1 record copied onto the iteration-2 filename must not
+        // pass the iteration-2 gate. The HMAC covers the payload, not the path, so
+        // the signed `iteration` field is what binds a record to the run that made
+        // it; a reran loop must produce a fresh record, not reuse an old one.
+        let dir = tempdir().unwrap();
+        write_project(dir.path(), "true");
+        record_test_evidence(dir.path(), Some(1)).unwrap();
+
+        fs::copy(evidence_path(dir.path(), 1), evidence_path(dir.path(), 2)).unwrap();
+
+        let err = verify_integration_evidence(dir.path(), 2)
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("iteration mismatch"), "got: {err}");
+    }
+
+    #[test]
     fn verify_fails_on_tampered_record() {
         let dir = tempdir().unwrap();
         write_project(dir.path(), "true");
@@ -497,11 +542,11 @@ mod tests {
 
     #[test]
     fn non_ascii_command_round_trips() {
-        // Locks the canonical-form contract: the signed payload must hold the
-        // command as literal UTF-8 (matching the Python mirror's
-        // ensure_ascii=False), not \u-escaped. If serde or the mirror ever
-        // diverge on escaping, cross-implementation verification breaks and
-        // this test catches it.
+        // Locks Rust's literal-UTF-8 canonical encoding (matching the Python
+        // mirror's ensure_ascii=False): the signed payload holds the command as
+        // literal UTF-8, not \u-escaped. This guards the Rust side only; actual
+        // cross-process parity with the Python mirror is exercised by the
+        // cross-impl test in tests/integration/test_runtime_flow.bats.
         let dir = tempdir().unwrap();
         write_project(dir.path(), "true # café 日本語");
 

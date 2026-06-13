@@ -532,6 +532,10 @@ def _integration_evidence_ok(project_root: Path, iteration: int) -> bool:
     expected = _evidence_hmac(key, payload)
     if not hmac_lib.compare_digest(recorded_mac, expected):
         return False
+    # The HMAC covers the payload, not the filename: bind the signed iteration to
+    # the gated one so an older record copied to a newer iteration's path fails.
+    if payload.get("iteration") != iteration:
+        return False
     if payload.get("exit_code") != 0:
         return False
     if payload.get("spec_hash") != _spec_hash(project_root):
@@ -582,7 +586,9 @@ def record_test_evidence(project_root: Path, iteration: Optional[int]) -> tuple[
         "agent": _INTEGRATION_TESTER,
         "command": command,
         "duration_ms": duration_ms,
-        "exit_code": completed.returncode,
+        # Match evidence.rs: a signal-killed command has no exit code there
+        # (status.code() is None -> -1); Python reports -signum, so normalize.
+        "exit_code": completed.returncode if completed.returncode >= 0 else -1,
         "finished_at": finished_at,
         "iteration": iteration,
         "output_bytes": len(combined),
@@ -1220,6 +1226,12 @@ def cli_main(argv: list[str]) -> int:
         return 0
 
     iteration = args.iteration if args.iteration is not None else _current_iteration(project_root)
+    if _evidence_fixture_mode():
+        print(
+            f"FIXTURE MODE: integration evidence verification skipped "
+            f"({_EVIDENCE_FIXTURE_ENV}=fixture)"
+        )
+        return 0
     if _integration_evidence_ok(project_root, iteration):
         print(f"runtime-recorded integration evidence verified (iteration {iteration})")
         return 0

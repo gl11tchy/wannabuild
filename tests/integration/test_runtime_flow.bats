@@ -258,6 +258,40 @@ TASKS
   [[ "$output" == *"Summary gate OK"* ]]
 }
 
+@test "runtime_flow: evidence verifies cross-implementation (rust<->python) and resists iteration rebinding" {
+  local hook="$REPO_ROOT/hooks/wannabuild-route.py"
+  export WB_EVIDENCE_KEY_FILE="$BATS_TEST_TMPDIR/evidence.key"
+  # Non-ASCII + special chars stress the shared canonical signing form
+  # (sorted keys, compact separators, ensure_ascii=False) across serde_json
+  # and Python json — the load-bearing parity invariant for binary-less hosts.
+  write_integration_config "$TARGET" 'true # café 日本語 a/b'
+  write_spec "$TARGET" requirements.md "# Requirements\n\n## Acceptance Criteria\n\n- works\n"
+
+  # Direction A: the binary records, the Python hook mirror verifies.
+  run "$WB_RUNTIME_BIN" record-test-evidence --project "$TARGET" --iteration 5
+  [ "$status" -eq 0 ]
+  run python3 "$hook" verify-test-evidence --project "$TARGET" --iteration 5
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"verified (iteration 5)"* ]]
+
+  # Direction B: the Python hook records, the binary verifies (same key file).
+  run python3 "$hook" record-test-evidence --project "$TARGET" --iteration 6
+  [ "$status" -eq 0 ]
+  run "$WB_RUNTIME_BIN" verify-test-evidence --project "$TARGET" --iteration 6
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"verified (iteration 6)"* ]]
+
+  # A valid record copied onto another iteration's filename must fail both
+  # verifiers: the signed iteration binds a record to the run that produced it.
+  cp "$TARGET/.wannabuild/review/wb-integration-tester-iter-5.evidence.json" \
+    "$TARGET/.wannabuild/review/wb-integration-tester-iter-7.evidence.json"
+  run "$WB_RUNTIME_BIN" verify-test-evidence --project "$TARGET" --iteration 7
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"iteration mismatch"* ]]
+  run python3 "$hook" verify-test-evidence --project "$TARGET" --iteration 7
+  [ "$status" -ne 0 ]
+}
+
 @test "runtime_flow: adapter context is equivalent across hosts" {
   run "$WB_RUNTIME_BIN" init --project "$TARGET"
   [ "$status" -eq 0 ]
