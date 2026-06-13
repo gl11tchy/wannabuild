@@ -51,6 +51,25 @@ fn write_reviews(project: &Path, status: &str) {
     }
 }
 
+/// Records real runtime evidence for iteration 1 the way a live workflow does:
+/// the runtime executes the configured integration test command itself.
+fn record_evidence(project: &Path) {
+    write(
+        project.join(".wannabuild/config.json"),
+        r#"{"integration_test_command": "true"}"#,
+    );
+    wb_runtime()
+        .args([
+            "record-test-evidence",
+            "--project",
+            &project_arg(project),
+            "--iteration",
+            "1",
+        ])
+        .assert()
+        .success();
+}
+
 fn write_discovery_ready(project: &Path) {
     write(
         project.join(".wannabuild/outputs/discovery/feasibility.md"),
@@ -742,6 +761,16 @@ fn review_qa_and_summary_gates_block_missing_or_failing_evidence() {
             .join(".wannabuild/review/wb-security-reviewer-iter-0.json"),
         r#"{"agent":"wb-security-reviewer","status":"FAIL","summary":"old","issues":[]}"#,
     );
+    // All verdicts PASS, but the runtime never recorded a test run: forged
+    // evidence must not satisfy the review gate.
+    let forged_only = wb_runtime()
+        .args(["assert-review-ready", "--project", &project_arg(dir.path())])
+        .output()
+        .unwrap();
+    assert!(!forged_only.status.success());
+    assert!(output_text(forged_only).contains("no runtime-recorded execution evidence"));
+
+    record_evidence(dir.path());
     wb_runtime()
         .args(["assert-review-ready", "--project", &project_arg(dir.path())])
         .assert()
@@ -838,6 +867,7 @@ fn qa_gate_accepts_structured_summary_without_event() {
         "# QA\n\nverdict: PASS\nacceptance criteria: verified\nintegration behavior: verified\n",
     );
     write_reviews(dir.path(), "PASS");
+    record_evidence(dir.path());
 
     wb_runtime()
         .args(["assert-qa-ready", "--project", &project_arg(dir.path())])

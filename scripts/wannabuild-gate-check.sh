@@ -51,6 +51,20 @@ run_runtime_gate() {
     return
   fi
 
+  # Prefer the binary built from this checkout: the script and the runtime it
+  # dispatches to must agree on gate semantics. An older binary installed on
+  # PATH or under ~/.codex/bin must not silently weaken the gates.
+  for runtime_bin in \
+    "$repo_root/target/release/wb-runtime" \
+    "$repo_root/target/release/wb-runtime.exe" \
+    "$repo_root/target/debug/wb-runtime" \
+    "$repo_root/target/debug/wb-runtime.exe"; do
+    if [[ -x "$runtime_bin" ]]; then
+      "$runtime_bin" "$runtime_command" --project "$project_root"
+      return
+    fi
+  done
+
   if runtime_bin="$(command -v wb-runtime 2>/dev/null)"; then
     "$runtime_bin" "$runtime_command" --project "$project_root"
     return
@@ -58,16 +72,6 @@ run_runtime_gate() {
 
   if runtime_bin="$(codex_runtime_bin)"; then
     "$runtime_bin" "$runtime_command" --project "$project_root"
-    return
-  fi
-
-  if [[ -x "$repo_root/target/debug/wb-runtime" ]]; then
-    "$repo_root/target/debug/wb-runtime" "$runtime_command" --project "$project_root"
-    return
-  fi
-
-  if [[ -x "$repo_root/target/debug/wb-runtime.exe" ]]; then
-    "$repo_root/target/debug/wb-runtime.exe" "$runtime_command" --project "$project_root"
     return
   fi
 

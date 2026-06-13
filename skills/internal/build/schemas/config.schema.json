@@ -118,6 +118,11 @@
     "plan_adversarial_auto_open": {
       "type": "boolean",
       "default": true
+    },
+    "integration_test_command": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Shell command the runtime executes itself via `wb-runtime record-test-evidence` to produce signed integration evidence. Set during Plan. Review and QA gates reject integration PASS verdicts that lack a matching runtime-recorded record."
     }
   }
 }

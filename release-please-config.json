@@ -35,6 +35,11 @@
           "type": "json",
           "path": "adapters/factory/.factory-plugin/plugin.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": ".cursor-plugin/plugin.json",
+          "jsonpath": "$.version"
         }
       ]
     }

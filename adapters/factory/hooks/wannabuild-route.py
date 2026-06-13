@@ -8,12 +8,16 @@ reinjects active workflow state so agents do not skip required phases.
 
 from __future__ import annotations
 
+import hashlib
+import hmac as hmac_lib
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -322,7 +326,12 @@ def _file_verdicts(project_root: Path) -> Optional[dict[str, str]]:
     review_dir = project_root / ".wannabuild" / "review"
     if not review_dir.is_dir():
         return None
-    files = sorted(p for p in review_dir.iterdir() if p.suffix == ".json")
+    # Runtime-recorded *.evidence.json records are not reviewer verdicts.
+    files = sorted(
+        p
+        for p in review_dir.iterdir()
+        if p.suffix == ".json" and not p.name.endswith(".evidence.json")
+    )
     if not files:
         return None
     best: dict[str, tuple[tuple[int, str, str], str]] = {}
@@ -373,9 +382,227 @@ def review_ready(state: dict[str, Any], project_root: Path) -> bool:
             verdicts.setdefault(agent, status)
     if any(agent not in verdicts for agent in required):
         return False
-    return all(
+    if not all(
         verdicts[agent].upper() == "PASS" for agent in required if agent in verdicts
+    ):
+        return False
+    # A PASS from the integration tester only counts with a runtime-recorded,
+    # HMAC-verified execution record for the latest iteration.
+    return _integration_evidence_ok(project_root, _current_iteration(project_root))
+
+
+# --- Runtime-recorded integration evidence (mirror of crates/wb-runtime/src/evidence.rs) ---
+#
+# A PASS verdict from the integration tester only counts when the runtime (or
+# this recorder, on binary-less installs) executed the configured integration
+# test command itself and signed the record with the machine-local key kept
+# outside the project tree. Hand-written verdict JSON cannot satisfy the gate.
+
+_EVIDENCE_FIXTURE_ENV = "WB_EVIDENCE_MODE"
+_EVIDENCE_KEY_ENV = "WB_EVIDENCE_KEY_FILE"
+_SPEC_FILES = ("requirements.md", "design.md", "tasks.md")
+
+
+def _evidence_fixture_mode() -> bool:
+    return os.environ.get(_EVIDENCE_FIXTURE_ENV) == "fixture"
+
+
+def _evidence_key_path() -> Optional[Path]:
+    override = os.environ.get(_EVIDENCE_KEY_ENV, "").strip()
+    if override:
+        return Path(override)
+    home = os.environ.get("HOME") or os.environ.get("USERPROFILE")
+    if not home:
+        return None
+    return Path(home) / ".wannabuild" / "evidence.key"
+
+
+def _load_evidence_key() -> Optional[bytes]:
+    path = _evidence_key_path()
+    if path is None or not path.is_file():
+        return None
+    try:
+        key = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    return key.encode("utf-8") if key else None
+
+
+def _load_or_create_evidence_key() -> bytes:
+    path = _evidence_key_path()
+    if path is None:
+        raise RuntimeError(
+            "cannot locate the evidence key: HOME is unset and "
+            f"{_EVIDENCE_KEY_ENV} is not provided"
+        )
+    existing = _load_evidence_key()
+    if existing is not None:
+        return existing
+    path.parent.mkdir(parents=True, exist_ok=True)
+    encoded = secrets.token_hex(32)
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        key = _load_evidence_key()
+        if key is None:
+            raise RuntimeError(f"evidence key at {path} is empty")
+        return key
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(encoded)
+    return encoded.encode("utf-8")
+
+
+def _spec_hash(project_root: Path) -> str:
+    # Byte-for-byte mirror of evidence.rs::spec_hash: name, 8-byte LE length, body.
+    hasher = hashlib.sha256()
+    for name in _SPEC_FILES:
+        path = project_root / ".wannabuild" / "spec" / name
+        if path.is_file():
+            try:
+                body = path.read_bytes()
+            except OSError:
+                continue
+            hasher.update(name.encode("utf-8"))
+            hasher.update(len(body).to_bytes(8, "little"))
+            hasher.update(body)
+    return hasher.hexdigest()
+
+
+def _canonical_evidence_json(payload: dict[str, Any]) -> str:
+    # Matches serde_json's compact output over a BTreeMap: sorted keys, no
+    # spaces, non-ASCII left unescaped.
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _evidence_hmac(key: bytes, payload: dict[str, Any]) -> str:
+    return hmac_lib.new(
+        key, _canonical_evidence_json(payload).encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
+def _evidence_path(project_root: Path, iteration: int) -> Path:
+    return (
+        project_root
+        / ".wannabuild"
+        / "review"
+        / f"{_INTEGRATION_TESTER}-iter-{iteration}.evidence.json"
     )
+
+
+def _configured_test_command(project_root: Path) -> Optional[str]:
+    config = _read_json_file(project_root / ".wannabuild" / "config.json")
+    if not isinstance(config, dict):
+        return None
+    command = config.get("integration_test_command")
+    if isinstance(command, str) and command.strip():
+        return command.strip()
+    return None
+
+
+def _current_iteration(project_root: Path) -> int:
+    latest = 0
+    loop_latest = _latest_loop_iteration(project_root)
+    if isinstance(loop_latest, dict):
+        value = loop_latest.get("iteration")
+        if isinstance(value, int):
+            latest = max(latest, value)
+    review_dir = project_root / ".wannabuild" / "review"
+    if review_dir.is_dir():
+        try:
+            for path in review_dir.iterdir():
+                latest = max(latest, _iteration_from_path(path))
+        except OSError:
+            pass
+    return max(latest, 1)
+
+
+def _integration_evidence_ok(project_root: Path, iteration: int) -> bool:
+    """Mirror of evidence.rs::verify_integration_evidence, as a boolean."""
+    if _evidence_fixture_mode():
+        return True
+    payload = _read_json_file(_evidence_path(project_root, iteration))
+    if not isinstance(payload, dict):
+        return False
+    recorded_mac = payload.pop("hmac", None)
+    if not isinstance(recorded_mac, str):
+        return False
+    key = _load_evidence_key()
+    if key is None:
+        return False
+    expected = _evidence_hmac(key, payload)
+    if not hmac_lib.compare_digest(recorded_mac, expected):
+        return False
+    if payload.get("exit_code") != 0:
+        return False
+    if payload.get("spec_hash") != _spec_hash(project_root):
+        return False
+    command = _configured_test_command(project_root)
+    if command is None or payload.get("command") != command:
+        return False
+    return True
+
+
+def record_test_evidence(project_root: Path, iteration: Optional[int]) -> tuple[Path, int]:
+    """Runs the configured integration test command and writes a signed record.
+
+    Recorder for installs without the wb-runtime binary; produces the same
+    evidence format evidence.rs records and both gate mirrors verify. Returns
+    (evidence_path, exit_code). The full output goes to a sidecar .evidence.log
+    so secrets in test output never land in the structured artifact.
+    """
+    command = _configured_test_command(project_root)
+    if command is None:
+        raise RuntimeError(
+            "integration_test_command is not set in .wannabuild/config.json; "
+            "set it during Plan so the runtime can execute and record the integration run"
+        )
+    if iteration is None:
+        iteration = _current_iteration(project_root)
+    if iteration < 1:
+        raise RuntimeError("iteration must be >= 1")
+
+    started_at = _utc_now_rfc3339()
+    timer = time.monotonic()
+    if os.name == "nt":
+        argv = ["cmd", "/C", command]
+    else:
+        argv = ["sh", "-c", command]
+    completed = subprocess.run(
+        argv, cwd=project_root, capture_output=True, check=False
+    )
+    duration_ms = int((time.monotonic() - timer) * 1000)
+    finished_at = _utc_now_rfc3339()
+    combined = completed.stdout + completed.stderr
+
+    evidence_file = _evidence_path(project_root, iteration)
+    evidence_file.parent.mkdir(parents=True, exist_ok=True)
+    evidence_file.with_suffix(".log").write_bytes(combined)
+
+    payload: dict[str, Any] = {
+        "agent": _INTEGRATION_TESTER,
+        "command": command,
+        "duration_ms": duration_ms,
+        "exit_code": completed.returncode,
+        "finished_at": finished_at,
+        "iteration": iteration,
+        "output_bytes": len(combined),
+        "output_sha256": hashlib.sha256(combined).hexdigest(),
+        "recorder": "wannabuild-hook/1",
+        "spec_hash": _spec_hash(project_root),
+        "started_at": started_at,
+    }
+    payload["hmac"] = _evidence_hmac(_load_or_create_evidence_key(), payload)
+    temp = evidence_file.with_name(f".{evidence_file.name}.tmp.{os.getpid()}")
+    temp.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    temp.replace(evidence_file)
+    return evidence_file, completed.returncode
+
+
+def _utc_now_rfc3339() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
 def _is_failure_status(status: str) -> bool:
@@ -514,7 +741,9 @@ def qa_ready(state: dict[str, Any], project_root: Path) -> bool:
     try:
         if _qa_failed(state, project_root, qa_summary):
             return False
-        return _qa_has_pass_evidence(qa_summary)
+        if not _qa_has_pass_evidence(qa_summary):
+            return False
+        return _integration_evidence_ok(project_root, _current_iteration(project_root))
     except (OSError, ValueError):
         return False
 
@@ -959,7 +1188,52 @@ def emit(event_name: str, context: str) -> None:
     )
 
 
+def cli_main(argv: list[str]) -> int:
+    """Evidence subcommands for installs without the wb-runtime binary.
+
+    Usage:
+      wannabuild-route.py record-test-evidence --project <root> [--iteration N]
+      wannabuild-route.py verify-test-evidence --project <root> [--iteration N]
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="wannabuild-route.py")
+    parser.add_argument("command", choices=["record-test-evidence", "verify-test-evidence"])
+    parser.add_argument("--project", default=".")
+    parser.add_argument("--iteration", type=int, default=None)
+    args = parser.parse_args(argv)
+    project_root = Path(args.project).resolve()
+
+    if args.command == "record-test-evidence":
+        try:
+            path, exit_code = record_test_evidence(project_root, args.iteration)
+        except RuntimeError as error:
+            print(str(error), file=sys.stderr)
+            return 1
+        print(f"Recorded integration evidence: {path} (exit {exit_code})")
+        if exit_code != 0:
+            print(
+                f"integration test command failed (exit {exit_code}); evidence recorded",
+                file=sys.stderr,
+            )
+            return 1
+        return 0
+
+    iteration = args.iteration if args.iteration is not None else _current_iteration(project_root)
+    if _integration_evidence_ok(project_root, iteration):
+        print(f"runtime-recorded integration evidence verified (iteration {iteration})")
+        return 0
+    print(
+        f"integration evidence missing, tampered, stale, or failing for iteration {iteration}",
+        file=sys.stderr,
+    )
+    return 1
+
+
 def main() -> int:
+    if len(sys.argv) > 1:
+        return cli_main(sys.argv[1:])
+
     event = load_event()
     event_name = str(event.get("hook_event_name") or event.get("hookEventName") or "")
 

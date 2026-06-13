@@ -86,4 +86,3 @@ For a CI outage worth a post-mortem:
 
 - [`../ci.md`](../ci.md) — CI job map.
 - [`../build.md`](../build.md) — local commands.
-- [`../alerting.md`](../alerting.md) — alert configuration.

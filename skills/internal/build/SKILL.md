@@ -162,7 +162,7 @@ Loop semantics:
 
 There is no "ship with known issues" auto-override. A specific known non-blocking issue may only be accepted by an explicit, itemized user decision — and never for an integration or hard-gate failure, which is terminal.
 
-Verdict schema: `schemas/review-verdict.schema.json` — required fields: agent, status (PASS|FAIL), issues[], summary; the integration tester additionally requires hard_gate:true, test_execution{}, coverage_map[]. Loop state: `schemas/loop-state.schema.json` and `references/loop-state.md`.
+Verdict schema: `schemas/review-verdict.schema.json` — required fields: agent, status (PASS|FAIL), issues[], summary; the integration tester additionally requires hard_gate:true, test_execution{}, coverage_map[]. Loop state: `schemas/loop-state.schema.json` and `references/loop-state.md`. Evidence record: `schemas/test-evidence.schema.json` and `references/artifact-contracts.md`.
 
 Reviewer context policy: security/architecture/performance/testing/code-simplifier get diff summary + touched files + relevant spec excerpts; the integration tester gets full acceptance criteria + test files + command output summaries.
 
@@ -170,6 +170,7 @@ Reviewer context policy: security/architecture/performance/testing/code-simplifi
 
 - **Its FAIL is terminal** — it blocks shipping and cannot be overridden at any escalation level. If it still fails at max iterations, the loop stays blocked until the tests pass or the user changes scope.
 - **Its PASS is valid only with execution evidence:** `test_execution` proving tests actually ran (`total > 0`, `failed == 0`, `errored == 0`) and a `coverage_map` in which every acceptance criterion is `covered`. "Status: PASS" with zero tests executed is a FAIL — `assert-qa-ready` reads the evidence, not the marker.
+- **The execution evidence is runtime-recorded, not self-reported.** The suite run that backs the verdict goes through `wb-runtime record-test-evidence` (or `hooks/wannabuild-route.py record-test-evidence` where the binary is unavailable), which executes `config.integration_test_command` itself and writes a signed `.wannabuild/review/wb-integration-tester-iter-<N>.evidence.json`. `assert-review-ready` and `assert-qa-ready` verify the record's signature, exit code, freshness against the current spec, and command match — a verdict without a verifiable record fails both gates.
 - It executes the real test suite against real, acquired resources, and maps every acceptance criterion to an actual test file. A missing test for ANY acceptance criterion is an automatic FAIL.
 
 ## Critical Rule: Role Separation

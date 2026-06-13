@@ -90,6 +90,8 @@ SH
                wb-integration-tester wb-code-simplifier; do
     write_review_verdict "$TARGET" "$agent" pass
   done
+  write_integration_config "$TARGET"
+  record_integration_evidence "$TARGET" 1
   run_script wannabuild-gate-check.sh "$TARGET" review
   [ "$status" -eq 0 ]
   [[ "$output" == *"Review gate OK"* ]]
@@ -119,6 +121,9 @@ JSON
 {"agent":"${agent}","status":"PASS","summary":"fixed","issues":[]}
 JSON
   done
+  # The latest iteration is 2, so the runtime-recorded evidence must match it.
+  write_integration_config "$TARGET"
+  record_integration_evidence "$TARGET" 2
 
   run_script wannabuild-gate-check.sh "$TARGET" review
   [ "$status" -eq 0 ]
@@ -150,6 +155,8 @@ JSON
   cat > "$TARGET/.wannabuild/review/wb-integration-tester-iter-1.json" <<'JSON'
 {"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":4,"passed":4,"failed":0,"errored":0,"duration_ms":80},"coverage_map":[{"criterion":"acceptance","status":"covered"}]}
 JSON
+  write_integration_config "$TARGET"
+  record_integration_evidence "$TARGET" 1
   run_script wannabuild-gate-check.sh "$TARGET" qa
   [ "$status" -eq 0 ]
   [[ "$output" == *"Qa gate OK"* ]]
@@ -185,6 +192,8 @@ JSONL
                wb-integration-tester wb-code-simplifier; do
     write_review_verdict "$TARGET" "$agent" pass
   done
+  write_integration_config "$TARGET"
+  record_integration_evidence "$TARGET" 1
   mkdir -p "$TARGET/.wannabuild/outputs"
   {
     printf '# QA summary\n\n'
@@ -195,4 +204,48 @@ JSONL
   run_script wannabuild-gate-check.sh "$TARGET" summary
   [ "$status" -eq 0 ]
   [[ "$output" == *"Summary gate OK"* ]]
+}
+
+# Red-team: a full set of hand-written PASS verdicts is exactly the shortcut
+# a lazy orchestrating model would take. With no runtime-recorded execution
+# evidence behind the integration PASS, the review gate must fail closed.
+@test "gate_check: review gate blocks forged verdicts without runtime evidence" {
+  export WB_EVIDENCE_KEY_FILE="$BATS_TEST_TMPDIR/evidence.key"
+  for agent in wb-security-reviewer wb-performance-reviewer \
+               wb-architecture-reviewer wb-testing-reviewer \
+               wb-integration-tester wb-code-simplifier; do
+    write_review_verdict "$TARGET" "$agent" pass
+  done
+  run_script wannabuild-gate-check.sh "$TARGET" review
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"no runtime-recorded execution evidence"* ]]
+}
+
+# Red-team: legitimately recorded evidence that is edited after signing (one
+# field flipped, not re-signed) must fail HMAC verification at the QA gate.
+@test "gate_check: qa gate blocks tampered evidence" {
+  mkdir -p "$TARGET/.wannabuild/outputs"
+  {
+    printf '# QA summary\n\n'
+    printf 'status: PASS\n'
+    printf 'acceptance_coverage: covered\n'
+    printf 'integration_coverage: covered\n'
+  } > "$TARGET/.wannabuild/outputs/qa-summary.md"
+  cat > "$TARGET/.wannabuild/review/wb-integration-tester-iter-1.json" <<'JSON'
+{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":4,"passed":4,"failed":0,"errored":0,"duration_ms":80},"coverage_map":[{"criterion":"acceptance","status":"covered"}]}
+JSON
+  write_integration_config "$TARGET"
+  record_integration_evidence "$TARGET" 1
+  python3 - "$TARGET/.wannabuild/review/wb-integration-tester-iter-1.evidence.json" <<'PY'
+import json, sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+record = json.loads(path.read_text(encoding="utf-8"))
+record["duration_ms"] = int(record.get("duration_ms", 0)) + 12345
+path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+PY
+  run_script wannabuild-gate-check.sh "$TARGET" qa
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"HMAC mismatch"* ]]
 }

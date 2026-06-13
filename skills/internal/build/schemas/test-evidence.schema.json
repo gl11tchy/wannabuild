@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WannaBuild runtime-recorded integration test evidence",
+  "description": "Written only by `wb-runtime record-test-evidence` (or the hook recorder on binary-less installs), which executes config.integration_test_command itself. Gates verify the hmac with the machine-local key outside the project tree; a record that fails verification, recorded a non-zero exit, predates the current spec, or names a different command fails assert-review-ready and assert-qa-ready.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent",
+    "command",
+    "duration_ms",
+    "exit_code",
+    "finished_at",
+    "hmac",
+    "iteration",
+    "output_bytes",
+    "output_sha256",
+    "recorder",
+    "spec_hash",
+    "started_at"
+  ],
+  "properties": {
+    "agent": {
+      "const": "wb-integration-tester"
+    },
+    "command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exit_code": {
+      "type": "integer"
+    },
+    "finished_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hmac": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "output_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "output_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "recorder": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spec_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "started_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

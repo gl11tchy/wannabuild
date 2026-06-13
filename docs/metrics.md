@@ -214,6 +214,3 @@ giving CI runners credentials to your metrics backend.
 ## Cross-references
 
 - [`observability.md`](observability.md) — overview.
-- [`alerting.md`](alerting.md) — alerts that consume these metrics.
-- [`distributed-tracing.md`](distributed-tracing.md) — paired with metrics.
-- [`code-quality-metrics.md`](code-quality-metrics.md) — quality-specific metrics.

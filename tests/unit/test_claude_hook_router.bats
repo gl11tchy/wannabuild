@@ -341,11 +341,35 @@ JSON
   cat >"$target/.wannabuild/loop-state.json" <<'JSON'
 { "iterations": [ { "iteration": 1, "active_reviewers": ["wb-security-reviewer"], "verdicts": { "wb-security-reviewer": {"agent": "wb-security-reviewer", "status": "PASS"}, "wb-integration-tester": {"agent": "wb-integration-tester", "status": "PASS"} } } ] }
 JSON
+  # The integration PASS only counts with runtime-recorded execution evidence;
+  # produce it with the hook's own recorder (the degraded path under test).
+  write_integration_config "$target"
+  export WB_EVIDENCE_KEY_FILE="$BATS_TEST_TMPDIR/evidence.key"
+  python3 "$REPO_ROOT/hooks/wannabuild-route.py" record-test-evidence \
+    --project "$target" --iteration 1 >/dev/null
   fallback_gate "$target" review_ready
   [ "$status" -eq 0 ]
   [[ "$output" == "True" ]]
   fallback_gate "$target" at_phase_boundary
   [[ "$output" == "True" ]]
+}
+
+# Red-team: the same forged loop-state full of hand-written PASS verdicts,
+# but with no runtime-recorded execution evidence behind the integration
+# tester's PASS — the degraded-path mirror must refuse to call review ready.
+@test "fallback: forged verdicts without runtime evidence keep review_ready False" {
+  target="$(setup_tmpdir)/proj"
+  mkdir -p "$target/.wannabuild/review"
+  export WB_EVIDENCE_KEY_FILE="$BATS_TEST_TMPDIR/evidence.key"
+  cat >"$target/.wannabuild/state.json" <<'JSON'
+{ "public_stage": "review", "phase_status": "complete", "control_mode": "guided", "workflow_status": "in_progress" }
+JSON
+  cat >"$target/.wannabuild/loop-state.json" <<'JSON'
+{ "iterations": [ { "iteration": 1, "active_reviewers": ["wb-security-reviewer"], "verdicts": { "wb-security-reviewer": {"agent": "wb-security-reviewer", "status": "PASS"}, "wb-integration-tester": {"agent": "wb-integration-tester", "status": "PASS"} } } ] }
+JSON
+  fallback_gate "$target" review_ready
+  [ "$status" -eq 0 ]
+  [[ "$output" == "False" ]]
 }
 
 @test "fallback: review boundary does not pause when a required verdict fails" {
@@ -369,6 +393,11 @@ JSON
 { "public_stage": "qa", "phase_status": "complete", "control_mode": "guided", "workflow_status": "in_progress" }
 JSON
   printf -- '- Status: PASS\n- Acceptance criteria: covered\n- Integration behavior: verified\n' >"$target/.wannabuild/outputs/qa-summary.md"
+  # QA readiness also requires runtime-recorded integration evidence.
+  write_integration_config "$target"
+  export WB_EVIDENCE_KEY_FILE="$BATS_TEST_TMPDIR/evidence.key"
+  python3 "$REPO_ROOT/hooks/wannabuild-route.py" record-test-evidence \
+    --project "$target" --iteration 1 >/dev/null
   fallback_gate "$target" qa_ready
   [ "$status" -eq 0 ]
   [[ "$output" == "True" ]]

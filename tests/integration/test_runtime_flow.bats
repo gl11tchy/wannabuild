@@ -216,6 +216,10 @@ TASKS
   [[ "$output" == *"Non-passing review verdicts"* ]]
 
   write_all_review_verdicts PASS
+  # A PASS from the integration tester only counts with runtime-recorded,
+  # HMAC-signed execution evidence for the latest iteration.
+  write_integration_config "$TARGET"
+  record_integration_evidence "$TARGET" 1
   rm "$TARGET/.wannabuild/outputs/qa-summary.md"
   run "$WB_RUNTIME_BIN" assert-summary-ready --project "$TARGET"
   [ "$status" -ne 0 ]
