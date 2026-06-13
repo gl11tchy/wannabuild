@@ -43,6 +43,28 @@ pub fn ensure_runtime_layout(project_root: &Path) -> Result<()> {
         .create(true)
         .append(true)
         .open(root.join("runtime.db"))?;
+    ensure_runtime_gitignore(&root)?;
+    Ok(())
+}
+
+// Evidence logs hold raw integration-test output, which can contain secrets;
+// the local runtime DB and lock are machine-specific. Write a .gitignore into
+// .wannabuild/ so a target project never commits them by accident. Only
+// created once and never overwritten, so a project can customize it.
+fn ensure_runtime_gitignore(wb_root: &Path) -> Result<()> {
+    let path = wb_root.join(".gitignore");
+    if path.exists() {
+        return Ok(());
+    }
+    fs::write(
+        &path,
+        "# Machine-local runtime state and raw evidence logs (may contain secrets).\n\
+         # Spec, verdicts, and signed evidence records are safe to commit.\n\
+         review/*.evidence.log\n\
+         runtime.db\n\
+         runtime.lock\n\
+         events.jsonl\n",
+    )?;
     Ok(())
 }
 

@@ -496,6 +496,27 @@ mod tests {
     }
 
     #[test]
+    fn non_ascii_command_round_trips() {
+        // Locks the canonical-form contract: the signed payload must hold the
+        // command as literal UTF-8 (matching the Python mirror's
+        // ensure_ascii=False), not \u-escaped. If serde or the mirror ever
+        // diverge on escaping, cross-implementation verification breaks and
+        // this test catches it.
+        let dir = tempdir().unwrap();
+        write_project(dir.path(), "true # café 日本語");
+
+        record_test_evidence(dir.path(), Some(1)).unwrap();
+        let raw = fs::read(evidence_path(dir.path(), 1)).unwrap();
+        assert!(
+            raw.windows(2).any(|w| w == [0xc3, 0xa9]),
+            "command should be stored as literal UTF-8 (café), not escaped"
+        );
+
+        let evidence = verify_integration_evidence(dir.path(), 1).unwrap();
+        assert!(evidence.iter().any(|line| line.contains("verified")));
+    }
+
+    #[test]
     fn verify_fails_when_config_command_changes_after_recording() {
         let dir = tempdir().unwrap();
         write_project(dir.path(), "true");

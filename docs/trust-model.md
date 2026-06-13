@@ -38,7 +38,9 @@ top two rungs, and anything that sits on the bottom rung is labeled as such.
 The integration tester's PASS is the gate that decides shipping, so it gets
 the strongest treatment:
 
-1. During Plan, `.wannabuild/config.json` records `integration_test_command`.
+1. During Plan, `.wannabuild/config.json` records `integration_test_command`
+   from the design's test strategy (and if Plan omits it, the integration
+   tester sets it from the canonical command it identifies before recording).
 2. At QA time, `wb-runtime record-test-evidence` **executes that command
    itself** — the model does not run the tests and report back; the runtime
    runs them — and writes
@@ -104,6 +106,11 @@ Honesty is the feature, so here is the line:
   trivial during Plan, the runtime will faithfully record that something
   trivial passed. The command lives in `.wannabuild/config.json` in your
   diff, and the recorded command is in the evidence file — review it.
+- **Test files edited after recording.** Freshness is checked against the spec
+  files (`requirements.md`, `design.md`, `tasks.md`), not against the test
+  files themselves. Recording green, then weakening a test without touching
+  the spec, is not caught by the spec hash — the reviewer set and code review
+  are the defense there. Changing the spec *does* invalidate the evidence.
 - **Fixture mode.** `WB_EVIDENCE_MODE=fixture` skips evidence verification so
   committed example projects (like `docs/golden-path-demo`) can be
   schema-validated without machine-local signatures. Every fixture-mode pass

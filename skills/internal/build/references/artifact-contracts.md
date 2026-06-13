@@ -199,10 +199,14 @@ Recommended metadata lines at top:
 
 ## `.wannabuild/config.json`
 
-Optional configuration file that overrides workflow defaults. All keys are optional.
+Optional configuration file that overrides workflow defaults. Most keys are
+optional, but `integration_test_command` must be set before QA can pass —
+Plan records it from the design's test strategy, and the integration tester
+ensures it before recording evidence.
 
 ### Keys
 
+- `integration_test_command` (string): the shell command the runtime executes via `wb-runtime record-test-evidence` to produce signed integration evidence. Plan should record it from `design.md`'s test strategy; if Plan did not, `wb-integration-tester` sets it from the canonical command it identifies in Step 0. Review and QA gates fail until a verifying evidence record exists for it.
 - `max_review_iterations` (integer, >= 1, default 3)
 - `auto_advance` (boolean, default false)
 - `skip_phases` (array): may only contain non-core phases. Core gates (discover, plan, review, QA) cannot be skipped — the runtime gates block them regardless of this setting.

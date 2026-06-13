@@ -975,7 +975,14 @@ fn require_integration_execution_evidence(project_root: &Path) -> Result<()> {
         }
     }
     // The verdict's claimed counts are not proof; the runtime-recorded,
-    // HMAC-verified execution record for the same iteration is.
+    // HMAC-verified execution record for the integration verdict's own
+    // iteration is. This is the LATEST integration verdict (latest_integration_verdict),
+    // so a code change that bumps the loop iteration forces a fresh record.
+    // It can read looser than the review gate's target_iteration when *other*
+    // reviewers reran but the integration tester did not — but the ship path
+    // (assert_summary_ready) runs assert_review_ready first, which rejects that
+    // case for missing the integration verdict at the target iteration, so the
+    // combined gate stays consistent.
     crate::evidence::verify_integration_evidence(project_root, verdict.iteration)
         .map_err(|error| RuntimeError::message(format!("QA gate failed: {error}")))?;
     Ok(())
