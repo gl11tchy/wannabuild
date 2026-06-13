@@ -13,7 +13,9 @@
    - **release-please action** — config/manifest issue.
    - **GitHub auth step** — token scope/missing.
    - **Tag creation / GH release creation** — token permissions.
-   - **Asset upload** — packaging step (rare; we ship docs, not binaries).
+   - **release-binaries job** — builds and uploads the `wb-runtime` archives +
+     `.sha256` checksums; a single platform leg failing is safe to re-run
+     (`gh release upload --clobber`).
 3. Confirm `release-please-config.json` and `.release-please-manifest.json`
    are in their expected state on `main` (no merge conflicts left, no
    manual edits that diverged).

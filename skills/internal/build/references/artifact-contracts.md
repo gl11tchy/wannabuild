@@ -186,6 +186,11 @@ or edited record fails verification. `WB_EVIDENCE_MODE=fixture` skips this
 verification for committed example fixtures only, and every fixture-mode pass
 is loudly labeled in gate output and events.
 
+`schemas/test-evidence.schema.json` documents the record's shape for reference;
+it is enforced by the runtime's HMAC verifier (and its Python mirror), not by
+`validate-wannabuild-artifacts.sh`, which deliberately skips `*.evidence.json` —
+a signed record's integrity is its signature, not a shape check.
+
 ## `.wannabuild/checkpoints/*.md`
 
 Checkpoint files are evidence logs, not pure JSON.

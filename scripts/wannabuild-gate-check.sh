@@ -53,12 +53,15 @@ run_runtime_gate() {
 
   # Prefer the binary built from this checkout: the script and the runtime it
   # dispatches to must agree on gate semantics. An older binary installed on
-  # PATH or under ~/.codex/bin must not silently weaken the gates.
+  # PATH or under ~/.codex/bin must not silently weaken the gates. Within the
+  # checkout, prefer target/debug — the profile the installer, session helper,
+  # and test suite build and refresh — over a target/release that is only built
+  # by hand and may lag behind the current source.
   for runtime_bin in \
-    "$repo_root/target/release/wb-runtime" \
-    "$repo_root/target/release/wb-runtime.exe" \
     "$repo_root/target/debug/wb-runtime" \
-    "$repo_root/target/debug/wb-runtime.exe"; do
+    "$repo_root/target/debug/wb-runtime.exe" \
+    "$repo_root/target/release/wb-runtime" \
+    "$repo_root/target/release/wb-runtime.exe"; do
     if [[ -x "$runtime_bin" ]]; then
       "$runtime_bin" "$runtime_command" --project "$project_root"
       return

@@ -619,6 +619,10 @@ def validate_config(config):
         val = config["plan_adversarial_count"]
         if isinstance(val, bool) or not isinstance(val, int) or not 2 <= val <= 5:
             record_error("config.json.plan_adversarial_count must be an integer in [2,5]")
+    if "integration_test_command" in config:
+        val = config["integration_test_command"]
+        if not isinstance(val, str) or not val.strip():
+            record_error("config.json.integration_test_command must be a non-empty string")
 
 
 def validate_workspace(workspace):

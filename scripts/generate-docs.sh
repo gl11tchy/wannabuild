@@ -309,7 +309,7 @@ generate_schemas_md() {
   {
     printf '%s Source: skills/internal/build/schemas/*.json -->\n\n' "${GENERATED_BY}"
     printf '# Schemas\n\n'
-    printf 'JSON schemas consumed by `scripts/validate-wannabuild-artifacts.sh`.\n\n'
+    printf 'JSON schemas for `.wannabuild/` artifacts. Most are enforced by `scripts/validate-wannabuild-artifacts.sh`; `test-evidence.schema.json` documents the signed evidence record shape and is enforced by the runtime HMAC verifier (and its Python mirror) instead — the validator skips `*.evidence.json`.\n\n'
 
     if [ -z "${sources}" ]; then
       printf '_No schemas found._\n'
