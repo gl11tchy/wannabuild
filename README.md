@@ -60,6 +60,11 @@ shipping with a runtime, not a prompt:
 
 ### Try to cheat it
 
+> Needs the `wb-runtime` binary (a Codex install puts it on `PATH`; otherwise
+> `cargo build --release`). Binary-less Claude/Factory installs enforce the same
+> gates through the Python hook mirror rather than this CLI. Run it from a
+> project where `.wannabuild/` is initialized and you are at QA.
+
 ```bash
 # Hand the gate a perfect-looking forged verdict: 100 passing tests, every criterion covered,
 # plus a clean QA summary — exactly what a lazy agent would write instead of running tests.

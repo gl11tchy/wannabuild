@@ -2,7 +2,7 @@
 
 # Schemas
 
-JSON schemas consumed by `scripts/validate-wannabuild-artifacts.sh`.
+JSON schemas for `.wannabuild/` artifacts. Most are enforced by `scripts/validate-wannabuild-artifacts.sh`; `test-evidence.schema.json` documents the signed evidence record shape and is enforced by the runtime HMAC verifier (and its Python mirror) instead — the validator skips `*.evidence.json`.
 
 ## `WannaBuild acquisition log`
 
