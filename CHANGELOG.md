@@ -8,6 +8,20 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.7.0](https://github.com/gl11tchy/wannabuild/compare/v2.6.0...v2.7.0) (2026-06-13)
+
+
+### Features
+
+* npx installer that ships the Rust wb-runtime to every host ([#68](https://github.com/gl11tchy/wannabuild/issues/68)) ([7536ef2](https://github.com/gl11tchy/wannabuild/commit/7536ef2c0d06f8041a43eba5aff48d1ea8447426))
+* trust-hardening round — runtime-recorded evidence, red-team tests, trust-first positioning ([#66](https://github.com/gl11tchy/wannabuild/issues/66)) ([bd678ae](https://github.com/gl11tchy/wannabuild/commit/bd678ae18844e021b1d0aa1ad73f92fa334ceb0b))
+
+
+### Fixes
+
+* **devcontainer:** build kcov from source since noble dropped the package ([#63](https://github.com/gl11tchy/wannabuild/issues/63)) ([b4db8cc](https://github.com/gl11tchy/wannabuild/commit/b4db8cc154bb81b2fa71117eb208dc60c3d3807a))
+* **release:** build binaries + publish npm via release-please needs-job; land [#67](https://github.com/gl11tchy/wannabuild/issues/67) evidence fix ([#69](https://github.com/gl11tchy/wannabuild/issues/69)) ([ba1c12d](https://github.com/gl11tchy/wannabuild/commit/ba1c12d61354034bee6f24a35a4539dfa860df4d))
+
 ## [2.6.0](https://github.com/gl11tchy/wannabuild/compare/v2.5.0...v2.6.0) (2026-06-10)
 
 
