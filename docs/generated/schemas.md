@@ -34,6 +34,7 @@ Path: `skills/internal/build/schemas/config.schema.json`
 | `advisor_on_limit` | string | — |
 | `advisor_record_decisions` | boolean | — |
 | `auto_advance` | boolean | — |
+| `integration_test_command` | string | Shell command the runtime executes itself via `wb-runtime record-test-evidence` to produce signed integration evidence. Set during Plan. Review and QA gates reject integration PASS verdicts that lack a matching runtime-recorded record. |
 | `max_agent_runs_per_phase` | integer | — |
 | `max_prompt_chars_per_reviewer` | integer | — |
 | `max_review_iterations` | integer | — |
@@ -152,6 +153,42 @@ Path: `skills/internal/build/schemas/state.schema.json`
 | `started_at` | string | — |
 | `updated_at` | string | — |
 | `workflow_status` | string | — |
+
+## `WannaBuild runtime-recorded integration test evidence`
+
+Path: `skills/internal/build/schemas/test-evidence.schema.json`
+
+### Required fields
+
+- `agent`
+- `command`
+- `duration_ms`
+- `exit_code`
+- `finished_at`
+- `hmac`
+- `iteration`
+- `output_bytes`
+- `output_sha256`
+- `recorder`
+- `spec_hash`
+- `started_at`
+
+### Properties
+
+| Field | Type | Description |
+|---|---|---|
+| `agent` | — | — |
+| `command` | string | — |
+| `duration_ms` | integer | — |
+| `exit_code` | integer | — |
+| `finished_at` | string | — |
+| `hmac` | string | — |
+| `iteration` | integer | — |
+| `output_bytes` | integer | — |
+| `output_sha256` | string | — |
+| `recorder` | string | — |
+| `spec_hash` | string | — |
+| `started_at` | string | — |
 
 ## `WannaBuild workspace.json`
 

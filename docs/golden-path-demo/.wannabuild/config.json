@@ -1,5 +1,6 @@
 {
   "mode": "standard",
+  "integration_test_command": "npm test -- --runTestsByPath tests/integration",
   "skip_phases": [],
   "adaptive_review_reruns": true,
   "review_rerun_policy": "impacted_plus_integration",

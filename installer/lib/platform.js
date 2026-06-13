@@ -1,18 +1,18 @@
 "use strict";
 
-// Map the running Node process to the Rust target triple whose prebuilt
-// wb-runtime binary is published on each GitHub release, plus the executable
-// suffix that target uses. These triples MUST match the build matrix in
-// .github/workflows/release-binaries.yml.
+// Map the running Node process to the release-asset LABEL whose prebuilt
+// wb-runtime archive is published on each GitHub release, plus the executable
+// suffix the binary inside that archive uses. These labels MUST match the build
+// matrix in .github/workflows/release-binaries.yml.
 const TARGETS = {
-  "darwin:arm64": { triple: "aarch64-apple-darwin", exe: "" },
-  "darwin:x64": { triple: "x86_64-apple-darwin", exe: "" },
-  "linux:x64": { triple: "x86_64-unknown-linux-musl", exe: "" },
-  "linux:arm64": { triple: "aarch64-unknown-linux-musl", exe: "" },
-  "win32:x64": { triple: "x86_64-pc-windows-msvc", exe: ".exe" },
+  "darwin:arm64": { label: "macos-arm64", exe: "" },
+  "darwin:x64": { label: "macos-x86_64", exe: "" },
+  "linux:x64": { label: "linux-x86_64", exe: "" },
+  "linux:arm64": { label: "linux-arm64", exe: "" },
+  "win32:x64": { label: "windows-x86_64", exe: ".exe" },
 };
 
-// resolveTarget(platform, arch) -> { triple, exe }
+// resolveTarget(platform, arch) -> { label, exe }
 // platform/arch default to the current process. Throws an actionable error for
 // any combination WannaBuild does not publish a binary for, listing what is
 // supported so the user knows immediately whether to file an issue.
@@ -31,7 +31,7 @@ function resolveTarget(platform, arch) {
         "requesting this target."
     );
   }
-  return { triple: target.triple, exe: target.exe };
+  return { label: target.label, exe: target.exe };
 }
 
 module.exports = { resolveTarget, TARGETS };

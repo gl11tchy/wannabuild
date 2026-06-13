@@ -361,7 +361,10 @@ fi
 
 if [[ -d "$GOLDEN_ROOT" ]]; then
   run_expect_success "golden path artifact validation" "$ARTIFACT_VALIDATOR" "$GOLDEN_ROOT" document
-  run_expect_success "golden path summary gate" "$GATE_CHECK" "$GOLDEN_ROOT" summary
+  # The committed demo carries fixture verdicts, not machine-local signed
+  # evidence, so its gate check runs in explicit (and loudly labeled) fixture mode.
+  run_expect_success "golden path summary gate (fixture evidence mode)" \
+    env WB_EVIDENCE_MODE=fixture "$GATE_CHECK" "$GOLDEN_ROOT" summary
 else
   fail "docs/golden-path-demo/"
 fi
@@ -406,6 +409,14 @@ verdict = latest["verdicts"]["wb-integration-tester"]
 Path(sys.argv[2]).write_text(json.dumps(verdict, indent=2) + "\n", encoding="utf-8")
 PY
   run_expect_failure "summary gate blocks failed integration verdict" "$GATE_CHECK" "$tmp" summary
+
+  # Red-team scenario: a complete, plausible set of hand-written PASS verdicts
+  # (the golden-path fixtures themselves) must NOT pass outside fixture mode,
+  # because no runtime-recorded execution evidence exists for them.
+  rm -rf "$tmp/.wannabuild"
+  cp -R "$GOLDEN_ROOT/.wannabuild" "$tmp/.wannabuild"
+  run_expect_failure "summary gate blocks forged verdicts without runtime evidence" \
+    env -u WB_EVIDENCE_MODE "$GATE_CHECK" "$tmp" summary
 fi
 
 if [[ $status -eq 0 ]]; then

@@ -23,7 +23,9 @@
 
 - `review` phase complete:
   - the FULL reviewer set (no subset) is unanimous PASS in the latest loop iteration
-  - `wb-integration-tester` is PASS with execution evidence (tests ran; every acceptance criterion covered)
+  - `wb-integration-tester` is PASS with runtime-recorded execution evidence: a verifying
+    `.wannabuild/review/wb-integration-tester-iter-<N>.evidence.json` written by
+    `wb-runtime record-test-evidence` (tests ran via the runtime; every acceptance criterion covered)
   - `assert-review-ready` passes
 
 - `ship` phase complete:

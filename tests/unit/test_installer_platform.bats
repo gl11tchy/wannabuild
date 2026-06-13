@@ -5,7 +5,7 @@
 # These exercise installer/lib/platform.js and the installer CLI surface
 # (installer/bin/wannabuild.js) without touching the network, cargo, or the
 # real $HOME. Node (>=18) is required; if it is absent the tests skip rather
-# than fail, mirroring how the runtime tests gate on cargo.
+# than fail.
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
@@ -19,46 +19,47 @@ setup() {
   fi
 }
 
-# resolve <platform> <arch>  -> prints "<triple> <exe>" via lib/platform.js.
-# Exits non-zero (and prints nothing useful) when resolveTarget throws.
+# resolve <platform> <arch>  -> prints "<label> <exe>" via lib/platform.js.
+# The label MUST match a release-binaries.yml matrix label. Exits non-zero
+# (and prints the actionable error) when resolveTarget throws.
 resolve() {
   local platform="$1" arch="$2"
   node -e '
     const { resolveTarget } = require(process.argv[1]);
     const r = resolveTarget(process.argv[2], process.argv[3]);
-    process.stdout.write(r.triple + " " + JSON.stringify(r.exe));
+    process.stdout.write(r.label + " " + JSON.stringify(r.exe));
   ' "$PLATFORM_JS" "$platform" "$arch"
 }
 
-@test "installer_platform: darwin/arm64 maps to aarch64-apple-darwin (no exe)" {
+@test "installer_platform: darwin/arm64 maps to macos-arm64 (no exe)" {
   [ -f "$PLATFORM_JS" ]
   run resolve darwin arm64
   [ "$status" -eq 0 ]
-  [ "$output" = 'aarch64-apple-darwin ""' ]
+  [ "$output" = 'macos-arm64 ""' ]
 }
 
-@test "installer_platform: darwin/x64 maps to x86_64-apple-darwin (no exe)" {
+@test "installer_platform: darwin/x64 maps to macos-x86_64 (no exe)" {
   run resolve darwin x64
   [ "$status" -eq 0 ]
-  [ "$output" = 'x86_64-apple-darwin ""' ]
+  [ "$output" = 'macos-x86_64 ""' ]
 }
 
-@test "installer_platform: linux/x64 maps to x86_64-unknown-linux-musl (no exe)" {
+@test "installer_platform: linux/x64 maps to linux-x86_64 (no exe)" {
   run resolve linux x64
   [ "$status" -eq 0 ]
-  [ "$output" = 'x86_64-unknown-linux-musl ""' ]
+  [ "$output" = 'linux-x86_64 ""' ]
 }
 
-@test "installer_platform: linux/arm64 maps to aarch64-unknown-linux-musl (no exe)" {
+@test "installer_platform: linux/arm64 maps to linux-arm64 (no exe)" {
   run resolve linux arm64
   [ "$status" -eq 0 ]
-  [ "$output" = 'aarch64-unknown-linux-musl ""' ]
+  [ "$output" = 'linux-arm64 ""' ]
 }
 
-@test "installer_platform: win32/x64 maps to x86_64-pc-windows-msvc with .exe" {
+@test "installer_platform: win32/x64 maps to windows-x86_64 with .exe" {
   run resolve win32 x64
   [ "$status" -eq 0 ]
-  [ "$output" = 'x86_64-pc-windows-msvc ".exe"' ]
+  [ "$output" = 'windows-x86_64 ".exe"' ]
 }
 
 @test "installer_platform: unsupported platform/arch throws an actionable error" {
@@ -72,7 +73,7 @@ resolve() {
   run resolve plan9 mips
   [ "$status" -ne 0 ]
   # The error enumerates the supported platform:arch combos (what a user knows
-  # about their machine), not the internal Rust triples.
+  # about their machine).
   [[ "$output" == *"darwin:arm64"* ]]
   [[ "$output" == *"win32:x64"* ]]
 }

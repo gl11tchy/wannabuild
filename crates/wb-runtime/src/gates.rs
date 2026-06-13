@@ -386,9 +386,16 @@ pub fn assert_review_ready(project_root: &Path) -> Result<GatePass> {
             failures.join(", ")
         )));
     }
+    // A PASS from the integration tester only counts when the runtime itself
+    // recorded the test run (or fixture mode is explicitly, visibly active).
+    let mut evidence = vec!["latest review verdicts PASS".to_string()];
+    evidence.extend(
+        crate::evidence::verify_integration_evidence(project_root, target_iteration)
+            .map_err(|error| RuntimeError::message(format!("Review gate failed: {error}")))?,
+    );
     Ok(GatePass {
         gate: "review",
-        evidence: vec!["latest review verdicts PASS".to_string()],
+        evidence,
     })
 }
 
@@ -486,6 +493,12 @@ fn latest_file_verdicts(project_root: &Path) -> Result<BTreeMap<String, ReviewVe
     let files = fs::read_dir(&review_dir)?
         .filter_map(|entry| entry.ok().map(|entry| entry.path()))
         .filter(|path| path.extension().and_then(|value| value.to_str()) == Some("json"))
+        // Runtime-recorded *.evidence.json records are not reviewer verdicts.
+        .filter(|path| {
+            path.file_name()
+                .and_then(|value| value.to_str())
+                .is_none_or(|name| !name.ends_with(".evidence.json"))
+        })
         .collect::<Vec<_>>();
     if files.is_empty() {
         return Err(RuntimeError::message(format!(
@@ -961,6 +974,17 @@ fn require_integration_execution_evidence(project_root: &Path) -> Result<()> {
             )));
         }
     }
+    // The verdict's claimed counts are not proof; the runtime-recorded,
+    // HMAC-verified execution record for the integration verdict's own
+    // iteration is. This is the LATEST integration verdict (latest_integration_verdict),
+    // so a code change that bumps the loop iteration forces a fresh record.
+    // It can read looser than the review gate's target_iteration when *other*
+    // reviewers reran but the integration tester did not — but the ship path
+    // (assert_summary_ready) runs assert_review_ready first, which rejects that
+    // case for missing the integration verdict at the target iteration, so the
+    // combined gate stays consistent.
+    crate::evidence::verify_integration_evidence(project_root, verdict.iteration)
+        .map_err(|error| RuntimeError::message(format!("QA gate failed: {error}")))?;
     Ok(())
 }
 
@@ -1346,6 +1370,18 @@ mod tests {
         .unwrap();
     }
 
+    /// Writes a real runtime-recorded evidence record for `iteration` by running
+    /// a trivially-passing command — the legitimate path a live workflow takes.
+    fn record_real_evidence(project_root: &Path, iteration: u64) {
+        fs::create_dir_all(project_root.join(".wannabuild")).unwrap();
+        fs::write(
+            project_root.join(".wannabuild/config.json"),
+            r#"{"integration_test_command": "true"}"#,
+        )
+        .unwrap();
+        crate::evidence::record_test_evidence(project_root, Some(iteration)).unwrap();
+    }
+
     fn write_qa_summary(project_root: &Path) {
         fs::create_dir_all(project_root.join(".wannabuild/outputs")).unwrap();
         fs::write(
@@ -1363,8 +1399,25 @@ mod tests {
             dir.path(),
             r#"{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":12,"passed":12,"failed":0,"errored":0,"duration_ms":100},"coverage_map":[{"criterion":"login works","status":"covered"}]}"#,
         );
+        record_real_evidence(dir.path(), 1);
 
         assert!(assert_qa_ready(dir.path()).is_ok());
+    }
+
+    #[test]
+    fn qa_gate_rejects_pass_verdict_without_runtime_evidence() {
+        // The exact forgery a lazy agent would attempt: a complete, plausible
+        // verdict JSON with healthy test counts — but no runtime-recorded run.
+        let dir = tempdir().unwrap();
+        write_qa_summary(dir.path());
+        write_integration_verdict(
+            dir.path(),
+            r#"{"agent":"wb-integration-tester","status":"PASS","summary":"ok","issues":[],"hard_gate":true,"test_execution":{"total":100,"passed":100,"failed":0,"errored":0,"duration_ms":5000},"coverage_map":[{"criterion":"login works","status":"covered"}]}"#,
+        );
+
+        let err = assert_qa_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("no runtime-recorded execution evidence"));
     }
 
     #[test]
@@ -1505,8 +1558,27 @@ mod tests {
             )
             .unwrap();
         }
+        record_real_evidence(dir.path(), 2);
 
         assert!(assert_review_ready(dir.path()).is_ok());
+    }
+
+    #[test]
+    fn review_gate_rejects_pass_verdicts_without_runtime_evidence() {
+        let dir = tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".wannabuild/review")).unwrap();
+        for agent in REQUIRED_REVIEWERS {
+            fs::write(
+                dir.path()
+                    .join(format!(".wannabuild/review/{agent}-iter-1.json")),
+                format!(r#"{{"agent":"{agent}","status":"PASS","summary":"ok","issues":[]}}"#),
+            )
+            .unwrap();
+        }
+
+        let err = assert_review_ready(dir.path()).unwrap_err().to_string();
+
+        assert!(err.contains("no runtime-recorded execution evidence"));
     }
 
     #[test]
@@ -1555,6 +1627,7 @@ mod tests {
 }"#,
         )
         .unwrap();
+        record_real_evidence(dir.path(), 2);
 
         assert!(assert_review_ready(dir.path()).is_ok());
     }

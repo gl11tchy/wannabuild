@@ -481,7 +481,10 @@ def validate_review_outputs(loop_state):
     if not review_dir.is_dir():
         record_warning(f"Review directory missing: {review_dir}")
         return
-    review_files = sorted(review_dir.glob("*.json"))
+    # Runtime-recorded *.evidence.json records are not reviewer verdicts.
+    review_files = sorted(
+        p for p in review_dir.glob("*.json") if not p.name.endswith(".evidence.json")
+    )
     if not review_files:
         return
     for file_path in review_files:

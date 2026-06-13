@@ -310,13 +310,13 @@ WANNABUILD_BASH="/c/Program Files/Git/bin/bash.exe" npx wannabuild
 
 ## `npx wannabuild` checksum mismatch on the prebuilt runtime
 
-**Symptom.** Install aborts after downloading `wb-runtime` with a sha256
-mismatch against `SHA256SUMS`.
+**Symptom.** Install aborts after downloading the `wb-runtime` archive with a
+sha256 mismatch against its `.sha256`.
 
-**Cause.** The downloaded binary does not match the published checksum — a
+**Cause.** The downloaded archive does not match the published checksum — a
 truncated or corrupted download, a proxy/mirror rewriting the asset, or a stale
-release asset. The installer verifies every download and refuses to place an
-unverified gate binary; it never falls back to an unchecked copy.
+release asset. The installer verifies every download and refuses to unpack or
+place an unverified gate binary; it never falls back to an unchecked copy.
 
 **Diagnose.** Confirm you can reach the release assets and that the tag exists:
 
@@ -324,8 +324,9 @@ unverified gate binary; it never falls back to an unchecked copy.
 gh release view v<version> --json assets --jq '.assets[].name'
 ```
 
-You should see `wb-runtime-v<version>-<triple>` for your platform plus
-`SHA256SUMS`.
+You should see `wb-runtime-v<version>-<label>.tar.gz` (and its `.sha256`) for
+your platform, where `<label>` is one of `macos-arm64`, `macos-x86_64`,
+`linux-x86_64`, `linux-arm64`, `windows-x86_64`.
 
 **Fix.** Re-run `npx wannabuild` (a fresh download usually clears a transient
 corruption). If it persists, pin to a known-good release with `--ref` (for
@@ -340,10 +341,10 @@ is rewriting GitHub release downloads.
 `platform`/`arch` combination is not supported, before any download.
 
 **Cause.** Prebuilt runtimes are published only for the release matrix:
-`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`,
-`aarch64-unknown-linux-musl`, and `x86_64-pc-windows-msvc`. Other targets (for
-example 32-bit, or linux on a non-x64/arm64 arch) have no asset, so the
-installer fails loudly rather than guessing.
+`macos-arm64`, `macos-x86_64`, `linux-x86_64`, `linux-arm64`, and
+`windows-x86_64`. Other targets (for example 32-bit, or linux on a
+non-x64/arm64 arch) have no asset, so the installer fails loudly rather than
+guessing.
 
 **Fix.** Use a supported platform, or build `wb-runtime` from source with cargo
 and install the relevant host from a clone (see each adapter README's

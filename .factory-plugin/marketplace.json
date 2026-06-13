@@ -1,13 +1,13 @@
 {
   "name": "wannabuild",
-  "description": "WannaBuild Droid plugins",
+  "description": "WannaBuild plugins for Factory Droid",
   "owner": {
     "name": "gl11tchy"
   },
   "plugins": [
     {
       "name": "wannabuild",
-      "description": "Spec-Driven Development framework with 21 specialist AI agents. Talk naturally, ship professionally.",
+      "description": "Spec-driven development with 25 specialist agents and fail-closed phase gates. Your agent can't mark its own homework.",
       "source": "./adapters/factory",
       "category": "development"
     }

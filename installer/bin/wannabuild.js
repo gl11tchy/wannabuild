@@ -8,7 +8,7 @@ const path = require("node:path");
 const { parseArgs } = require("../lib/args");
 const { requireGit, requireBash, requirePythonForHosts } = require("../lib/prereqs");
 const { ensureCheckout, resolveRef, currentRef } = require("../lib/checkout");
-const { installRuntime, verifyRuntimeVersion, tagToVersion } = require("../lib/runtime");
+const { installRuntime, verifyRuntimeLiveness } = require("../lib/runtime");
 const { resolveHosts, installHost } = require("../lib/hosts");
 const { runScript, runCapture } = require("../lib/run");
 
@@ -65,7 +65,6 @@ async function runInstall(opts) {
   requirePythonForHosts(hosts);
 
   const tag = resolveRef(opts.ref);
-  const version = tagToVersion(tag);
 
   process.stdout.write(`WannaBuild installer v${PKG.version}\n`);
   process.stdout.write(`  checkout dir: ${dir}\n`);
@@ -81,12 +80,12 @@ async function runInstall(opts) {
 
   if (needsRuntime) {
     process.stdout.write("Downloading and verifying wb-runtime...\n");
-    const placed = await installRuntime({ dir, tag, version });
+    const placed = await installRuntime({ dir, tag });
     prebuilt = placed.binaryPath;
     process.stdout.write(`  placed: ${prebuilt}\n`);
     process.stdout.write(`  sha256: ${placed.sha256}\n`);
-    verifyRuntimeVersion(prebuilt, version);
-    process.stdout.write(`  verified: wb-runtime --version == ${version}\n\n`);
+    verifyRuntimeLiveness(prebuilt);
+    process.stdout.write("  verified: wb-runtime executes on this platform\n\n");
   }
 
   const results = [];
@@ -199,7 +198,7 @@ function printHelp() {
       "\n" +
       "By default every detected host runs the real Rust wb-runtime gate engine —\n" +
       "never a degraded fallback. The binary is downloaded prebuilt and verified by\n" +
-      "sha256 against the release SHA256SUMS.\n"
+      "sha256 against the release checksums.\n"
   );
 }
 

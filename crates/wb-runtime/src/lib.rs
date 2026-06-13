@@ -4,6 +4,7 @@ pub mod cli;
 pub mod context;
 pub mod errors;
 pub mod events;
+pub mod evidence;
 pub mod gates;
 pub mod locks;
 pub mod scheduler;

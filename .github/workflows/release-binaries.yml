@@ -1,90 +1,53 @@
-# Release binaries workflow for WannaBuild.
+# Release binaries workflow.
 #
-# Purpose:
-#   Build the prebuilt wb-runtime gate engine for every supported host platform
-#   and attach the binaries + checksums to the GitHub Release that release-please
-#   publishes. The npx installer (`npx wannabuild`) downloads these assets so end
-#   users never need Rust/cargo, and every host runs the real Rust gates instead
-#   of the degraded Python mirror.
+# When a GitHub Release is published (by release-please), builds the wb-runtime
+# gate engine for every supported host platform, packages each as a tar.gz with
+# a SHA-256 checksum, and attaches them to the release. The runtime is the
+# enforcement layer of the trust model — shipping real binaries means installs
+# do not depend on a local Rust toolchain. The npx installer (`npx wannabuild`)
+# downloads, verifies (sha256), and extracts these archives so every host runs
+# the real Rust gates instead of the degraded Python mirror. The installer npm
+# package is published here too (skips cleanly when NPM_TOKEN is unset).
 #
-# Trigger:
-#   - release: published  -> release-please publishes a non-draft release on merge
-#     of its release PR. We build the exact released tree (the tag's commit).
-#   - workflow_dispatch    -> manual re-run against an explicit tag input.
-#   We intentionally do NOT trigger on tag push.
-#
-# Asset naming:
-#   wb-runtime-v<version>-<triple>  (with .exe appended for the windows asset)
-#   <version> = tag name minus the leading "v".
-#
-# Checksums:
-#   Each matrix job uploads its binary plus a per-target sha file. A final
-#   aggregate job assembles a single GNU-coreutils-format SHA256SUMS, self-
-#   verifies with `sha256sum -c`, and uploads it to the release.
-#
-# npm publish:
-#   `installer/` is published to npm with provenance (id-token: write). The job
-#   skips cleanly with a clear log when the NPM_TOKEN secret is unset. The
-#   maintainer must add the NPM_TOKEN repository secret to enable publishing;
-#   provenance requires the id-token: write permission set on that job.
-#
-# Action pin policy:
-#   GitHub-published actions are pinned to a full commit SHA with the matching
-#   semver tag in a comment, mirroring .github/workflows/ci.yml.
+# Assets per release: wb-runtime-<tag>-<label>.tar.gz (+ .tar.gz.sha256) for
+# labels linux-x86_64, linux-arm64, macos-arm64, macos-x86_64, windows-x86_64.
+
 name: Release Binaries
 
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag to build (e.g. v2.6.0)"
-        required: true
-        type: string
 
 permissions:
   contents: read
 
-concurrency:
-  group: release-binaries-${{ github.event.release.tag_name || github.event.inputs.tag }}
-  cancel-in-progress: false
-
 jobs:
-  build:
-    name: Build (${{ matrix.triple }})
-    runs-on: ${{ matrix.runner }}
+  build-upload:
+    name: Build (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     permissions:
       contents: write
     strategy:
+      # One platform failing to build must not block shipping the others; the
+      # installer errors cleanly for any platform whose asset is absent.
       fail-fast: false
       matrix:
         include:
-          - triple: aarch64-apple-darwin
-            os: darwin
-            arch: arm64
-            runner: macos-14
+          - os: ubuntu-latest
+            label: linux-x86_64
             exe: ""
-          - triple: x86_64-apple-darwin
-            os: darwin
-            arch: x64
-            runner: macos-13
+          - os: ubuntu-24.04-arm
+            label: linux-arm64
             exe: ""
-          - triple: x86_64-unknown-linux-musl
-            os: linux
-            arch: x64
-            runner: ubuntu-latest
+          - os: macos-latest
+            label: macos-arm64
             exe: ""
-          - triple: aarch64-unknown-linux-musl
-            os: linux
-            arch: arm64
-            runner: ubuntu-24.04-arm
+          - os: macos-13
+            label: macos-x86_64
             exe: ""
-          - triple: x86_64-pc-windows-msvc
-            os: windows
-            arch: x64
-            runner: windows-latest
+          - os: windows-latest
+            label: windows-x86_64
             exe: ".exe"
     steps:
       - name: Harden runner (audit)
@@ -92,153 +55,33 @@ jobs:
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
         with:
           egress-policy: audit
-      - name: Resolve tag
-        id: tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag="${{ github.event.release.tag_name || github.event.inputs.tag }}"
-          if [ -z "$tag" ]; then
-            echo "::error::No release tag available"
-            exit 1
-          fi
-          version="${tag#v}"
-          echo "tag=$tag" >>"$GITHUB_OUTPUT"
-          echo "version=$version" >>"$GITHUB_OUTPUT"
       - name: Checkout
         # actions/checkout v6.0.2
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-        with:
-          ref: ${{ steps.tag.outputs.tag }}
-      - name: Install musl toolchain (Linux musl targets)
-        if: endsWith(matrix.triple, '-linux-musl')
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends musl-tools
-      - name: Add Rust target
+      - name: Build release binary
         shell: bash
         run: |
           set -euo pipefail
-          rustup target add "${{ matrix.triple }}"
-      - name: Build wb-runtime
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo build --release --bin wb-runtime --target "${{ matrix.triple }}" --manifest-path Cargo.toml
-      - name: Stage asset
-        id: stage
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${{ steps.tag.outputs.version }}"
-          triple="${{ matrix.triple }}"
-          exe="${{ matrix.exe }}"
-          src="target/${triple}/release/wb-runtime${exe}"
-          asset="wb-runtime-v${version}-${triple}${exe}"
-          mkdir -p dist
-          cp "$src" "dist/${asset}"
-          # Per-target checksum in GNU coreutils format ("<hash>  <filename>").
-          (cd dist && sha256sum "${asset}" >"${asset}.sha256")
-          echo "asset=${asset}" >>"$GITHUB_OUTPUT"
-      - name: Upload binary + checksum to release
+          cargo build --release --locked --bin wb-runtime
+      - name: Package and upload
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+          LABEL: ${{ matrix.label }}
+          EXE: ${{ matrix.exe }}
         run: |
           set -euo pipefail
-          gh release upload "${{ steps.tag.outputs.tag }}" \
-            "dist/${{ steps.stage.outputs.asset }}" \
-            "dist/${{ steps.stage.outputs.asset }}.sha256" \
-            --clobber
-      - name: Upload per-target sha artifact
-        # actions/upload-artifact v7.0.1
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: sha-${{ matrix.triple }}
-          path: dist/${{ steps.stage.outputs.asset }}.sha256
-          if-no-files-found: error
-
-  aggregate:
-    name: Aggregate SHA256SUMS
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [build]
-    permissions:
-      contents: write
-    steps:
-      - name: Harden runner (audit)
-        # step-security/harden-runner v2.19.1
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
-        with:
-          egress-policy: audit
-      - name: Resolve tag
-        id: tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag="${{ github.event.release.tag_name || github.event.inputs.tag }}"
-          if [ -z "$tag" ]; then
-            echo "::error::No release tag available"
-            exit 1
-          fi
-          echo "tag=$tag" >>"$GITHUB_OUTPUT"
-      - name: Download per-target sha artifacts
-        # actions/download-artifact v6.0.0
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
-        with:
-          pattern: sha-*
-          path: shas
-          merge-multiple: true
-      - name: Assemble SHA256SUMS
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          parts=(shas/*.sha256)
-          if [ "${#parts[@]}" -eq 0 ]; then
-            echo "::error::No per-target sha files were downloaded"
-            exit 1
-          fi
-          # Each per-target file already holds one GNU-coreutils-format line
-          # ("<64hex>  <asset-filename>"). Concatenate into a single manifest.
-          : >SHA256SUMS
-          for part in "${parts[@]}"; do
-            cat "$part" >>SHA256SUMS
-          done
-          sort -o SHA256SUMS SHA256SUMS
-          echo "Assembled SHA256SUMS:"
-          cat SHA256SUMS
-      - name: Self-verify against release assets
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          mkdir -p verify
-          cp SHA256SUMS verify/SHA256SUMS
-          # Download each named asset from the release next to the manifest, then
-          # run `sha256sum -c` to confirm the binaries match their recorded hashes.
-          while read -r _hash name; do
-            [ -n "$name" ] || continue
-            gh release download "${{ steps.tag.outputs.tag }}" \
-              --pattern "$name" --dir verify --clobber
-          done <SHA256SUMS
-          (cd verify && sha256sum -c SHA256SUMS)
-      - name: Upload SHA256SUMS to release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          gh release upload "${{ steps.tag.outputs.tag }}" SHA256SUMS --clobber
+          archive="wb-runtime-${TAG}-${LABEL}.tar.gz"
+          tar -czf "$archive" -C target/release "wb-runtime${EXE}"
+          shasum -a 256 "$archive" > "$archive.sha256"
+          gh release upload "$TAG" "$archive" "$archive.sha256" --clobber
 
   npm-publish:
-    name: Publish npm package
+    name: Publish npm installer
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [aggregate]
-    if: github.event_name == 'release'
+    needs: [build-upload]
     permissions:
       contents: read
       id-token: write
@@ -251,8 +94,6 @@ jobs:
       - name: Checkout
         # actions/checkout v6.0.2
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-        with:
-          ref: ${{ github.event.release.tag_name }}
       - name: Setup Node
         # actions/setup-node v6.4.0
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -273,9 +114,8 @@ jobs:
           fi
           name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
-          # Idempotent across retried/duplicated release events: a version that is
-          # already on the registry would make `npm publish` hard-fail (E403), so
-          # skip cleanly instead of failing a re-run whose binaries already shipped.
+          # Idempotent across retried/duplicated release events: skip cleanly if
+          # this version is already on the registry instead of failing (E403).
           if npm view "${name}@${version}" version >/dev/null 2>&1; then
             echo "::notice::${name}@${version} is already published; skipping (idempotent re-run)."
             exit 0

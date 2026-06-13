@@ -9,9 +9,28 @@ This document is the source of truth for "is X on the roadmap?" The README
 links here so contributors and adopters can answer that question without
 opening an issue.
 
-> Last reviewed: 2026-05-06.
+> Last reviewed: 2026-06-12.
 
 ---
+
+## Done — trust hardening round
+
+The differentiator round: ship gates moved from prompt discipline to runtime
+enforcement (see [docs/trust-model.md](trust-model.md)).
+
+- **Runtime-recorded integration evidence** — `wb-runtime record-test-evidence`
+  executes the configured test command itself and signs the record; the review
+  and QA gates verify signature, exit code, spec freshness, and command match.
+  Hand-written verdicts no longer pass.
+- **Red-team test coverage** — the bats suite and the dry-run harness forge
+  perfect-looking verdicts and tampered evidence against our own gates and
+  assert they fail.
+- **Trust model doc** — every gate mapped to its enforcement rung per host,
+  with explicit non-goals.
+- **Runtime in CI + release binaries** — `cargo test` runs on Linux/macOS in
+  CI, and releases attach prebuilt `wb-runtime` archives with checksums.
+- **Trust-first README** — problem-first positioning with a
+  try-to-cheat-it demo.
 
 ## Done — recent quality push
 

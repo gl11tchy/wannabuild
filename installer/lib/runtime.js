@@ -5,70 +5,60 @@ const os = require("node:os");
 const path = require("node:path");
 const https = require("node:https");
 const crypto = require("node:crypto");
+const { spawnSync } = require("node:child_process");
 const { resolveTarget } = require("./platform");
 const { runCapture } = require("./run");
 
 const RELEASE_BASE = "https://github.com/gl11tchy/wannabuild/releases/download";
 
-// assetName(version, target) -> the published binary filename for this build.
-// Mirrors the rename step in release-binaries.yml:
-//   wb-runtime-v<version>-<triple>[.exe]
-function assetName(version, target) {
-  return `wb-runtime-v${version}-${target.triple}${target.exe}`;
+// archiveName(tag, target) -> the published archive filename for this build.
+// Mirrors the package step in release-binaries.yml:
+//   wb-runtime-<tag>-<label>.tar.gz   (tag carries its leading "v")
+function archiveName(tag, target) {
+  return `wb-runtime-${tag}-${target.label}.tar.gz`;
 }
 
-// tagToVersion(tag) -> the asset version (tag without a leading "v").
-function tagToVersion(tag) {
-  return String(tag).replace(/^v/, "");
-}
-
-// installRuntime({ dir, version, tag }) -> { binaryPath, asset, sha256 }
-// Downloads the prebuilt wb-runtime for this platform plus the release
-// SHA256SUMS, verifies the binary's sha256 against the matching manifest line,
-// then writes it to <dir>/target/debug/wb-runtime (mode 0o755). The binary is
-// only moved into place after verification passes, so a corrupt download never
-// becomes the active gate engine. Integrity rests on HTTPS-to-GitHub plus the
-// checksum; the manifest itself is not independently signed (see installer
-// README for the optional signing hardening).
+// installRuntime({ dir, tag }) -> { binaryPath, archive, sha256, target }
+// Downloads the prebuilt wb-runtime archive for this platform plus its .sha256,
+// verifies the archive's sha256, extracts the binary, and installs it
+// atomically at <dir>/target/debug/wb-runtime[.exe] (mode 0o755). The binary is
+// only placed after verification passes, so a corrupt download never becomes
+// the active gate engine. Integrity rests on HTTPS-to-GitHub plus the checksum;
+// the .sha256 manifest is not independently signed (see the installer README
+// for the optional signing hardening).
 async function installRuntime(options) {
   const dir = path.resolve(options.dir);
   const tag = options.tag;
-  const version = options.version || tagToVersion(tag);
   const target = resolveTarget();
-  const asset = assetName(version, target);
+  const archive = archiveName(tag, target);
 
-  const binUrl = `${RELEASE_BASE}/${tag}/${asset}`;
-  const sumsUrl = `${RELEASE_BASE}/${tag}/SHA256SUMS`;
+  const archiveUrl = `${RELEASE_BASE}/${tag}/${archive}`;
+  const sumUrl = `${archiveUrl}.sha256`;
 
-  const expected = await fetchExpectedSha(sumsUrl, asset);
-  const tmpFile = path.join(
-    os.tmpdir(),
-    `wb-runtime-${process.pid}-${Date.now()}${target.exe}`
-  );
+  const expected = await fetchExpectedSha(sumUrl, archive);
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "wb-runtime-"));
+  const tmpArchive = path.join(workDir, archive);
 
   try {
-    await downloadToFile(binUrl, tmpFile);
-    // wb-runtime is the OS-native binary regardless of the upstream asset name;
-    // Claude/Codex/Factory resolvers all look for target/debug/wb-runtime[.exe].
-    const destDir = path.join(dir, "target", "debug");
-    const binaryPath = placeVerifiedBinary(tmpFile, expected, destDir, target.exe, asset);
-    return { binaryPath, asset, sha256: expected, target };
+    await downloadToFile(archiveUrl, tmpArchive);
+    const binaryPath = extractVerifiedBinary(tmpArchive, expected, workDir, path.join(dir, "target", "debug"), target.exe);
+    return { binaryPath, archive, sha256: expected, target };
   } finally {
-    safeUnlink(tmpFile);
+    safeRmrf(workDir);
   }
 }
 
-// placeVerifiedBinary(srcFile, expectedSha, destDir, exe, label) -> binaryPath
-// Verifies srcFile's sha256 equals expectedSha BEFORE writing anything, then
-// installs it atomically at destDir/wb-runtime[exe] (mode 0o755): the file is
-// staged inside destDir and renamed into place, so a host resolver never
-// observes a half-written or unverified binary at the canonical path. Exported
-// so the verify/reject path is unit-testable without a network round trip.
-function placeVerifiedBinary(srcFile, expectedSha, destDir, exe, label) {
-  const actual = sha256File(srcFile);
+// extractVerifiedBinary(archiveFile, expectedSha, workDir, destDir, exe) -> binaryPath
+// Verifies archiveFile's sha256 equals expectedSha BEFORE unpacking anything,
+// extracts wb-runtime[exe] from it, then installs the binary atomically at
+// destDir/wb-runtime[exe] (staged inside destDir then renamed, mode 0o755) so a
+// host resolver never observes a half-written or unverified binary. Exported so
+// the verify/reject path is unit-testable without a network round trip.
+function extractVerifiedBinary(archiveFile, expectedSha, workDir, destDir, exe) {
+  const actual = sha256File(archiveFile);
   if (actual !== expectedSha) {
     throw new Error(
-      `Checksum mismatch for ${label || path.basename(srcFile)}.\n` +
+      `Checksum mismatch for ${path.basename(archiveFile)}.\n` +
         `  expected: ${expectedSha}\n` +
         `  actual:   ${actual}\n` +
         "Refusing to install an unverified gate runtime. This usually means a " +
@@ -76,11 +66,28 @@ function placeVerifiedBinary(srcFile, expectedSha, destDir, exe, label) {
         "persists, open an issue."
     );
   }
+
+  const binName = `wb-runtime${exe || ""}`;
+  const extractDir = fs.mkdtempSync(path.join(workDir, "x-"));
+  const res = spawnSync("tar", ["-xzf", archiveFile, "-C", extractDir], { stdio: "pipe" });
+  if (res.error || res.status !== 0) {
+    const detail = res.error ? res.error.message : String(res.stderr || "");
+    throw new Error(
+      `Failed to unpack ${path.basename(archiveFile)} with tar: ${detail}\n` +
+        "tar is required to extract the runtime archive (preinstalled on macOS, " +
+        "Linux, and Windows 10+). Install tar and re-run."
+    );
+  }
+  const extracted = path.join(extractDir, binName);
+  if (!fs.existsSync(extracted)) {
+    throw new Error(`Archive ${path.basename(archiveFile)} did not contain ${binName}.`);
+  }
+
   fs.mkdirSync(destDir, { recursive: true });
-  const binaryPath = path.join(destDir, `wb-runtime${exe || ""}`);
+  const binaryPath = path.join(destDir, binName);
   const staging = path.join(destDir, `.wb-runtime.${process.pid}.${Date.now()}.tmp`);
   try {
-    fs.copyFileSync(srcFile, staging);
+    fs.copyFileSync(extracted, staging);
     fs.chmodSync(staging, 0o755);
     // rename is atomic within a filesystem, so the canonical path flips from
     // absent/old to fully-written-and-executable in one step.
@@ -92,42 +99,35 @@ function placeVerifiedBinary(srcFile, expectedSha, destDir, exe, label) {
   return binaryPath;
 }
 
-// verifyRuntimeVersion(binaryPath, expectedVersion) -> void
-// Runs `wb-runtime --version` and asserts it equals the package version, so a
-// stale or mismatched binary fails the install loudly instead of silently
-// enforcing the wrong contract.
-function verifyRuntimeVersion(binaryPath, expectedVersion) {
+// verifyRuntimeLiveness(binaryPath) -> void
+// Runs `wb-runtime --version` to confirm the placed binary actually executes on
+// this platform; throws otherwise. wb-runtime is intentionally versioned 0.1.0
+// independent of the release tag, so this is a liveness check (does it run?),
+// not a version-equality assertion.
+function verifyRuntimeLiveness(binaryPath) {
   const result = runCapture(binaryPath, ["--version"]);
   if (result.status !== 0) {
+    const why = result.stderr || result.stdout || (result.error && result.error.message) || "";
     throw new Error(
-      `Placed wb-runtime but \`wb-runtime --version\` failed (exit ${result.status}).\n` +
-        `${result.stderr || result.stdout}`
-    );
-  }
-  // clap prints "wb-runtime <version>"; tolerate either bare or prefixed forms.
-  const reported = result.stdout.split(/\s+/).pop();
-  if (reported !== expectedVersion) {
-    throw new Error(
-      `Runtime version drift: wb-runtime reports ${reported} but this installer is ` +
-        `${expectedVersion}. Re-run with a matching --ref, or report this.`
+      `Placed wb-runtime but it failed to execute (\`wb-runtime --version\` exit ${result.status}).\n${why}`
     );
   }
 }
 
-function fetchExpectedSha(sumsUrl, asset) {
-  return fetchText(sumsUrl).then((body) => {
+function fetchExpectedSha(sumUrl, archive) {
+  return fetchText(sumUrl).then((body) => {
     for (const line of body.split("\n")) {
       const trimmed = line.trim();
       if (!trimmed) continue;
-      // GNU coreutils format: "<64hex>  <filename>" (two spaces).
+      // `shasum -a 256` / GNU format: "<64hex>  <filename>" (optionally "*").
       const match = trimmed.match(/^([0-9a-fA-F]{64})\s+\*?(.+)$/);
-      if (match && match[2] === asset) {
+      if (match && path.basename(match[2]) === archive) {
         return match[1].toLowerCase();
       }
     }
     throw new Error(
-      `SHA256SUMS does not list ${asset}. The release may be missing this ` +
-        "platform's binary; open an issue with your OS/arch."
+      `${archive}.sha256 did not list a checksum for ${archive}. The release may ` +
+        "be missing this platform's archive; open an issue with your OS/arch."
     );
   });
 }
@@ -221,11 +221,18 @@ function safeUnlink(file) {
   }
 }
 
+function safeRmrf(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true });
+  } catch {
+    // best-effort cleanup
+  }
+}
+
 module.exports = {
   installRuntime,
-  placeVerifiedBinary,
-  verifyRuntimeVersion,
-  assetName,
-  tagToVersion,
+  extractVerifiedBinary,
+  verifyRuntimeLiveness,
+  archiveName,
   sha256File,
 };

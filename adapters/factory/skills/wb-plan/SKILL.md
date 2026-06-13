@@ -79,8 +79,9 @@ Where the host supports sub-agents, spawn one per trigger that is present; other
 
 In a WannaBuild workspace, Planning must produce:
 
-- `.wannabuild/spec/design.md` — design direction, options considered with the recommended choice, and every material tradeoff.
+- `.wannabuild/spec/design.md` — design direction, options considered with the recommended choice, and every material tradeoff. State the canonical integration test command here as part of the test strategy.
 - `.wannabuild/spec/tasks.md` — ordered slices, each mapped to acceptance criteria and carrying an executable verification step.
+- `.wannabuild/config.json` — set `integration_test_command` to the canonical integration test command from the design's test strategy (merge-update; do not replace the file). QA cannot pass until this is set, because the runtime executes it to produce signed integration evidence; if Plan omits it, `wb-integration-tester` must set it before recording.
 - `.wannabuild/outputs/plan/plan-options.json` — adversarial plan options conforming to `plan-options.schema.json`.
 - `.wannabuild/outputs/plan/adversarial-plans.html` — a single self-contained render of those options (recommended highlighted) for side-by-side comparison.
 

@@ -12,6 +12,7 @@ runs, and how to debug it when it fails.
 | Job | Runs on | Purpose |
 |---|---|---|
 | `lint` | ubuntu-latest | Runs `scripts/lint.sh` (shellcheck, shfmt, markdownlint-cli2, jscpd, lizard, prettier). |
+| `runtime` | ubuntu-latest, macos-latest | Runs `cargo test --locked` over `crates/wb-runtime` — the gate and evidence enforcement layer. |
 | `test` | ubuntu-latest, macos-latest | Runs `tests/run.sh` (bats), uploads JUnit results, publishes a test report. |
 | `coverage` | ubuntu-latest | Runs `tests/coverage.sh` with kcov; uploads coverage artifact. Requires `test` to succeed first. |
 | `validate-contracts` | ubuntu-latest | Runs `scripts/wannabuild-doctor.sh` plus the validator over each fixture in `skills/internal/build/dry-runs/`. |
@@ -30,6 +31,15 @@ push lands; runs on `main` are never cancelled.
   which) or one of the schemas drifted from `state.json`/`config.json` shape.
 - *Pre-commit red.* Match the failing hook's name to its config in
   `.pre-commit-config.yaml`; many hooks auto-fix and require a re-commit.
+
+## `.github/workflows/release-binaries.yml` — Release Binaries
+
+**Triggers:** a GitHub Release being published (by release-please).
+
+Builds the `wb-runtime` binary for linux-x86_64, macos-arm64, and
+macos-x86_64 and attaches `wb-runtime-<tag>-<platform>.tar.gz` archives plus
+`.sha256` checksums to the release. If a platform job fails, re-run it from
+the workflow run page; `gh release upload --clobber` makes re-runs safe.
 
 ## `.github/workflows/security.yml` — Security
 

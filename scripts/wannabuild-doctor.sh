@@ -260,7 +260,7 @@ FACTORY_HOME_DIR="${FACTORY_HOME:-${HOST_HOME}/.factory}"
 # Mirror install-factory-plugin.sh's marketplace/cache derivation so the
 # runtime path below carries the same <marketplace> segment the Factory hook
 # resolves against (parents[1]/target/debug/wb-runtime).
-FACTORY_MARKETPLACE_NAME="${FACTORY_MARKETPLACE:-$(basename "$ROOT")}"
+FACTORY_MARKETPLACE_NAME="${FACTORY_MARKETPLACE:-wannabuild}"
 FACTORY_PLUGIN_CACHE="${FACTORY_HOME_DIR}/plugins/cache/${FACTORY_MARKETPLACE_NAME}/wannabuild/local"
 
 echo "WannaBuild Doctor"
@@ -301,6 +301,22 @@ check_file "Cargo.toml" || status=1
 check_file "crates/wb-runtime/Cargo.toml" || status=1
 check_file "crates/wb-runtime/src/main.rs" || status=1
 check_file "crates/wb-runtime/src/lib.rs" || status=1
+
+# Stale installed-binary guard. An installed wb-runtime that predates the
+# evidence gate lacks `record-test-evidence` and silently accepts forged
+# integration verdicts. Warn (not fail) so a returning user rebuilds; a fresh
+# checkout that never installed the binary has nothing to flag here.
+for runtime_bin in \
+  "$(command -v wb-runtime 2>/dev/null || true)" \
+  "${CODEX_HOME:-$HOME/.codex}/bin/wb-runtime" \
+  "$HOME/.factory/bin/wb-runtime"; do
+  [ -n "$runtime_bin" ] && [ -x "$runtime_bin" ] || continue
+  if "$runtime_bin" record-test-evidence --help >/dev/null 2>&1; then
+    _pass "PASS  installed wb-runtime supports evidence gate: $runtime_bin"
+  else
+    _warn "WARN  installed wb-runtime is STALE (no record-test-evidence) and will not enforce integration evidence: $runtime_bin — rebuild with scripts/install-codex-skill.sh"
+  fi
+done
 check_contains "hooks/wannabuild-route.py" "WannaBuild runtime state is active" "Claude hook injects active workflow runtime state" || status=1
 check_contains "hooks/wannabuild-route.py" "FORBIDDEN: do not implement or edit code" "Claude hook enforces implementation-before-plan guard" || status=1
 check_contains "scripts/wannabuild-session.sh" "assert-plan-ready" "Session helper exposes hard planning gate" || status=1
@@ -449,7 +465,7 @@ check_contains "docs/claude-code-getting-started.md" "/using-wannabuild" "Claude
 echo
 echo "Golden path validation"
 check_command "golden path artifacts validate" "$ROOT/scripts/validate-wannabuild-artifacts.sh" "$ROOT/docs/golden-path-demo" document || status=1
-check_command "golden path summary gate passes" "$ROOT/scripts/wannabuild-gate-check.sh" "$ROOT/docs/golden-path-demo" summary || status=1
+check_command "golden path summary gate passes (fixture evidence mode)" env WB_EVIDENCE_MODE=fixture "$ROOT/scripts/wannabuild-gate-check.sh" "$ROOT/docs/golden-path-demo" summary || status=1
 check_command "daily-use dry runs pass" "$ROOT/scripts/validate-wannabuild-dry-runs.sh" "$ROOT" || status=1
 check_command "contract prompts validate" bash "$ROOT/scripts/validate-contracts.sh" || status=1
 echo

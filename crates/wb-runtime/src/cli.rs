@@ -5,7 +5,7 @@ use serde::Serialize;
 use serde_json::{Value, json};
 
 use crate::errors::{Result, RuntimeError};
-use crate::{adapters, context, events, gates, locks, state, tasks, transitions};
+use crate::{adapters, context, events, evidence, gates, locks, state, tasks, transitions};
 
 #[derive(Debug, Parser)]
 #[command(name = "wb-runtime")]
@@ -34,9 +34,19 @@ enum Commands {
     AssertQaReady(ProjectArgs),
     AssertSummaryReady(ProjectArgs),
     AssertAcquisitionAttempted(ProjectArgs),
+    RecordTestEvidence(EvidenceArgs),
+    VerifyTestEvidence(EvidenceArgs),
     Event(EventArgs),
     Tasks(TasksArgs),
     Adapter(AdapterArgs),
+}
+
+#[derive(Debug, Args)]
+struct EvidenceArgs {
+    #[command(flatten)]
+    project: ProjectArgs,
+    #[arg(long)]
+    iteration: Option<u64>,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -266,6 +276,28 @@ pub fn run() -> Result<()> {
             "acquisition",
             gates::assert_acquisition_attempted,
         )?,
+        Commands::RecordTestEvidence(args) => {
+            // No project lock: the test command may itself invoke wb-runtime.
+            let root = project_root(args.project.project)?;
+            let record = evidence::record_test_evidence(&root, args.iteration)?;
+            println!(
+                "Recorded integration evidence: {} (iteration {}, exit {}, {} ms)",
+                record.path.display(),
+                record.iteration,
+                record.exit_code,
+                record.duration_ms
+            );
+        }
+        Commands::VerifyTestEvidence(args) => {
+            let root = project_root(args.project.project)?;
+            let iteration = match args.iteration {
+                Some(value) => value,
+                None => evidence::current_iteration(&root)?,
+            };
+            for line in evidence::verify_integration_evidence(&root, iteration)? {
+                println!("{line}");
+            }
+        }
         Commands::Event(args) => handle_event(args.command)?,
         Commands::Tasks(args) => handle_tasks(args.command)?,
         Commands::Adapter(args) => handle_adapter(args.command)?,

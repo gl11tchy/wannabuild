@@ -93,5 +93,3 @@ the new normal.
 - [`../release.md`](../release.md) — how releases work here.
 - [`../ci.md`](../ci.md) — workflow inventory.
 - [`../branch-protection.md`](../branch-protection.md) — required checks.
-- [`../deployment-observability.md`](../deployment-observability.md) — how
-  releases are observed downstream.

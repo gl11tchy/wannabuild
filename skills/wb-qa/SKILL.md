@@ -53,9 +53,10 @@ The integration test gate is owned by `wb-integration-tester` and is the termina
 
 - Every acceptance criterion in `.wannabuild/spec/requirements.md` maps to at least one executed integration check — a complete criterion-to-check coverage map with no MISSING or partial rows.
 - `test_execution` shows tests actually ran: `total > 0`, `failed == 0`, `errored == 0`. "Status: PASS" with zero tests executed is a FAIL.
+- The suite run is runtime-recorded: execute it through `wb-runtime record-test-evidence` (or `hooks/wannabuild-route.py record-test-evidence` where the binary is unavailable), which runs `config.integration_test_command` itself and writes the signed evidence record the gates verify. Running tests by hand and writing the verdict is not evidence.
 - The integration environment was actually stood up (DB branch spun, service running, real endpoints/flows exercised) — not asserted from inspection.
 
-A FAIL is terminal: it cannot be overridden at any escalation level — there is no override path — and you may not route around it or ship while it is red. `assert-qa-ready` requires both the QA summary's positive markers and this execution evidence; markers alone never pass.
+A FAIL is terminal: it cannot be overridden at any escalation level — there is no override path — and you may not route around it or ship while it is red. `assert-qa-ready` requires the QA summary's positive markers AND a verifying runtime-recorded evidence record (valid signature, exit 0, current spec, current command); markers alone never pass.
 
 ## Flow
 

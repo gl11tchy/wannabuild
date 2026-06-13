@@ -1,0 +1,6 @@
+# Machine-local runtime state and raw evidence logs (may contain secrets).
+# Spec, verdicts, and signed evidence records are safe to commit.
+review/*.evidence.log
+runtime.db
+runtime.lock
+events.jsonl

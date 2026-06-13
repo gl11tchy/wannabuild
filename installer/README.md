@@ -11,8 +11,10 @@ npx wannabuild
 
 That auto-detects which hosts are present (`~/.claude`, `~/.codex`,
 `~/.factory`, `~/.cursor`), clones the WannaBuild repo at the latest release,
-downloads the prebuilt `wb-runtime` binary for your platform, verifies it by
-sha256, and runs each host's install script. No Rust toolchain required.
+downloads the prebuilt `wb-runtime` archive for your platform, verifies it by
+sha256, extracts the binary, and runs each host's install script. No Rust
+toolchain required (`tar` is used to unpack — preinstalled on macOS, Linux, and
+Windows 10+).
 
 ## Usage
 
@@ -65,15 +67,15 @@ bash scripts. To keep every install-time line auditable:
   `node:crypto`, `node:readline`). No transitive code runs at install time.
 - **No lifecycle scripts** — there is no `postinstall`/`preinstall`/`install`.
   Nothing happens until you *run* `npx wannabuild`.
-- **sha256 verification is mandatory** — the prebuilt `wb-runtime` is checked
-  against the release `SHA256SUMS` before it is written into place, and only then
-  installed atomically (staged then renamed). A checksum mismatch aborts the
+- **sha256 verification is mandatory** — the downloaded `wb-runtime` archive is
+  checked against its release `.sha256` before it is unpacked, and the binary is
+  then installed atomically (staged then renamed). A checksum mismatch aborts the
   install; it never falls back to an unverified binary.
 - **Trust boundary** — integrity rests on HTTPS-to-GitHub plus the checksum: the
-  binary *and* `SHA256SUMS` come from the same release over TLS, so this defends
+  archive *and* its `.sha256` come from the same release over TLS, so this defends
   against corrupted/MITM'd downloads, not against a compromised release itself.
   This matches how `rustup`/`nvm`/`bun` bootstrap. Detached signing
-  (minisign/cosign) of `SHA256SUMS`, with the public key shipped in this package,
+  (minisign/cosign) of the checksums, with the public key shipped in this package,
   is a planned hardening so a single tampered release asset can't pass.
 
 ## Windows

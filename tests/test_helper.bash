@@ -220,6 +220,28 @@ EOF
   fi
 }
 
+# write_integration_config <target_dir> [command]
+#   Writes .wannabuild/config.json with the integration_test_command the
+#   evidence recorder executes. Defaults to `true` for an instant green run.
+write_integration_config() {
+  local target="$1" command="${2:-true}"
+  mkdir -p "$target/.wannabuild"
+  printf '{"integration_test_command": "%s"}\n' "$command" > "$target/.wannabuild/config.json"
+}
+
+# record_integration_evidence <target_dir> [iteration]
+#   Produces the runtime-recorded, HMAC-signed execution evidence the review
+#   and QA gates require behind a wb-integration-tester PASS verdict, by
+#   running the real recorder (wb-runtime record-test-evidence). The signing
+#   key is confined to the per-test tmpdir via WB_EVIDENCE_KEY_FILE so the
+#   host's real evidence key is never read or written.
+record_integration_evidence() {
+  local target="$1" iteration="${2:-1}"
+  : "${WB_RUNTIME_BIN:?WB_RUNTIME_BIN must be set (built in setup_file)}"
+  export WB_EVIDENCE_KEY_FILE="${WB_EVIDENCE_KEY_FILE:-$BATS_TEST_TMPDIR/evidence.key}"
+  "$WB_RUNTIME_BIN" record-test-evidence --project "$target" --iteration "$iteration" >/dev/null
+}
+
 # write_checkpoint <target_dir> <task> <step>
 #   Writes a minimally-valid checkpoint markdown file.
 write_checkpoint() {
