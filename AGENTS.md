@@ -164,7 +164,7 @@ wannabuild/
 ## Host Positioning
 
 - Codex and Claude Code are co-primary experiences; Cursor is the secondary adapter.
-- Install: Claude Code via `/plugin install wannabuild@gl11tchy` or `scripts/install-claude-skill.sh`; Codex via `scripts/install-codex-skill.sh`.
+- Install: `npx wannabuild` is the primary path for every host — it auto-detects installed hosts, downloads and sha256-verifies the prebuilt Rust `wb-runtime` for the platform (no local toolchain), and runs each host's install script. From source: Claude Code via `/plugin install wannabuild@gl11tchy` or `scripts/install-claude-skill.sh`; Codex via `scripts/install-codex-skill.sh`; Factory via `scripts/install-factory-plugin.sh` (these build `wb-runtime` with cargo when no prebuilt is supplied).
 - Host details: [README.md](README.md), [docs/codex-getting-started.md](docs/codex-getting-started.md), [docs/host-capability-matrix.md](docs/host-capability-matrix.md).
 
 ## Quality Gates

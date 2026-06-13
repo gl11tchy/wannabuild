@@ -272,11 +272,32 @@ fi
 
 VERSION="$("$PYTHON" -c "import json; print(json.load(open('${PLUGIN_CACHE}/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo unknown)"
 
+# Non-fatal runtime check. Claude's hook resolves the Rust gate engine via the
+# plugin cache symlink back to ROOT, i.e. $ROOT/target/debug/wb-runtime. The
+# npx installer places that binary (WB_RUNTIME_PREBUILT); if it is missing or
+# not executable here, the hook silently falls back to the Python mirror, so
+# warn loudly without failing the (idempotent) plugin install.
+RUNTIME_BIN="$ROOT/target/debug/wb-runtime"
+if [[ ! -x "$RUNTIME_BIN" && -x "${RUNTIME_BIN}.exe" ]]; then
+  RUNTIME_BIN="${RUNTIME_BIN}.exe"
+fi
+if [[ -x "$RUNTIME_BIN" ]]; then
+  RUNTIME_NOTE="$RUNTIME_BIN"
+else
+  RUNTIME_NOTE="MISSING (Python mirror fallback)"
+  echo "install-claude-skill: WARNING: wb-runtime not found or not executable at" >&2
+  echo "  $ROOT/target/debug/wb-runtime" >&2
+  echo "  The Claude hook will fall back to the degraded Python gate mirror." >&2
+  echo "  Run 'npx wannabuild' to download the prebuilt binary, or build it with" >&2
+  echo "  'cargo build --manifest-path $ROOT/Cargo.toml --bin wb-runtime'." >&2
+fi
+
 echo ""
 echo "Installed WannaBuild for Claude Code:"
 echo "  Version:     $VERSION"
 echo "  Plugin path: $PLUGIN_CACHE -> $ROOT"
 echo "  Namespace:   wannabuild@${NAMESPACE}"
+echo "  Runtime:     $RUNTIME_NOTE"
 echo "  Hooks:       SessionStart + UserPromptSubmit autorouting verified"
 echo "  Python:      $PYTHON ($($PYTHON --version 2>&1))"
 echo ""

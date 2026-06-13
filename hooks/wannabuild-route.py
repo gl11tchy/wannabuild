@@ -915,9 +915,13 @@ def runtime_binary() -> Optional[str]:
     path_bin = shutil.which("wb-runtime")
     if path_bin:
         return path_bin
-    repo_bin = Path(__file__).resolve().parents[1] / "target" / "debug" / "wb-runtime"
-    if repo_bin.is_file():
-        return str(repo_bin)
+    base = Path(__file__).resolve().parents[1] / "target" / "debug" / "wb-runtime"
+    # Probe the .exe sibling so the binary is also found on Windows, where the
+    # release artifact is wb-runtime.exe; otherwise the host would silently fall
+    # back to the Python mirror even with the real binary present.
+    for repo_bin in (base, base.with_suffix(".exe")):
+        if repo_bin.is_file():
+            return str(repo_bin)
     return None
 
 

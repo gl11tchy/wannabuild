@@ -1,0 +1,37 @@
+{
+  "name": "wannabuild",
+  "version": "2.6.0",
+  "description": "One-command installer for WannaBuild: a spec-driven, trust-hardened build workflow for Claude Code, Codex, Factory, and Cursor. Installs the real Rust gate runtime into every detected host.",
+  "bin": {
+    "wannabuild": "bin/wannabuild.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gl11tchy/wannabuild.git"
+  },
+  "homepage": "https://github.com/gl11tchy/wannabuild#readme",
+  "bugs": {
+    "url": "https://github.com/gl11tchy/wannabuild/issues"
+  },
+  "keywords": [
+    "wannabuild",
+    "claude-code",
+    "codex",
+    "factory",
+    "cursor",
+    "agents",
+    "spec-driven",
+    "workflow",
+    "installer",
+    "cli"
+  ]
+}

@@ -158,16 +158,23 @@ runtime_binary_source() {
 install_codex_runtime() {
   local source name dest
 
-  if ! command -v cargo >/dev/null 2>&1; then
-    echo "Codex runtime install failed: cargo is required to build wb-runtime." >&2
-    return 1
-  fi
+  # Prefer the prebuilt binary the npx installer placed (no cargo required).
+  # Fall back to building from source for local/dev installs without it.
+  if [[ -n "${WB_RUNTIME_PREBUILT:-}" && -x "${WB_RUNTIME_PREBUILT}" ]]; then
+    source="$WB_RUNTIME_PREBUILT"
+  else
+    if ! command -v cargo >/dev/null 2>&1; then
+      echo "Codex runtime install failed: cargo is required to build wb-runtime." >&2
+      echo "Set WB_RUNTIME_PREBUILT to a prebuilt wb-runtime binary, or install cargo." >&2
+      return 1
+    fi
 
-  cargo build --quiet --manifest-path "$ROOT/Cargo.toml" --bin wb-runtime
-  source="$(runtime_binary_source)" || {
-    echo "Codex runtime install failed: built wb-runtime binary was not found." >&2
-    return 1
-  }
+    cargo build --quiet --manifest-path "$ROOT/Cargo.toml" --bin wb-runtime
+    source="$(runtime_binary_source)" || {
+      echo "Codex runtime install failed: built wb-runtime binary was not found." >&2
+      return 1
+    }
+  fi
 
   name="$(basename "$source")"
   dest="$RUNTIME_TARGET/$name"
