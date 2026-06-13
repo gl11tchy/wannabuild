@@ -10,6 +10,7 @@ use crate::{adapters, context, events, gates, locks, state, tasks, transitions};
 #[derive(Debug, Parser)]
 #[command(name = "wb-runtime")]
 #[command(about = "CLI-first WannaBuild runtime kernel")]
+#[command(version)]
 pub struct Cli {
     #[command(subcommand)]
     command: Commands,

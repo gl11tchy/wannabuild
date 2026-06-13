@@ -24,51 +24,36 @@ Condensed workflow: Discover -> Plan -> Implement -> Validate -> QA -> Summary.
 
 ## Quickstart
 
-Three steps to your first WannaBuild-driven feature. Pick the host you already
-use; commands are equivalent across hosts.
+One command installs WannaBuild into every host it detects (Claude Code, Codex,
+Factory Droid, Cursor) and wires each one to the real Rust `wb-runtime` gates:
 
-### Claude Code
-
-```text
-/plugin marketplace add gl11tchy/wannabuild
-/plugin install wannabuild@gl11tchy
-/reload-plugins
+```bash
+npx wannabuild
 ```
 
-Then type a natural feature request:
+No Rust or cargo required — the installer downloads a prebuilt, checksum-verified
+`wb-runtime` for your platform. It auto-detects installed hosts; scope it to a
+single host with `--claude`, `--codex`, `--factory`, or `--cursor`. The package
+ships with zero npm dependencies.
+
+Then type a natural feature request in your host:
 
 ```text
 I want to add Stripe billing to my SaaS
 ```
 
-### Codex
+In Codex, prefix with `$wannabuild`; in Claude Code or Droid, `/wannabuild`
+works as a shortcut. None of those prefixes are required — natural language
+routes automatically.
+
+Verify any time:
 
 ```bash
-git clone https://github.com/gl11tchy/wannabuild
-cd wannabuild
-./scripts/install-codex-skill.sh
+npx wannabuild doctor
 ```
 
-Restart Codex, then:
-
-```text
-$wannabuild I want to add Stripe billing to my SaaS
-```
-
-### Factory Droid
-
-```bash
-git clone https://github.com/gl11tchy/wannabuild
-cd wannabuild
-./scripts/install-factory-plugin.sh
-```
-
-Restart Droid, then type a natural feature request or use `/wannabuild`.
-
-### Cursor
-
-Load `.cursor/rules/wannabuild.mdc` from a clone of this repo, then describe the
-feature in chat.
+Prefer to install host-by-host from a clone, or hacking on the framework itself?
+See [Install](#install) for the per-host from-source paths.
 
 > **Hit a problem?** See
 > [docs/runbooks/install-and-load-failures.md](docs/runbooks/install-and-load-failures.md)
@@ -184,19 +169,48 @@ For contributors and maintainers working on the framework itself:
 
 ## Install
 
+The primary install path for every host is the npx installer. It downloads a
+prebuilt, checksum-verified `wb-runtime` for your platform, places it where each
+host resolves it, and runs the matching repo install script so every host runs
+the real Rust gates (never the degraded Python mirror):
+
+```bash
+npx wannabuild
+```
+
+By default it clones the repo to `~/.wannabuild`, pins to the latest release
+tag, auto-detects every installed host, and installs into each. Useful flags:
+
+| Flag | Effect |
+|---|---|
+| `--claude` `--codex` `--factory` `--cursor` | Install only the named host(s); disables auto-detect |
+| `--dir <path>` | Where the checkout lives (default `~/.wannabuild`) |
+| `--ref <git-ref>` | Pin both the checkout and the binary asset (default: latest release tag) |
+| `--yes` / `-y` | Non-interactive; don't prompt before overwriting |
+| `--help` / `-h`, `--version` / `-v` | Help / version |
+
+Subcommands: `npx wannabuild doctor` runs the readiness checks,
+`npx wannabuild uninstall` prints the host-managed entries and exact removal
+commands (`--purge` also removes the checkout), and `npx wannabuild help` lists
+everything.
+
+The sections below give each host's npx one-liner plus a from-source path for
+contributors hacking on the framework. On Windows the installer needs a usable
+bash (Git for Windows or WSL); see the
+[install runbook](docs/runbooks/install-and-load-failures.md#npx-wannabuild-cannot-find-bash-on-windows).
+
 ### Claude Code
 
 Co-primary path (alongside Codex).
 
-**Marketplace:**
-
-```text
-/plugin marketplace add gl11tchy/wannabuild
-/plugin install wannabuild@gl11tchy
-/reload-plugins
+```bash
+npx wannabuild --claude
 ```
 
-Then:
+This places the prebuilt `wb-runtime` at `~/.wannabuild/target/debug/wb-runtime`
+(where the plugin cache symlink resolves it), registers and enables the plugin
+under `~/.claude/plugins/`, and verifies the hook shape. Then run
+`/reload-plugins` and start with a natural feature or ideation prompt:
 
 ```text
 I want to build a Stripe billing flow for my SaaS
@@ -204,7 +218,15 @@ I want to build a Stripe billing flow for my SaaS
 
 Claude Code also supports `/wannabuild` and `/wb-*` command shortcuts. The installed hook injects routing context at session start and before matching user prompts, so natural feature, planning, debug, review, QA, and ship requests should wake up the right WannaBuild skill automatically. Downloaded skill metadata uses friendly UI names such as `WannaBuild: Review` and `WannaBuild: Ship` where the host supports skill display names.
 
-**From repo:**
+**Marketplace (skills + commands only, no prebuilt runtime):**
+
+```text
+/plugin marketplace add gl11tchy/wannabuild
+/plugin install wannabuild@gl11tchy
+/reload-plugins
+```
+
+**From source (contributors):**
 
 ```bash
 git clone https://github.com/gl11tchy/wannabuild
@@ -213,17 +235,40 @@ cd wannabuild
 ```
 
 The repo installer registers and enables the local plugin under
-`~/.claude/plugins/`, verifies the hook shape, and points Claude Code at this
-checkout. Then run `/reload-plugins` and start with a natural feature or
-ideation prompt.
+`~/.claude/plugins/` and points Claude Code at this checkout. It expects a built
+`wb-runtime` at `target/debug/wb-runtime` (npx provides the prebuilt binary;
+from a dev clone, `cargo build` produces it) and warns if it is missing.
 
 See [adapters/claude-code/README.md](adapters/claude-code/README.md) and [.claude/INSTALL.md](.claude/INSTALL.md).
 
 ### Codex / Repo-First
 
-Use WannaBuild directly from the repo in Codex. The installer links the
-repo-native skills into `~/.codex/skills/` and installs `wb-runtime` into
-`~/.codex/bin/`:
+```bash
+npx wannabuild --codex
+```
+
+This links the repo-native skills into `~/.codex/skills/` and places the
+prebuilt `wb-runtime` at `~/.codex/bin/wb-runtime` (Codex has no hook system, so
+the shell gate scripts resolve the binary from there). Then restart Codex and
+start with natural language:
+
+```text
+I want to build a Stripe billing flow for my SaaS
+```
+
+Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`. Runtime gates fail closed; `assert-workflow-active` catches missing `.wannabuild/` runtime evidence, and `assert-plan-ready` blocks implementation before Plan. Add `~/.codex/bin` to `PATH` if Codex cannot find `wb-runtime`.
+
+**From source (contributors):**
+
+```bash
+git clone https://github.com/gl11tchy/wannabuild
+cd wannabuild
+./scripts/install-codex-skill.sh
+```
+
+From a dev clone the installer builds `wb-runtime` with cargo before copying it
+into `~/.codex/bin/`; with a prebuilt binary it copies that instead and skips
+cargo. Reference surfaces:
 
 - [AGENTS.md](AGENTS.md)
 - [.codex/INSTALL.md](.codex/INSTALL.md)
@@ -234,38 +279,27 @@ repo-native skills into `~/.codex/skills/` and installs `wb-runtime` into
 - [scripts/wannabuild-doctor.sh](scripts/wannabuild-doctor.sh)
 - [scripts/install-codex-skill.sh](scripts/install-codex-skill.sh)
 
-Install the Codex skills:
-
-```bash
-git clone https://github.com/gl11tchy/wannabuild
-cd wannabuild
-./scripts/install-codex-skill.sh
-```
-
-Then restart Codex and start with natural language:
-
-```text
-I want to build a Stripe billing flow for my SaaS
-```
-
-Codex also supports `$wannabuild` and the installed `wb-*` skills. A `wb-*` skill invocation starts or resumes the full loop at that phase by default; for one-stage work, say the limit directly, such as "run discovery only" or "QA only". In Codex skill lists and chips, the phase skills ship with friendly names like `WannaBuild: Build`, `WannaBuild: Review`, and `WannaBuild: Ship`. Runtime gates fail closed; `assert-workflow-active` catches missing `.wannabuild/` runtime evidence, and `assert-plan-ready` blocks implementation before Plan. Add `~/.codex/bin` to `PATH` if Codex cannot find `wb-runtime`.
-
 ### Factory / Droid
 
-Full install from the repo is recommended for Factory Droid because it installs
-both the plugin surface and the generated specialist droids:
+```bash
+npx wannabuild --factory
+```
+
+This links the self-contained `adapters/factory` plugin into Factory's plugin
+cache, writes the generated `wb-*` droids to `~/.factory/droids/`, and places
+the prebuilt `wb-runtime` inside the Factory plugin cache (the Factory hook is
+copied, not symlinked, so its binary lives at
+`<plugin cache>/local/target/debug/wb-runtime`). Restart Droid, then start with
+a natural feature, planning, debug, review, QA, or ship request. Explicit
+`/wannabuild` and `/wb-*` plugin commands remain available as shortcuts.
+
+**From source (contributors):**
 
 ```bash
 git clone https://github.com/gl11tchy/wannabuild
 cd wannabuild
 ./scripts/install-factory-plugin.sh
 ```
-
-The installer registers the local marketplace/plugin, links the self-contained
-`adapters/factory` plugin into Factory's plugin cache, and writes generated
-`wb-*` droids to `~/.factory/droids/`. Restart Droid, then start with a natural
-feature, planning, debug, review, QA, or ship request. Explicit `/wannabuild`
-and `/wb-*` plugin commands remain available as shortcuts.
 
 If you only need the packaged plugin commands and skills, you can install
 through Droid's plugin manager instead:
@@ -275,11 +309,20 @@ droid plugin marketplace add https://github.com/gl11tchy/wannabuild
 droid plugin install wannabuild@wannabuild
 ```
 
-Use the repo installer for the complete generated `wb-*` Droid specialist set.
+Use npx or the repo installer for the complete generated `wb-*` Droid specialist
+set plus the prebuilt runtime. See
+[adapters/factory/README.md](adapters/factory/README.md).
 
 ### Cursor
 
-Cursor is supported via the same repo-native contracts and scripts.
+```bash
+npx wannabuild --cursor
+```
+
+Cursor is rules-only and invokes no runtime, so the installer refreshes the
+`.cursor/rules/wannabuild.mdc` pointer and prints guidance — no binary is
+placed. You can also load the rule directly from a clone of this repo, then
+describe the feature in chat.
 
 - [adapters/cursor/README.md](adapters/cursor/README.md)
 - [docs/host-capability-matrix.md](docs/host-capability-matrix.md)

@@ -1,10 +1,27 @@
 # Claude Code Adapter
 
-WannaBuild for Claude Code. Supports marketplace install and repo-based local install.
+WannaBuild for Claude Code. Supports the npx installer, marketplace install, and repo-based local install.
 
 ## Install
 
-### Marketplace (recommended)
+### npx (recommended)
+
+```bash
+npx wannabuild --claude
+```
+
+This downloads a prebuilt, checksum-verified `wb-runtime` for your platform,
+places it at `~/.wannabuild/target/debug/wb-runtime` (where the plugin cache
+symlink resolves it), and runs the repo install script so Claude Code runs the
+real Rust gates. Run `/reload-plugins`, then start with natural language:
+
+```text
+I wanna build a Stripe billing flow for my SaaS
+```
+
+### Marketplace
+
+Installs the skills and commands only — no prebuilt runtime.
 
 ```text
 /plugin marketplace add gl11tchy/wannabuild
@@ -17,7 +34,7 @@ Restart Claude Code, then start with natural language:
 I wanna build a Stripe billing flow for my SaaS
 ```
 
-### From Repo
+### From source (contributors)
 
 ```bash
 ./scripts/install-claude-skill.sh
@@ -28,6 +45,10 @@ Run `/reload-plugins`, then start with natural language:
 ```text
 I wanna build a Stripe billing flow for my SaaS
 ```
+
+This path expects a built `wb-runtime` at `target/debug/wb-runtime` (npx
+provides the prebuilt binary; from a dev clone, `cargo build` produces it). The
+installer warns if it is missing.
 
 ## Usage
 

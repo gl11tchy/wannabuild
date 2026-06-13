@@ -231,12 +231,37 @@ check_command() {
   fi
 }
 
+# Fail closed when a host is installed but its Rust gate binary is absent or
+# not executable: silent fallback to the degraded Python mirror must be loud.
+# Accepts the bare path and also probes a .exe sibling for Windows installs.
+check_runtime_binary() {
+  local path="$1"
+  local label="$2"
+  if [[ -x "$path" ]]; then
+    _pass "PASS  $label -> $path"
+  elif [[ -x "${path}.exe" ]]; then
+    _pass "PASS  $label -> ${path}.exe"
+  elif [[ -e "$path" || -e "${path}.exe" ]]; then
+    _fail "FAIL  $label: present but not executable ($path)"
+    return 1
+  else
+    _fail "FAIL  $label: missing ($path); host would fall back to Python mirror"
+    return 1
+  fi
+}
+
 status=0
 HOST_HOME="$(resolve_host_home)"
 CODEX_BASE="${CODEX_HOME:-${HOST_HOME}/.codex}"
 CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-${CODEX_BASE}/skills}"
+CODEX_RUNTIME_DIR="${CODEX_RUNTIME_DIR:-${CODEX_BASE}/bin}"
 CLAUDE_HOME_DIR="${CLAUDE_HOME:-${HOST_HOME}/.claude}"
 FACTORY_HOME_DIR="${FACTORY_HOME:-${HOST_HOME}/.factory}"
+# Mirror install-factory-plugin.sh's marketplace/cache derivation so the
+# runtime path below carries the same <marketplace> segment the Factory hook
+# resolves against (parents[1]/target/debug/wb-runtime).
+FACTORY_MARKETPLACE_NAME="${FACTORY_MARKETPLACE:-$(basename "$ROOT")}"
+FACTORY_PLUGIN_CACHE="${FACTORY_HOME_DIR}/plugins/cache/${FACTORY_MARKETPLACE_NAME}/wannabuild/local"
 
 echo "WannaBuild Doctor"
 echo "================="
@@ -450,6 +475,26 @@ check_json_key "${FACTORY_HOME_DIR}/plugins/installed_plugins.json" "wannabuild@
 check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-architect.md" "Factory droid wb-architect installed"
 check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-integration-tester.md" "Factory droid wb-integration-tester installed"
 check_optional_user_file "${FACTORY_HOME_DIR}/droids/wb-advisor.md" "Factory droid wb-advisor installed"
+echo
+echo "Runtime binary"
+echo "Each installed host must reach the Rust wb-runtime gate engine; a missing"
+echo "binary silently degrades that host to the Python mirror, so this fails hard."
+runtime_hosts_checked=0
+if [[ -d "${CLAUDE_HOME_DIR}" ]]; then
+  runtime_hosts_checked=1
+  check_runtime_binary "${ROOT}/target/debug/wb-runtime" "Claude wb-runtime present and executable" || status=1
+fi
+if [[ -d "${CODEX_BASE}" ]]; then
+  runtime_hosts_checked=1
+  check_runtime_binary "${CODEX_RUNTIME_DIR}/wb-runtime" "Codex wb-runtime present and executable" || status=1
+fi
+if [[ -d "${FACTORY_HOME_DIR}" ]]; then
+  runtime_hosts_checked=1
+  check_runtime_binary "${FACTORY_PLUGIN_CACHE}/target/debug/wb-runtime" "Factory wb-runtime present and executable" || status=1
+fi
+if [[ "$runtime_hosts_checked" -eq 0 ]]; then
+  echo "No host install directories found; skipping runtime binary checks."
+fi
 echo
 printf '%s%d pass · %d warn · %d fail%s\n\n' \
   "$COLOR_BOLD" "$DOCTOR_PASS_COUNT" "$DOCTOR_WARN_COUNT" "$DOCTOR_FAIL_COUNT" "$COLOR_RESET"

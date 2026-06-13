@@ -288,6 +288,100 @@ If any check fails, find the matching entry above (e.g.,
 
 ---
 
+## `npx wannabuild` cannot find bash on Windows
+
+**Symptom.** `npx wannabuild` aborts on Windows with an error that no usable
+bash was found, before any host is installed.
+
+**Cause.** The installer runs the repo's bash install scripts; it never
+reimplements their path-translation/junction logic in Node. On Windows it
+locates bash in order: `$WANNABUILD_BASH`, `bash` on `PATH`, Git for Windows
+(`C:\Program Files\Git\bin\bash.exe` and the x86 variant), then `wsl.exe bash`.
+If none resolve, it fails rather than degrading.
+
+**Fix.** Install [Git for Windows](https://git-scm.com/download/win) (ships
+`bash.exe`) or enable WSL, then re-run. To point at a specific bash:
+
+```bash
+WANNABUILD_BASH="/c/Program Files/Git/bin/bash.exe" npx wannabuild
+```
+
+---
+
+## `npx wannabuild` checksum mismatch on the prebuilt runtime
+
+**Symptom.** Install aborts after downloading `wb-runtime` with a sha256
+mismatch against `SHA256SUMS`.
+
+**Cause.** The downloaded binary does not match the published checksum — a
+truncated or corrupted download, a proxy/mirror rewriting the asset, or a stale
+release asset. The installer verifies every download and refuses to place an
+unverified gate binary; it never falls back to an unchecked copy.
+
+**Diagnose.** Confirm you can reach the release assets and that the tag exists:
+
+```bash
+gh release view v<version> --json assets --jq '.assets[].name'
+```
+
+You should see `wb-runtime-v<version>-<triple>` for your platform plus
+`SHA256SUMS`.
+
+**Fix.** Re-run `npx wannabuild` (a fresh download usually clears a transient
+corruption). If it persists, pin to a known-good release with `--ref` (for
+example `npx wannabuild --ref v<version>`) and check whether a corporate proxy
+is rewriting GitHub release downloads.
+
+---
+
+## `npx wannabuild` reports an unsupported platform/arch
+
+**Symptom.** Install stops immediately with an error that your
+`platform`/`arch` combination is not supported, before any download.
+
+**Cause.** Prebuilt runtimes are published only for the release matrix:
+`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`,
+`aarch64-unknown-linux-musl`, and `x86_64-pc-windows-msvc`. Other targets (for
+example 32-bit, or linux on a non-x64/arm64 arch) have no asset, so the
+installer fails loudly rather than guessing.
+
+**Fix.** Use a supported platform, or build `wb-runtime` from source with cargo
+and install the relevant host from a clone (see each adapter README's
+"From source" path). On an unsupported arch, the from-source path is the only
+route — the npx installer will not synthesize a binary it cannot verify.
+
+---
+
+## `npx wannabuild doctor` fails: runtime binary absent for an installed host
+
+**Symptom.** A host is installed, but `npx wannabuild doctor` (or
+`scripts/wannabuild-doctor.sh`) reports `FAIL` for that host's runtime binary
+and exits non-zero.
+
+**Cause.** This is intentional fail-closed behavior. If a host is installed but
+its `wb-runtime` binary is missing or not executable, the host would silently
+fall back to the degraded Python mirror instead of the real Rust gates. Doctor
+makes that loud: it checks each installed host's binary at its resolution path —
+`~/.wannabuild/target/debug/wb-runtime` (Claude), `~/.codex/bin/wb-runtime`
+(Codex), and `<plugin cache>/local/target/debug/wb-runtime` (Factory) — and
+fails when one is absent or not `-x`.
+
+**Diagnose.** Check the path for the failing host, e.g. for Codex:
+
+```bash
+ls -l ~/.codex/bin/wb-runtime
+```
+
+A missing file, or one without the executable bit, is the cause.
+
+**Fix.** Re-run `npx wannabuild` (optionally scoped, e.g. `--codex`). It
+re-downloads the verified binary and re-places it where the host resolves it,
+then runs `wb-runtime --version` to assert the placed binary matches the package
+version. If the install completes but doctor still fails, confirm the binary is
+executable (`chmod +x` on the resolution path) and re-run doctor.
+
+---
+
 ## Adding a new entry
 
 When a user reports a failure that isn't here:

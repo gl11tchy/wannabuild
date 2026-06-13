@@ -35,6 +35,16 @@
           "type": "json",
           "path": "adapters/factory/.factory-plugin/plugin.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "toml",
+          "path": "crates/wb-runtime/Cargo.toml",
+          "jsonpath": "$.package.version"
+        },
+        {
+          "type": "json",
+          "path": "installer/package.json",
+          "jsonpath": "$.version"
         }
       ]
     }
