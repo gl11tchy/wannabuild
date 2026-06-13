@@ -280,12 +280,18 @@ check_file "crates/wb-runtime/src/lib.rs" || status=1
 # Stale installed-binary guard. An installed wb-runtime that predates the
 # evidence gate lacks `record-test-evidence` and silently accepts forged
 # integration verdicts. Warn (not fail) so a returning user rebuilds; a fresh
-# checkout that never installed the binary has nothing to flag here.
+# checkout that never installed the binary has nothing to flag here. Probe the
+# Codex install dir (the exact RUNTIME_TARGET install-codex-skill.sh writes to)
+# and PATH, deduplicated so the same file is not probed twice. Factory and
+# Claude ship the Python hook mirror, not a binary, so there is no path there.
+seen_runtimes=""
 for runtime_bin in \
   "$(command -v wb-runtime 2>/dev/null || true)" \
-  "${CODEX_HOME:-$HOME/.codex}/bin/wb-runtime" \
-  "$HOME/.factory/bin/wb-runtime"; do
+  "${CODEX_RUNTIME_DIR:-${CODEX_BASE}/bin}/wb-runtime"; do
   [ -n "$runtime_bin" ] && [ -x "$runtime_bin" ] || continue
+  resolved="$(resolve_path "$runtime_bin" || printf '%s' "$runtime_bin")"
+  case " $seen_runtimes " in *" $resolved "*) continue ;; esac
+  seen_runtimes="$seen_runtimes $resolved"
   if "$runtime_bin" record-test-evidence --help >/dev/null 2>&1; then
     _pass "PASS  installed wb-runtime supports evidence gate: $runtime_bin"
   else
