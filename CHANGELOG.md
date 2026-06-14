@@ -8,6 +8,13 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.7.2](https://github.com/gl11tchy/wannabuild/compare/v2.7.1...v2.7.2) (2026-06-14)
+
+
+### Fixes
+
+* **release:** use sha256sum fallback so the Windows binary packages ([#72](https://github.com/gl11tchy/wannabuild/issues/72)) ([21578f1](https://github.com/gl11tchy/wannabuild/commit/21578f1ae597c768eafc767963ff7c26020d08d4))
+
 ## [2.7.1](https://github.com/gl11tchy/wannabuild/compare/v2.7.0...v2.7.1) (2026-06-14)
 
 
