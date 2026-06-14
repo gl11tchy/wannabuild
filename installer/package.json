@@ -8,7 +8,8 @@
   "files": [
     "bin",
     "lib",
-    "README.md"
+    "README.md",
+    "wannabuild-release.pub"
   ],
   "engines": {
     "node": ">=18"

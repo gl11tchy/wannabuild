@@ -80,7 +80,7 @@ async function runInstall(opts) {
 
   if (needsRuntime) {
     process.stdout.write("Downloading and verifying wb-runtime...\n");
-    const placed = await installRuntime({ dir, tag });
+    const placed = await installRuntime({ dir, tag, ref: opts.ref });
     prebuilt = placed.binaryPath;
     process.stdout.write(`  placed: ${prebuilt}\n`);
     process.stdout.write(`  sha256: ${placed.sha256}\n`);

@@ -1,6 +1,6 @@
-# Only bin/, lib/, and README.md ship (enforced by package.json "files"); this
-# is a belt-and-suspenders exclusion for dev cruft so nothing extra leaks into
-# the published tarball.
+# Only bin/, lib/, README.md, and wannabuild-release.pub ship (enforced by
+# package.json "files"); this is a belt-and-suspenders exclusion for dev cruft
+# so nothing extra leaks into the published tarball.
 tests/
 test/
 *.test.js

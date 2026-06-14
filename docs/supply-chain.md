@@ -94,8 +94,21 @@ release surface as soon as they are disclosed.
 
 ## Provenance
 
-SLSA-style build provenance is not yet wired up for this repo. Tracked as
-TODO(@gl11tchy); add a link here when the work is scheduled. For target projects, prefer
+Release artefacts carry two independent provenance/integrity signals:
+
+- **npm build provenance (SLSA).** The `npm-publish` job publishes the installer
+  with `npm publish --provenance` under `id-token: write`, attaching a SLSA
+  provenance attestation (`predicateType https://slsa.dev/provenance/v1`) that
+  ties the published tarball to the workflow run and commit. Verify with
+  `npm view wannabuild --json` (`.dist.attestations`) or `npm audit signatures`.
+- **Signed release checksums (minisign).** The `sign-checksums` job rolls every
+  per-archive `.sha256` into a single `SHA256SUMS` manifest and signs it with a
+  minisign (Ed25519) key held only as the `MINISIGN_SECRET_KEY` Actions secret
+  (never in the tree). The npx installer verifies that signature against the
+  public key shipped in the package before trusting any binary — see
+  [`docs/trust-model.md`](trust-model.md).
+
+For target projects, prefer
 [`actions/attest-build-provenance`](https://github.com/actions/attest-build-provenance)
 to attach signed provenance to release artefacts at build time.
 
@@ -122,6 +135,7 @@ under the same five-day cool-off as everything else.
 | Vulnerable dependency in target project             | Dependabot weekly, Renovate continuous, OSV alerts    |
 | Stale lockfile drifting from declared deps          | Renovate lockfile maintenance (default in `config:recommended`) |
 | Tampered installed adapter files                    | Install scripts symlink into the cloned repo         |
+| Tampered or substituted release binary / checksum   | minisign-signed `SHA256SUMS`, verified in npx installer |
 | Secrets exfiltrated via dependency execution        | No runtime deps in the framework; pre-commit gitleaks |
 
 ## See also
