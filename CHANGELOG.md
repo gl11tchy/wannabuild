@@ -8,6 +8,13 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.7.1](https://github.com/gl11tchy/wannabuild/compare/v2.7.0...v2.7.1) (2026-06-14)
+
+
+### Fixes
+
+* **release:** cross-compile Intel-macOS binary and skip harden-runner on Windows ([#70](https://github.com/gl11tchy/wannabuild/issues/70)) ([929f212](https://github.com/gl11tchy/wannabuild/commit/929f2124c37f8509a5d8d408d6220a637ded3485))
+
 ## [2.7.0](https://github.com/gl11tchy/wannabuild/compare/v2.6.0...v2.7.0) (2026-06-13)
 
 
