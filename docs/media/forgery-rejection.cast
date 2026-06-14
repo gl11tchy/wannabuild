@@ -1,0 +1,13 @@
+{"version":3,"term":{"cols":92,"rows":30},"timestamp":1781477370,"idle_time_limit":2.0,"command":"bash scripts/demo-forgery-rejection.sh","env":{"SHELL":"/bin/zsh"}}
+[0.011, "o", "\u001b[1mWannaBuild — your agent can't mark its own homework.\u001b[0m\r\n"]
+[0.000, "o", "\u001b[2mSpec-driven builds with ship gates that are programs, not prose.\u001b[0m\r\n\r\n"]
+[0.706, "o", "\u001b[36m$ wb-runtime init --project .\u001b[0m\r\n"]
+[0.008, "o", "\u001b[2minitialized · at QA\u001b[0m\r\n\r\n"]
+[0.705, "o", "A lazy agent skips the tests and writes a perfect-looking verdict:\r\n"]
+[0.000, "o", "\u001b[36m$ cat > .wannabuild/review/wb-integration-tester-iter-1.json\u001b[0m\r\n"]
+[0.003, "o", "\u001b[32m  status: PASS · 100/100 passed · every criterion covered\u001b[0m\r\n\u001b[2m  …exactly what you'd get instead of a real test run.\u001b[0m\r\n"]
+[0.000, "o", "\r\n"]
+[0.706, "o", "Now ask the gate to bless it:\r\n\u001b[36m$ wb-runtime assert-qa-ready --project .\u001b[0m\r\n"]
+[0.006, "o", "\u001b[31mQA gate failed: no runtime-recorded execution evidence for iteration 1 (.wannabuild/review/wb-integration-tester-iter-1.evidence.json missing); run `wb-runtime record-test-evidence` — the runtime executes the integration test command itself and signs the result, so a hand-written verdict cannot pass this gate\u001b[0m\r\n\r\n"]
+[0.705, "o", "\u001b[32m✓ Forgery rejected.\u001b[0m The only path to green is the runtime running\r\n  your tests itself and signing the result — a hand-written verdict can't pass.\r\n"]
+[0.003, "x", "0"]
