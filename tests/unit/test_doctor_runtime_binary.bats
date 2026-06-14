@@ -2,10 +2,12 @@
 #
 # Unit tests for the doctor's "Runtime binary" fail-closed section.
 #
-# The contract: when a host is installed (its home dir exists) but the real
-# wb-runtime binary is absent or not executable at that host's resolved path,
-# the doctor must FAIL (exit non-zero) — never warn. A silent fallback to the
-# degraded Python mirror has to be loud.
+# The contract: when WannaBuild is installed into a host (its install marker
+# exists) but the real wb-runtime binary is absent or not executable at that
+# host's resolved path, the doctor must FAIL (exit non-zero) — never warn. A
+# silent fallback to the degraded Python mirror has to be loud. A host whose app
+# home merely exists, but into which WannaBuild was never installed, must NOT be
+# flagged — that runtime is not WannaBuild's to provide.
 #
 # We drive the doctor with a fake $WB_RUNTIME_BIN so its unrelated golden-path
 # gate checks do not require cargo; the runtime-binary section under test does
@@ -32,6 +34,14 @@ EOF
   mkdir -p "$HOST_HOME"
 }
 
+# install_codex_marker: create the install marker the Codex installer writes
+# (~/.codex/skills/wannabuild). The doctor now keys "installed" off this marker,
+# not the bare ~/.codex home, so a host the user never installed into is skipped.
+install_codex_marker() {
+  mkdir -p "$HOST_HOME/.codex/skills"
+  ln -snf "$REPO_ROOT/skills/wannabuild" "$HOST_HOME/.codex/skills/wannabuild"
+}
+
 # run_doctor: invoke the doctor with the runtime-binary section's host homes
 # pointed at our controlled HOST_HOME and a fake global runtime override.
 run_doctor() {
@@ -43,7 +53,8 @@ run_doctor() {
 }
 
 @test "doctor_runtime_binary: doctor exposes a Runtime binary section" {
-  # Present a Codex install so the section has a host to check.
+  # Present a Codex WannaBuild install so the section has a host to check.
+  install_codex_marker
   mkdir -p "$HOST_HOME/.codex/bin"
   cp "$FAKE_BIN" "$HOST_HOME/.codex/bin/wb-runtime"
   run_doctor
@@ -51,8 +62,8 @@ run_doctor() {
 }
 
 @test "doctor_runtime_binary: FAILs and exits non-zero when an installed Codex host has no runtime binary" {
-  # Codex is "installed" (its home exists) but no binary was placed.
-  mkdir -p "$HOST_HOME/.codex/skills"
+  # WannaBuild is installed into Codex (marker present) but no binary was placed.
+  install_codex_marker
   run_doctor
   [ "$status" -ne 0 ]
   # Scope to the runtime-binary section's own message so this cannot pass on an
@@ -68,6 +79,7 @@ run_doctor() {
   if [ "$(id -u)" -eq 0 ]; then
     skip "root bypasses the executable bit; -x semantics do not apply"
   fi
+  install_codex_marker
   mkdir -p "$HOST_HOME/.codex/bin"
   # Non-executable file at the resolved path must still trip the gate.
   printf 'not a real binary\n' >"$HOST_HOME/.codex/bin/wb-runtime"
@@ -75,4 +87,14 @@ run_doctor() {
   run_doctor
   [ "$status" -ne 0 ]
   [[ "$output" == *"Codex wb-runtime present and executable: present but not executable"* ]]
+}
+
+@test "doctor_runtime_binary: does NOT flag a host whose home exists but has no WannaBuild install" {
+  # A user can have ~/.codex (or ~/.factory) for unrelated reasons without ever
+  # installing WannaBuild into it. The runtime section must skip such a host
+  # instead of hard-failing on a runtime it was never asked to provide.
+  mkdir -p "$HOST_HOME/.codex/bin"   # bare host app home, no WannaBuild marker
+  run_doctor
+  [[ "$output" != *"wb-runtime present and executable: missing"* ]]
+  [[ "$output" == *"No installed host detected"* ]]
 }
