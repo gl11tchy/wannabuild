@@ -41,6 +41,7 @@
     "node_modules/**",
     "skills/internal/build/dry-runs/**",
     "docs/generated/**",
+    "graphify-out/**",
     "tests/.bats/**",
     "tests/.bats-libs/**",
     "LICENSE"
