@@ -12,7 +12,7 @@ const { runCapture } = require("./run");
 const RELEASE_BASE = "https://github.com/gl11tchy/wannabuild/releases/download";
 
 // archiveName(tag, target) -> the published archive filename for this build.
-// Mirrors the package step in release-binaries.yml:
+// Mirrors the package step in the release-binaries job of release-please.yml:
 //   wb-runtime-<tag>-<label>.tar.gz   (tag carries its leading "v")
 function archiveName(tag, target) {
   return `wb-runtime-${tag}-${target.label}.tar.gz`;

@@ -3,7 +3,7 @@
 // Map the running Node process to the release-asset LABEL whose prebuilt
 // wb-runtime archive is published on each GitHub release, plus the executable
 // suffix the binary inside that archive uses. These labels MUST match the build
-// matrix in .github/workflows/release-binaries.yml.
+// matrix in the release-binaries job of .github/workflows/release-please.yml.
 const TARGETS = {
   "darwin:arm64": { label: "macos-arm64", exe: "" },
   "darwin:x64": { label: "macos-x86_64", exe: "" },

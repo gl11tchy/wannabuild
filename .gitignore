@@ -80,3 +80,6 @@ tests/coverage-out/
 
 # Runtime project-lock scratch (wb-runtime locks.rs)
 .in_use/
+
+# graphify generated output (graph.json/html, GRAPH_REPORT.md, cache) — never commit
+graphify-out/

@@ -95,7 +95,8 @@ description: "Brief description for skill discovery"
 
 ## Code of Conduct
 
-Be kind. We're all here to build cool stuff.
+Be kind. We're all here to build cool stuff. See
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Local Setup
 

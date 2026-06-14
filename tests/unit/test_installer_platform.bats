@@ -20,7 +20,7 @@ setup() {
 }
 
 # resolve <platform> <arch>  -> prints "<label> <exe>" via lib/platform.js.
-# The label MUST match a release-binaries.yml matrix label. Exits non-zero
+# The label MUST match a release-binaries matrix label (release-please.yml). Exits non-zero
 # (and prints the actionable error) when resolveTarget throws.
 resolve() {
   local platform="$1" arch="$2"
