@@ -134,7 +134,13 @@ jobs:
           fi
           archive="wb-runtime-${TAG}-${LABEL}.tar.gz"
           tar -czf "$archive" -C "$bindir" "wb-runtime${EXE}"
-          shasum -a 256 "$archive" > "$archive.sha256"
+          # shasum ships on macOS/Linux runners; Git-Bash on Windows has
+          # sha256sum instead. Both emit the same "<hash>  <file>" format.
+          if command -v shasum >/dev/null 2>&1; then
+            shasum -a 256 "$archive" > "$archive.sha256"
+          else
+            sha256sum "$archive" > "$archive.sha256"
+          fi
           gh release upload "$TAG" "$archive" "$archive.sha256" --clobber
 
   npm-publish:
