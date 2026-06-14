@@ -39,7 +39,6 @@ State records the chosen option under `state.plan_options` (`artifact`, `html`, 
 ### Required core keys
 
 - `project` (string): Friendly project label
-- `mode` (`standard`): Workflow mode
 - `current_phase` (string): Current internal phase name
 - `phase_status` (`pending` | `in_progress` | `complete`): Current internal phase status
 - `public_stage` (string): Current public-facing stage (`discover` | `research` | `plan` | `implement` | `review` | `qa` | `summary`)
@@ -57,6 +56,10 @@ Each item must include:
 - `stage` (string): One of the 10 valid public stages
 - `status` (`in_progress` | `complete`): Stage status
 - `timestamp` (ISO string): When this stage was entered or completed
+
+### Optional keys
+
+- `mode` (`standard`): Workflow mode (validated if present; not required)
 
 ### Optional advisor keys
 
@@ -123,12 +126,15 @@ Example:
 
 ### Required core keys
 
-- `mode` (`standard`)
 - `current_iteration` (integer)
 - `max_iterations` (integer)
 - `base_reviewer_count` (integer)
 - `status` (`in_progress` | `approved` | `escalated` | `blocked`)
 - `iterations` (array)
+
+### Optional keys
+
+- `mode` (`standard`): Workflow mode (validated if present; not required)
 
 ### Iteration record
 

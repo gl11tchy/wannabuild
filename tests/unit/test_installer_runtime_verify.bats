@@ -8,8 +8,8 @@
 # sha256 matches the expected digest. On a mismatch the function refuses
 # (throws) and leaves nothing at the destination, so an unverified binary can
 # never become the active gate engine. No network: we build a local .tar.gz
-# (exactly as release-binaries.yml packages it) and an independently-computed
-# digest.
+# (exactly as the release-binaries job in release-please.yml packages it) and an
+# independently-computed digest.
 
 load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
@@ -27,7 +27,7 @@ setup() {
   mkdir -p "$SRCDIR"
   printf '#!/bin/sh\necho "wb-runtime fake"\n' >"$SRCDIR/wb-runtime"
   chmod +x "$SRCDIR/wb-runtime"
-  # Package exactly like release-binaries.yml: tar -czf ... -C <dir> wb-runtime.
+  # Package exactly like the release-binaries job (release-please.yml): tar -czf ... -C <dir> wb-runtime.
   ARCHIVE="$WORK/wb-runtime-vX-test.tar.gz"
   tar -czf "$ARCHIVE" -C "$SRCDIR" wb-runtime
 }
