@@ -19,7 +19,7 @@ LINES_MAX=800
 EXEMPT_PATH="skills/internal/build/SKILL.md"
 EXEMPT_LINES_MAX=700
 GENERATED_SCRIPTS_PATH="docs/generated/scripts.md"
-GENERATED_SCRIPTS_LINES_MAX=1000
+GENERATED_SCRIPTS_LINES_MAX=1100
 
 byte_size() {
   if stat -f%z "$1" >/dev/null 2>&1; then

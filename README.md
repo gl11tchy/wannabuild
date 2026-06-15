@@ -60,6 +60,8 @@ shipping with a runtime, not a prompt:
 
 ### Try to cheat it
 
+![Forged "all-green" verdict rejected by the QA gate: the runtime demands its own signed test evidence](docs/media/forgery-rejection.gif)
+
 > Needs the `wb-runtime` binary (a Codex install puts it on `PATH`; otherwise
 > `cargo build --release`). Binary-less Claude/Factory installs enforce the same
 > gates through the Python hook mirror (`record-test-evidence` /
