@@ -8,6 +8,13 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.7.3](https://github.com/gl11tchy/wannabuild/compare/v2.7.2...v2.7.3) (2026-06-15)
+
+
+### Fixes
+
+* doctor false-FAIL + correct published release-workflow reference ([#75](https://github.com/gl11tchy/wannabuild/issues/75)) ([a7cd2fa](https://github.com/gl11tchy/wannabuild/commit/a7cd2fabf0e8d4d06963be02141dc5e4513f42da))
+
 ## [2.7.2](https://github.com/gl11tchy/wannabuild/compare/v2.7.1...v2.7.2) (2026-06-14)
 
 
