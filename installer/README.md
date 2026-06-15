@@ -11,8 +11,9 @@ npx wannabuild
 
 That auto-detects which hosts are present (`~/.claude`, `~/.codex`,
 `~/.factory`, `~/.cursor`), clones the WannaBuild repo at the latest release,
-downloads the prebuilt `wb-runtime` archive for your platform, verifies it by
-sha256, extracts the binary, and runs each host's install script. No Rust
+downloads the prebuilt `wb-runtime` archive for your platform, verifies its
+sha256 against the release's signed checksum manifest, extracts the binary, and
+runs each host's install script. No Rust
 toolchain required (`tar` is used to unpack — preinstalled on macOS, Linux, and
 Windows 10+).
 
@@ -56,8 +57,8 @@ npx wannabuild --cursor
 After install, the CLI runs `wb-runtime --version` on the placed binary to
 confirm it executes on this platform (a liveness check); a binary that cannot
 run aborts the install. `wb-runtime` is versioned `0.1.0` independent of the
-release tag — integrity comes from the mandatory sha256 verification above, not
-a version match.
+release tag — integrity comes from the mandatory signed-checksum verification
+above, not a version match.
 
 ## Security stance
 
@@ -69,16 +70,21 @@ bash scripts. To keep every install-time line auditable:
   `node:crypto`, `node:readline`). No transitive code runs at install time.
 - **No lifecycle scripts** — there is no `postinstall`/`preinstall`/`install`.
   Nothing happens until you *run* `npx wannabuild`.
-- **sha256 verification is mandatory** — the downloaded `wb-runtime` archive is
-  checked against its release `.sha256` before it is unpacked, and the binary is
-  then installed atomically (staged then renamed). A checksum mismatch aborts the
+- **Signed-checksum verification is mandatory** — the downloaded `wb-runtime`
+  archive's sha256 is checked against the release's `SHA256SUMS` manifest, and
+  that manifest's detached minisign (Ed25519) signature is verified against the
+  public key shipped in this package (`wannabuild-release.pub`) *before any
+  binary is downloaded*. The binary is then installed atomically (staged then
+  renamed). A bad or missing signature, or a checksum mismatch, aborts the
   install; it never falls back to an unverified binary.
-- **Trust boundary** — integrity rests on HTTPS-to-GitHub plus the checksum: the
-  archive *and* its `.sha256` come from the same release over TLS, so this defends
-  against corrupted/MITM'd downloads, not against a compromised release itself.
-  This matches how `rustup`/`nvm`/`bun` bootstrap. Detached signing
-  (minisign/cosign) of the checksums, with the public key shipped in this package,
-  is a planned hardening so a single tampered release asset can't pass.
+- **Trust boundary** — integrity rests on the signed manifest plus the
+  per-archive sha256: the signing key never travels with the release, so this
+  defends against corrupted/MITM'd downloads *and* a single tampered or
+  substituted release asset — rewriting an archive and its checksum line still
+  cannot forge the signature. What remains trusted is the public key shipped here
+  and that the offline signing key stays uncompromised. Releases that predate
+  signing carry no manifest and are refused unless you explicitly pin one with
+  `--ref` (which verifies the legacy unsigned `.sha256` only, with a warning).
 
 ## Windows
 

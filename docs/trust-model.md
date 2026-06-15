@@ -84,6 +84,22 @@ scripts/validate-wannabuild-artifacts.sh . document
 If an agent claims it shipped clean, these commands either agree or they
 don't.
 
+## Installer supply-chain integrity
+
+The ladder above governs what an agent can do *inside* a run. The npx installer
+that places `wb-runtime` has its own, separate trust root. The prebuilt binary it
+downloads is checked against the release's `SHA256SUMS` manifest, and that
+manifest carries a detached **minisign (Ed25519) signature** verified against a
+public key shipped inside the npm package (`wannabuild-release.pub`) **before any
+binary is fetched**. A tampered or substituted release asset cannot pass:
+rewriting an archive and its checksum line still cannot forge a signature made
+with a key that never travels with the release. This sits on the **Checked** rung
+— a program verifies the signature and refuses to install (non-zero) on any
+mismatch, missing signature, or wrong key. It does **not** defend against a
+compromised signing key; that key is the new trust root, kept offline. See
+[`installer/README.md`](../installer/README.md) and
+[`docs/supply-chain.md`](supply-chain.md).
+
 ## Per-host coverage
 
 | Host | Gate execution | Evidence recorder |

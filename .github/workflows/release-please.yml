@@ -143,9 +143,63 @@ jobs:
           fi
           gh release upload "$TAG" "$archive" "$archive.sha256" --clobber
 
+  sign-checksums:
+    name: Sign release checksums
+    needs: [release-please, release-binaries]
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Harden runner (audit)
+        # step-security/harden-runner v2.19.1
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411
+        with:
+          egress-policy: audit
+      - name: Install rsign2 (minisign-compatible signer, source build)
+        shell: bash
+        # Source build, version-pinned + --locked: reproducible, nothing to pin a
+        # binary digest against (matches the no-unpinned-binaries supply-chain
+        # policy). rsign2 emits standard minisign signatures.
+        run: cargo install rsign2 --version 0.6.6 --locked
+      - name: Sign the SHA256SUMS manifest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MINISIGN_SECRET_KEY:-}" ]; then
+            echo "::error::MINISIGN_SECRET_KEY secret is unset; cannot sign release checksums." >&2
+            exit 1
+          fi
+          workdir="$(mktemp -d)"
+          # Roll every per-archive .sha256 the matrix runners uploaded into one
+          # manifest. Concatenate the PUBLISHED .sha256 bytes (sorted by name) so
+          # the signed manifest provably equals what each runner published — never
+          # re-hash here.
+          gh release download "$TAG" -p '*.sha256' -D "$workdir"
+          : >"$workdir/SHA256SUMS"
+          while IFS= read -r sumfile; do
+            cat "$sumfile" >>"$workdir/SHA256SUMS"
+          done < <(find "$workdir" -maxdepth 1 -type f -name '*.sha256' | LC_ALL=C sort)
+          # Private key only touches a 0600 temp file, shredded right after.
+          umask 077
+          keyfile="$workdir/release.key"
+          printf '%s\n' "$MINISIGN_SECRET_KEY" >"$keyfile"
+          rsign sign -W -s "$keyfile" \
+            -x "$workdir/SHA256SUMS.minisig" \
+            -t "wannabuild ${TAG} release checksums" \
+            "$workdir/SHA256SUMS"
+          shred -u "$keyfile"
+          gh release upload "$TAG" \
+            "$workdir/SHA256SUMS" "$workdir/SHA256SUMS.minisig" --clobber
+
   npm-publish:
     name: Publish npm installer
-    needs: [release-please, release-binaries]
+    needs: [release-please, release-binaries, sign-checksums]
     if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
