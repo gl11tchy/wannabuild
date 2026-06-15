@@ -62,8 +62,10 @@ shipping with a runtime, not a prompt:
 
 > Needs the `wb-runtime` binary (a Codex install puts it on `PATH`; otherwise
 > `cargo build --release`). Binary-less Claude/Factory installs enforce the same
-> gates through the Python hook mirror rather than this CLI. Run it from a
-> project where `.wannabuild/` is initialized and you are at QA.
+> gates through the Python hook mirror (`record-test-evidence` /
+> `verify-test-evidence`); to reproduce the `assert-*` check below without the
+> binary, run `scripts/wannabuild-gate-check.sh`. Run it from a project where
+> `.wannabuild/` is initialized and you are at QA.
 
 ```bash
 # Hand the gate a perfect-looking forged verdict: 100 passing tests, every criterion covered,
@@ -342,9 +344,9 @@ set plus the prebuilt runtime. See
 npx wannabuild --cursor
 ```
 
-Cursor is rules-only and invokes no runtime, so the installer refreshes the
-`.cursor/rules/wannabuild.mdc` pointer and prints guidance — no binary is
-placed. You can also load
+Cursor is rules-only and invokes no runtime, so the installer verifies the
+`.cursor/rules/wannabuild.mdc` rule in your checkout and prints where to load
+it — nothing is written to Cursor and no binary is placed. You can also load
 [.cursor/rules/wannabuild.mdc](.cursor/rules/wannabuild.mdc) directly from a
 clone. Note this is the one host on the prose rung of the
 [trust model](docs/trust-model.md): gates run only when the agent invokes the

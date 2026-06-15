@@ -305,14 +305,15 @@ check_file "crates/wb-runtime/src/lib.rs" || status=1
 # Stale installed-binary guard. An installed wb-runtime that predates the
 # evidence gate lacks `record-test-evidence` and silently accepts forged
 # integration verdicts. Warn (not fail) so a returning user rebuilds; a fresh
-# checkout that never installed the binary has nothing to flag here. Probe the
-# Codex install dir (the exact RUNTIME_TARGET install-codex-skill.sh writes to)
-# and PATH, deduplicated so the same file is not probed twice. Factory and
-# Claude ship the Python hook mirror, not a binary, so there is no path there.
+# checkout that never built the binary has nothing to flag here. Probe the Codex
+# install dir (the exact RUNTIME_TARGET install-codex-skill.sh writes to), PATH,
+# and the local target/debug build (used by Claude installs and dev gate runs),
+# deduplicated so the same file is not probed twice.
 seen_runtimes=""
 for runtime_bin in \
   "$(command -v wb-runtime 2>/dev/null || true)" \
-  "${CODEX_RUNTIME_DIR:-${CODEX_BASE}/bin}/wb-runtime"; do
+  "${CODEX_RUNTIME_DIR:-${CODEX_BASE}/bin}/wb-runtime" \
+  "${ROOT}/target/debug/wb-runtime"; do
   [ -n "$runtime_bin" ] && [ -x "$runtime_bin" ] || continue
   resolved="$(resolve_path "$runtime_bin" || printf '%s' "$runtime_bin")"
   case " $seen_runtimes " in *" $resolved "*) continue ;; esac
@@ -501,21 +502,25 @@ echo
 echo "Runtime binary"
 echo "Each installed host must reach the Rust wb-runtime gate engine; a missing"
 echo "binary silently degrades that host to the Python mirror, so this fails hard."
+# Gate each host's runtime check on WannaBuild actually being installed into
+# that host (the install marker verified above), not on the bare host home dir
+# existing. Otherwise a user who merely has ~/.claude (but never ran the Claude
+# install) gets a spurious hard FAIL for a runtime they never asked for.
 runtime_hosts_checked=0
-if [[ -d "${CLAUDE_HOME_DIR}" ]]; then
+if [[ -e "${CLAUDE_HOME_DIR}/plugins/cache/gl11tchy/wannabuild/local" ]]; then
   runtime_hosts_checked=1
   check_runtime_binary "${ROOT}/target/debug/wb-runtime" "Claude wb-runtime present and executable" || status=1
 fi
-if [[ -d "${CODEX_BASE}" ]]; then
+if [[ -e "${CODEX_SKILLS_DIR}/wannabuild" ]]; then
   runtime_hosts_checked=1
   check_runtime_binary "${CODEX_RUNTIME_DIR}/wb-runtime" "Codex wb-runtime present and executable" || status=1
 fi
-if [[ -d "${FACTORY_HOME_DIR}" ]]; then
+if [[ -e "${FACTORY_PLUGIN_CACHE}" ]]; then
   runtime_hosts_checked=1
   check_runtime_binary "${FACTORY_PLUGIN_CACHE}/target/debug/wb-runtime" "Factory wb-runtime present and executable" || status=1
 fi
 if [[ "$runtime_hosts_checked" -eq 0 ]]; then
-  echo "No host install directories found; skipping runtime binary checks."
+  echo "No installed host detected; skipping runtime binary checks."
 fi
 echo
 printf '%s%d pass · %d warn · %d fail%s\n\n' \

@@ -101,9 +101,10 @@ deliberately.
 
 ## For maintainers
 
-Releases are built and published by
-`.github/workflows/release-binaries.yml` on `release: published`. npm publishing
-uses `--provenance`, which requires:
+Releases are cut by `.github/workflows/release-please.yml` on push to `main`.
+When release-please marks a release created, its `release-binaries` and
+`npm-publish` jobs run (gated on `releases_created`) to build the cross-platform
+binaries and publish to npm. npm publishing uses `--provenance`, which requires:
 
 - the `NPM_TOKEN` repository secret (publishing is skipped with a clear log if
   it is unset), and

@@ -100,7 +100,7 @@ bash scripts/apply-rulesets.sh --dry-run
 
 ### Workflow model
 
-Public (user-facing): `Discover → Plan → Implement → Review → QA → Summary`
+Public (user-facing): `Discover → Plan → Implement → Validate → QA → Summary`
 
 Internal (7 execution phases): `Requirements → Design → Tasks → Implement → Review → Ship → Document`
 
