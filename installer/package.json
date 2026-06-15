@@ -1,6 +1,6 @@
 {
   "name": "wannabuild",
-  "version": "2.7.3",
+  "version": "2.8.0",
   "description": "One-command installer for WannaBuild: a spec-driven, trust-hardened build workflow for Claude Code, Codex, Factory, and Cursor. Installs the real Rust gate runtime into every detected host.",
   "bin": {
     "wannabuild": "bin/wannabuild.js"
