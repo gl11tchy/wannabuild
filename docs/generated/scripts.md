@@ -236,6 +236,52 @@ Always exits 0 — CI must never fail because metrics emission failed.
 - `-l`
 - `-u`
 
+## `demo-forgery-rejection.sh`
+
+Path: `scripts/demo-forgery-rejection.sh`
+
+### Description
+
+```text
+
+demo-forgery-rejection.sh — the reproducible "try to cheat it" demo behind the
+README cast. A lazy agent skips the tests and hands the QA gate a
+perfect-looking, 100%-passing integration verdict it never actually ran; the
+runtime refuses it because no signed, runtime-recorded evidence backs the
+claim.
+
+Standalone-runnable (CI smoke): the gate's EXPECTED non-zero exit is the
+success condition — mirroring run_expect_failure in
+scripts/validate-wannabuild-dry-runs.sh. This script exits 0 only when the
+forgery is rejected with the expected message, non-zero otherwise.
+
+  WB_RUNTIME_BIN=path/to/wb-runtime scripts/demo-forgery-rejection.sh
+
+WB_EVIDENCE_MODE is deliberately scrubbed: fixture mode short-circuits evidence
+verification and would make the forgery PASS, destroying the demo.
+```
+
+### Functions
+
+- `beat`
+- `cleanup`
+- `prompt`
+- `say`
+
+### CLI flags / options observed
+
+- `--project`
+- `-P`
+- `-d`
+- `-e`
+- `-n`
+- `-p`
+- `-q`
+- `-r`
+- `-t`
+- `-u`
+- `-x`
+
 ## `format.sh`
 
 Path: `scripts/format.sh`
@@ -456,6 +502,43 @@ then exits non-zero if any check failed.
 - `-i`
 - `-u`
 - `-v`
+
+## `record-demo-cast.sh`
+
+Path: `scripts/record-demo-cast.sh`
+
+### Description
+
+```text
+
+record-demo-cast.sh — regenerate the forgery-rejection demo cast and GIF.
+Idempotent (precedent: scripts/generate-docs.sh). Records the standalone demo
+non-interactively — asciinema's --command spawns it in its own pty, so the
+demo's colors and pacing render even with no controlling terminal — then
+renders the committed GIF the README embeds.
+
+  scripts/record-demo-cast.sh
+
+The .cast (JSON source of truth) and .gif (artifact) are both committed; do not
+gate CI on GIF byte-equality — timestamps differ run to run. The meaningful
+diff is the .cast.
+```
+
+### CLI flags / options observed
+
+- `--command`
+- `--headless`
+- `--idle-time-limit`
+- `--overwrite`
+- `--return`
+- `--speed`
+- `--theme`
+- `--window-size`
+- `-e`
+- `-n`
+- `-p`
+- `-v`
+- _1 more omitted._
 
 ## `scrub-log.sh`
 
