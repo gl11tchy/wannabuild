@@ -8,6 +8,13 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.8.1](https://github.com/gl11tchy/wannabuild/compare/v2.8.0...v2.8.1) (2026-06-15)
+
+
+### Fixes
+
+* **release:** give sign-checksums job repo context for gh release I/O ([#80](https://github.com/gl11tchy/wannabuild/issues/80)) ([eef57d9](https://github.com/gl11tchy/wannabuild/commit/eef57d971f268c91697e99bbcfbe2ce7f107c533))
+
 ## [2.8.0](https://github.com/gl11tchy/wannabuild/compare/v2.7.3...v2.8.0) (2026-06-15)
 
 
