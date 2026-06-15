@@ -8,6 +8,18 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.8.0](https://github.com/gl11tchy/wannabuild/compare/v2.7.3...v2.8.0) (2026-06-15)
+
+
+### Features
+
+* sign release sha256 manifests and verify in installer ([#77](https://github.com/gl11tchy/wannabuild/issues/77)) ([5052a23](https://github.com/gl11tchy/wannabuild/commit/5052a23be9de7f1d84fc8cb799251870ecfe6f36))
+
+
+### Docs
+
+* add forgery-rejection demo cast to README ([#78](https://github.com/gl11tchy/wannabuild/issues/78)) ([289e39c](https://github.com/gl11tchy/wannabuild/commit/289e39c3ca196b7fd9af7d9b9d99c1a64a551440))
+
 ## [2.7.3](https://github.com/gl11tchy/wannabuild/compare/v2.7.2...v2.7.3) (2026-06-15)
 
 
