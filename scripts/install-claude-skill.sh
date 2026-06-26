@@ -83,9 +83,9 @@ ps_literal() {
 safe_remove_existing() {
   local path="$1"
   case "$path" in
-    "${CLAUDE_HOME}/plugins/cache/"*) ;;
+    "${CLAUDE_HOME}/plugins/cache/"* | "${CLAUDE_HOME}/plugins/marketplaces/"*) ;;
     *)
-      echo "Refusing to remove path outside Claude plugin cache: $path" >&2
+      echo "Refusing to remove path outside Claude plugin cache/marketplaces: $path" >&2
       return 1
       ;;
   esac
@@ -167,8 +167,13 @@ JSON_MARKETPLACE_DIR="$(json_path_for_host "$MARKETPLACE_DIR")"
 # Remove stale claude-plugins-official wannabuild entry if present.
 safe_remove_existing "${CLAUDE_HOME}/plugins/cache/claude-plugins-official/wannabuild"
 
-# Create marketplace directory (presence prevents Claude Code from re-fetching)
-mkdir -p "${MARKETPLACE_DIR}/plugins/wannabuild"
+# Link the marketplace to this repo so Claude Code finds its
+# .claude-plugin/marketplace.json (and resolves the source:"./" plugin at the
+# marketplace root). A bare placeholder dir has no manifest, so Claude Code
+# fails to load the marketplace (or redundantly re-clones it).
+mkdir -p "$(dirname "$MARKETPLACE_DIR")"
+safe_remove_existing "$MARKETPLACE_DIR"
+create_plugin_link "$ROOT" "$MARKETPLACE_DIR"
 
 # Create plugin symlink pointing to this repo
 mkdir -p "$(dirname "$PLUGIN_CACHE")"
@@ -232,6 +237,10 @@ PY
 
 if [[ ! -f "${PLUGIN_CACHE}/.claude-plugin/plugin.json" ]]; then
   echo "Install verification failed: plugin manifest not reachable at ${PLUGIN_CACHE}" >&2
+  exit 1
+fi
+if [[ ! -f "${MARKETPLACE_DIR}/.claude-plugin/marketplace.json" ]]; then
+  echo "Install verification failed: marketplace manifest not reachable at ${MARKETPLACE_DIR}" >&2
   exit 1
 fi
 if [[ ! -f "${PLUGIN_CACHE}/hooks/hooks.json" ]]; then
