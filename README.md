@@ -192,13 +192,16 @@ the real Rust gates (never the degraded Python mirror):
 npx wannabuild
 ```
 
-By default it clones the repo to `~/.wannabuild`, pins to the latest release
-tag, auto-detects every installed host, and installs into each. Useful flags:
+By default it clones the repo to `~/.wannabuild/checkout`, pins to the latest
+release tag, auto-detects every installed host, and installs into each. (The
+checkout sits under `~/.wannabuild/` rather than at it, so it never collides with
+the runtime's out-of-tree signing key at `~/.wannabuild/evidence.key`.) Useful
+flags:
 
 | Flag | Effect |
 |---|---|
 | `--claude` `--codex` `--factory` `--cursor` | Install only the named host(s); disables auto-detect |
-| `--dir <path>` | Where the checkout lives (default `~/.wannabuild`) |
+| `--dir <path>` | Where the checkout lives (default `~/.wannabuild/checkout`) |
 | `--ref <git-ref>` | Pin both the checkout and the binary asset (default: latest release tag) |
 | `--yes` / `-y` | Non-interactive; don't prompt before overwriting |
 | `--help` / `-h`, `--version` / `-v` | Help / version |
@@ -221,7 +224,8 @@ Co-primary path (alongside Codex).
 npx wannabuild --claude
 ```
 
-This places the prebuilt `wb-runtime` at `~/.wannabuild/target/debug/wb-runtime`
+This places the prebuilt `wb-runtime` at
+`~/.wannabuild/checkout/target/debug/wb-runtime`
 (where the plugin cache symlink resolves it), registers and enables the plugin
 under `~/.claude/plugins/`, and verifies the hook shape. Then run
 `/reload-plugins` and start with a natural feature or ideation prompt:

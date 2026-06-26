@@ -61,6 +61,17 @@ run_cli() {
   [[ "$output" == *"install"* ]]
 }
 
+@test "npx_installer: default checkout dir is a subdir of ~/.wannabuild, not the key dir" {
+  # The runtime owns ~/.wannabuild for its out-of-tree evidence key
+  # (~/.wannabuild/evidence.key). The checkout must default to a subdirectory so
+  # the two never collide; help advertises that contract.
+  run_cli --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"~/.wannabuild/checkout"* ]]
+  # Guard against a regression to the bare ~/.wannabuild default.
+  [[ "$output" != *"default: ~/.wannabuild)"* ]]
+}
+
 @test "npx_installer: -h is an alias for help" {
   run_cli -h
   [ "$status" -eq 0 ]

@@ -26,7 +26,7 @@ Host-agnostic:
 `npx wannabuild` is the primary install path for every runtime host. It
 auto-detects installed hosts, downloads and sha256-verifies the prebuilt Rust
 `wb-runtime` archive for the platform (no local Rust toolchain), extracts it,
-and places it where each host's resolver looks (`~/.wannabuild/target/debug` for
+and places it where each host's resolver looks (`~/.wannabuild/checkout/target/debug` for
 Claude, `~/.codex/bin` for Codex, the Factory plugin cache for Factory). The
 per-host `scripts/install-*.sh` remain available for from-source installs and
 build `wb-runtime` with cargo when no prebuilt binary is supplied.

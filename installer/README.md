@@ -47,7 +47,7 @@ npx wannabuild --cursor
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--dir <path>` | `~/.wannabuild` | Where the WannaBuild checkout lives |
+| `--dir <path>` | `~/.wannabuild/checkout` | Where the WannaBuild checkout lives |
 | `--ref <git-ref>` | latest release tag | Pins **both** the checkout and the downloaded binary |
 | `--yes`, `-y` | off | Non-interactive; do not prompt before updating an existing checkout |
 | `--purge` | off | With `uninstall`: remove the checkout directory |
@@ -98,7 +98,7 @@ none is found it errors with install guidance — it never degrades. Install
 
 ```bash
 npx wannabuild uninstall            # prints host-managed entries + exact removal commands
-npx wannabuild uninstall --purge    # also removes the ~/.wannabuild checkout
+npx wannabuild uninstall --purge    # also removes the ~/.wannabuild/checkout directory
 ```
 
 Uninstall never deletes anything outside the checkout, `~/.codex/bin`, or the
