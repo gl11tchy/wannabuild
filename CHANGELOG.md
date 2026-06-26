@@ -8,6 +8,13 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.8.3](https://github.com/gl11tchy/wannabuild/compare/v2.8.2...v2.8.3) (2026-06-26)
+
+
+### Fixes
+
+* **installer:** wire Claude marketplace to the repo so it loads ([#87](https://github.com/gl11tchy/wannabuild/issues/87)) ([176bd5b](https://github.com/gl11tchy/wannabuild/commit/176bd5b4479c267d0eee439a329bc7b1aceeae39))
+
 ## [2.8.2](https://github.com/gl11tchy/wannabuild/compare/v2.8.1...v2.8.2) (2026-06-26)
 
 
