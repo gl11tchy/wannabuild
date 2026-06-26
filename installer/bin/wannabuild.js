@@ -13,7 +13,12 @@ const { resolveHosts, installHost } = require("../lib/hosts");
 const { runScript, runCapture } = require("../lib/run");
 
 const PKG = require("../package.json");
-const DEFAULT_DIR = path.join(os.homedir(), ".wannabuild");
+// The checkout lives in a subdirectory of ~/.wannabuild, never ~/.wannabuild
+// itself. The runtime stores its out-of-tree evidence key at
+// ~/.wannabuild/evidence.key (crates/wb-runtime/src/evidence.rs); defaulting the
+// checkout to ~/.wannabuild would land the clone on top of that key, and
+// ensureCheckout would then refuse the non-empty, non-git directory forever.
+const DEFAULT_DIR = path.join(os.homedir(), ".wannabuild", "checkout");
 
 main().catch((err) => {
   process.stderr.write(`\nwannabuild: ${err.message}\n`);
@@ -189,7 +194,7 @@ function printHelp() {
       "  --claude --codex --factory --cursor\n" +
       "\n" +
       "Options:\n" +
-      "  --dir <path>   Checkout location (default: ~/.wannabuild)\n" +
+      "  --dir <path>   Checkout location (default: ~/.wannabuild/checkout)\n" +
       "  --ref <ref>    Git ref to install; pins checkout and asset (default: latest release tag)\n" +
       "  --yes, -y      Non-interactive; do not prompt before updating an existing checkout\n" +
       "  --purge        With uninstall: remove the checkout directory\n" +

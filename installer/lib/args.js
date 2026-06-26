@@ -10,7 +10,7 @@ const HOST_FLAGS = ["claude", "codex", "factory", "cursor"];
 //   {
 //     subcommand: "install" | "doctor" | "uninstall" | "help" | "version",
 //     hosts: string[] | null,   // null => auto-detect; non-empty => explicit set
-//     dir: string | null,       // null => caller default (~/.wannabuild)
+//     dir: string | null,       // null => caller default (~/.wannabuild/checkout)
 //     ref: string | null,       // null => latest release tag
 //     yes: boolean,             // non-interactive
 //     purge: boolean,           // uninstall --purge

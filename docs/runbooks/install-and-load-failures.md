@@ -363,7 +363,7 @@ and exits non-zero.
 its `wb-runtime` binary is missing or not executable, the host would silently
 fall back to the degraded Python mirror instead of the real Rust gates. Doctor
 makes that loud: it checks each installed host's binary at its resolution path —
-`~/.wannabuild/target/debug/wb-runtime` (Claude), `~/.codex/bin/wb-runtime`
+`~/.wannabuild/checkout/target/debug/wb-runtime` (Claude), `~/.codex/bin/wb-runtime`
 (Codex), and `<plugin cache>/local/target/debug/wb-runtime` (Factory) — and
 fails when one is absent or not `-x`.
 
@@ -380,6 +380,33 @@ re-downloads the verified binary and re-places it where the host resolves it,
 then runs `wb-runtime --version` to confirm the placed binary executes on this
 platform. If the install completes but doctor still fails, confirm the binary is
 executable (`chmod +x` on the resolution path) and re-run doctor.
+
+---
+
+## `npx wannabuild` aborts: `Refusing to use ~/.wannabuild: ... not a WannaBuild git checkout`
+
+**Symptom.** `npx wannabuild` stops immediately with `Refusing to use
+/…/.wannabuild: it exists but is not a WannaBuild git checkout. Pass a different
+--dir, or remove that directory yourself first.` — but you never created a
+checkout there.
+
+**Cause.** Legacy layout collision. The runtime stores its out-of-tree evidence
+key at `~/.wannabuild/evidence.key`, created the first time you run QA
+(`record-test-evidence`). Installer builds before this fix also defaulted the
+repo checkout to `~/.wannabuild` itself, so once the key existed the installer
+found a non-empty, non-git directory and refused to clone over it — correctly,
+because it must never destroy the signing key. Current builds clone into
+`~/.wannabuild/checkout` instead, so the key and the checkout no longer share a
+directory and a fresh install just works.
+
+**Fix.** Re-run an installer that uses the `~/.wannabuild/checkout` default
+(`npx wannabuild`). If you are pinned to an older build, install to an explicit
+subdirectory — `npx wannabuild --dir ~/.wannabuild/checkout` — and pass the same
+`--dir` to `doctor`/`uninstall`. Do **not** `rm -rf ~/.wannabuild`: that deletes
+`evidence.key`, after which every already-recorded evidence record stops
+verifying. A stray *git* checkout left at `~/.wannabuild` by a pre-fix install is
+safe to remove once the new `~/.wannabuild/checkout` install succeeds — but leave
+`~/.wannabuild/evidence.key` in place.
 
 ---
 

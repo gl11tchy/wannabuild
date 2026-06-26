@@ -11,7 +11,7 @@ npx wannabuild --claude
 ```
 
 This downloads a prebuilt, checksum-verified `wb-runtime` for your platform,
-places it at `~/.wannabuild/target/debug/wb-runtime` (where the plugin cache
+places it at `~/.wannabuild/checkout/target/debug/wb-runtime` (where the plugin cache
 symlink resolves it), and runs the repo install script so Claude Code runs the
 real Rust gates. Run `/reload-plugins`, then start with natural language:
 
