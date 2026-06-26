@@ -8,6 +8,13 @@ Beginning with the next release, this file is maintained automatically by
 [release-please](https://github.com/googleapis/release-please) — do not edit
 the auto-generated sections by hand.
 
+## [2.8.2](https://github.com/gl11tchy/wannabuild/compare/v2.8.1...v2.8.2) (2026-06-26)
+
+
+### Fixes
+
+* **installer:** clone checkout into ~/.wannabuild/checkout ([#85](https://github.com/gl11tchy/wannabuild/issues/85)) ([c7a136d](https://github.com/gl11tchy/wannabuild/commit/c7a136d5253a2ac2bd5fd2eee1eb7b300b336c95))
+
 ## [2.8.1](https://github.com/gl11tchy/wannabuild/compare/v2.8.0...v2.8.1) (2026-06-15)
 
 
