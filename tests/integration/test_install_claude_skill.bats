@@ -35,6 +35,22 @@ run_install() {
   [ -e "$cache/hooks/hooks.json" ]
 }
 
+@test "install-claude-skill: marketplace manifest is reachable at its installLocation" {
+  # Regression: the marketplace dir must expose .claude-plugin/marketplace.json
+  # at the registered installLocation, or Claude Code fails to load the
+  # marketplace ("1 error during load"). A bare placeholder dir has no manifest.
+  fake_home="$(setup_tmpdir)/host"
+  mkdir -p "$fake_home"
+
+  run run_install "$fake_home"
+  [ "$status" -eq 0 ]
+
+  marketplace="$fake_home/.claude/plugins/marketplaces/gl11tchy"
+  [ -e "$marketplace/.claude-plugin/marketplace.json" ]
+  # source:"./" resolves the plugin at the marketplace root.
+  [ -e "$marketplace/.claude-plugin/plugin.json" ]
+}
+
 @test "install-claude-skill: exposes public wb-ship skill but not legacy ship skill" {
   fake_home="$(setup_tmpdir)/host"
   mkdir -p "$fake_home"
