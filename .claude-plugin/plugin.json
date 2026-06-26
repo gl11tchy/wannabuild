@@ -1,7 +1,7 @@
 {
   "name": "wannabuild",
   "description": "Spec-driven development with 25 specialist agents and fail-closed phase gates. Your agent can't mark its own homework.",
-  "version": "2.8.2",
+  "version": "2.8.3",
   "author": {
     "name": "gl11tchy"
   },
